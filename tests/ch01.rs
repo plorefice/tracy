@@ -61,18 +61,12 @@ async fn tuple_is_vector(runner: &mut Runner, not_str: String) {
 
 #[then(regex = r"p = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)")]
 async fn point_is_tuple(runner: &mut Runner, x: f32, y: f32, z: f32, w: f32) {
-    assert!((runner.p.x - x).abs() < EPSILON);
-    assert!((runner.p.y - y).abs() < EPSILON);
-    assert!((runner.p.z - z).abs() < EPSILON);
-    assert!((runner.p.w - w).abs() < EPSILON);
+    assert_eq!(runner.p, Tuple::from((x, y, z, w)));
 }
 
 #[then(regex = r"v = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)")]
 async fn vector_is_tuple(runner: &mut Runner, x: f32, y: f32, z: f32, w: f32) {
-    assert!((runner.v.x - x).abs() < EPSILON);
-    assert!((runner.v.y - y).abs() < EPSILON);
-    assert!((runner.v.z - z).abs() < EPSILON);
-    assert!((runner.v.w - w).abs() < EPSILON);
+    assert_eq!(runner.v, Tuple::from((x, y, z, w)));
 }
 
 #[tokio::main]

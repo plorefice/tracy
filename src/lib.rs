@@ -6,7 +6,7 @@
 use std::f32::EPSILON;
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Tuple {
     /// The `x` component of this tuple.
     pub x: f32,
@@ -43,5 +43,14 @@ impl Tuple {
     /// Checks whether this tuple represents a vector, ie. its `w` component is equal to 0.
     pub fn is_vector(&self) -> bool {
         self.w == 0.0
+    }
+}
+
+impl PartialEq for Tuple {
+    fn eq(&self, other: &Self) -> bool {
+        (self.x - other.x).abs() < EPSILON
+            && (self.y - other.y).abs() < EPSILON
+            && (self.z - other.z).abs() < EPSILON
+            && (self.w - other.w).abs() < EPSILON
     }
 }
