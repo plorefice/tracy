@@ -3,7 +3,7 @@
 #![deny(missing_debug_implementations)]
 #![warn(missing_docs)]
 
-use std::f32::EPSILON;
+use std::{f32::EPSILON, ops::Add};
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
 #[derive(Debug, Default, Clone, Copy)]
@@ -43,6 +43,19 @@ impl Tuple {
     /// Checks whether this tuple represents a vector, ie. its `w` component is equal to 0.
     pub fn is_vector(&self) -> bool {
         self.w == 0.0
+    }
+}
+
+impl Add for Tuple {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::Output {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+            w: self.w + rhs.w,
+        }
     }
 }
 
