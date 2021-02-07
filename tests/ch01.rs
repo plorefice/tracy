@@ -162,6 +162,6 @@ async fn cross_product(tr: &mut TestRunner, a: String, b: String, x: f32, y: f32
 
 #[tokio::main]
 async fn main() {
-    let runner = TestRunner::init(&["./features"]);
+    let runner = TestRunner::init(&["./features/ch01"]);
     runner.run_and_exit().await;
 }
