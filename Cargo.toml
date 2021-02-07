@@ -36,3 +36,7 @@ opt-level = "s"
 [[test]]
 harness = false
 name = "ch01"
+
+[[test]]
+harness = false
+name = "ch02"

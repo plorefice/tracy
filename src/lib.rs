@@ -3,6 +3,7 @@
 #![deny(missing_debug_implementations)]
 #![warn(missing_docs)]
 
+pub mod canvas;
 pub mod math;
 
 use math::Coords;
