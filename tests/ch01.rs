@@ -1,11 +1,11 @@
 use std::{collections::HashMap, convert::Infallible, f32::EPSILON};
 
 use cucumber_rust::{async_trait, given, then, World, WorldInit};
-use trtc::Tuple;
+use trtc::Coords;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
-    vars: HashMap<String, Tuple>,
+    vars: HashMap<String, Coords>,
 }
 
 #[async_trait(?Send)]
@@ -26,12 +26,12 @@ async fn given_a_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32,
 
 #[given(regex = r"^([a-z0-9]+) ← point\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn given_a_point(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32) {
-    tr.vars.insert(var, Tuple::from_point(x, y, z));
+    tr.vars.insert(var, Coords::from_point(x, y, z));
 }
 
 #[given(regex = r"^([a-z0-9]+) ← vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn given_a_vector(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32) {
-    tr.vars.insert(var, Tuple::from_vector(x, y, z));
+    tr.vars.insert(var, Coords::from_vector(x, y, z));
 }
 
 #[then(regex = r"^([a-z0-9]+).([xyzw]) = ([0-9.-]+)$")]
@@ -67,17 +67,17 @@ async fn tuple_sum_equals(
     z: f32,
     w: f32,
 ) {
-    assert_eq!(tr.vars[&a1] + tr.vars[&a2], Tuple::from((x, y, z, w)));
+    assert_eq!(tr.vars[&a1] + tr.vars[&a2], Coords::from((x, y, z, w)));
 }
 
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn point_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&var], Tuple::from((x, y, z, w)));
+    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
 }
 
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn vector_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&var], Tuple::from((x, y, z, w)));
+    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
 }
 
 #[tokio::main]

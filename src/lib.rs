@@ -7,7 +7,7 @@ use std::{f32::EPSILON, ops::Add};
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
 #[derive(Debug, Default, Clone, Copy)]
-pub struct Tuple {
+pub struct Coords {
     /// The `x` component of this tuple.
     pub x: f32,
     /// The `y` component of this tuple.
@@ -18,13 +18,13 @@ pub struct Tuple {
     pub w: f32,
 }
 
-impl From<(f32, f32, f32, f32)> for Tuple {
+impl From<(f32, f32, f32, f32)> for Coords {
     fn from((x, y, z, w): (f32, f32, f32, f32)) -> Self {
         Self { x, y, z, w }
     }
 }
 
-impl Tuple {
+impl Coords {
     /// Creates a new tuple from the coordinates of a point in space.
     pub fn from_point(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z, w: 1.0 }
@@ -46,7 +46,7 @@ impl Tuple {
     }
 }
 
-impl Add for Tuple {
+impl Add for Coords {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -59,7 +59,7 @@ impl Add for Tuple {
     }
 }
 
-impl PartialEq for Tuple {
+impl PartialEq for Coords {
     fn eq(&self, other: &Self) -> bool {
         (self.x - other.x).abs() < EPSILON
             && (self.y - other.y).abs() < EPSILON
