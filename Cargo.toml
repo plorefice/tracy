@@ -4,9 +4,34 @@ edition = "2018"
 name = "trtc"
 version = "0.1.0"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["console_error_panic_hook"]
+
+[dependencies]
+console_error_panic_hook = {version = "0.1.6", optional = true}
+js-sys = "0.3.47"
+wasm-bindgen = "0.2.63"
+
+[dependencies.web-sys]
+features = [
+  'CanvasRenderingContext2d',
+  'Document',
+  'Element',
+  'HtmlCanvasElement',
+  'ImageData',
+  'Window',
+]
+version = "0.3.47"
+
 [dev-dependencies]
 cucumber_rust = {version = "0.8.2", features = ["macros"]}
 tokio = {version = "1", features = ["macros", "rt-multi-thread"]}
+
+[profile.release]
+opt-level = "s"
 
 [[test]]
 harness = false

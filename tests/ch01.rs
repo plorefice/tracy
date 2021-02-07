@@ -3,7 +3,7 @@
 use std::{collections::HashMap, convert::Infallible, f32::EPSILON};
 
 use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
-use trtc::Coords;
+use trtc::math::Coords;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
