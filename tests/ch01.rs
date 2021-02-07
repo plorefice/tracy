@@ -145,6 +145,21 @@ async fn vector_normalize(tr: &mut TestRunner, a: String, x: f32, y: f32, z: f32
     assert!((tr.vars[&a].normalize() - Coords::from_vector(x, y, z)).length() < 1e6);
 }
 
+#[then(regex = r"^dot\(([a-z0-9]+), ([a-z0-9]+)\) = ([0-9.-]+)$")]
+async fn dot_product(tr: &mut TestRunner, a: String, b: String, dot: f32) {
+    assert!((tr.vars[&a].dot(&tr.vars[&b]) - dot).abs() < EPSILON);
+}
+
+#[then(
+    regex = r"^cross\(([a-z0-9]+), ([a-z0-9]+)\) = vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
+)]
+async fn cross_product(tr: &mut TestRunner, a: String, b: String, x: f32, y: f32, z: f32) {
+    assert_eq!(
+        tr.vars[&a].cross(&tr.vars[&b]),
+        Coords::from_vector(x, y, z)
+    );
+}
+
 #[tokio::main]
 async fn main() {
     let runner = TestRunner::init(&["./features"]);

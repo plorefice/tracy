@@ -62,6 +62,22 @@ impl Coords {
             w: self.w / self.length(),
         }
     }
+
+    /// Computes the dot product of `self` and `rhs`.
+    pub fn dot(&self, rhs: &Self) -> f32 {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
+    }
+
+    /// Computes the cross product of `self` and `rhs`.
+    ///
+    /// This operation only makes sense on vectors.
+    pub fn cross(&self, rhs: &Self) -> Self {
+        Self::from_vector(
+            self.y * rhs.z - self.z * rhs.y,
+            self.z * rhs.x - self.x * rhs.z,
+            self.x * rhs.y - self.y * rhs.x,
+        )
+    }
 }
 
 impl Add for Coords {
