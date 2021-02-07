@@ -47,6 +47,21 @@ impl Coords {
     pub fn is_vector(&self) -> bool {
         self.w == 0.0
     }
+
+    /// Computes the magnitude of `self`.
+    pub fn length(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
+    }
+
+    /// Returns `self` normalized to length 1.0.
+    pub fn normalize(&self) -> Self {
+        Self {
+            x: self.x / self.length(),
+            y: self.y / self.length(),
+            z: self.z / self.length(),
+            w: self.w / self.length(),
+        }
+    }
 }
 
 impl Add for Coords {

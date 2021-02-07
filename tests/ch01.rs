@@ -2,7 +2,7 @@
 
 use std::{collections::HashMap, convert::Infallible, f32::EPSILON};
 
-use cucumber_rust::{async_trait, given, then, World, WorldInit};
+use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
 use trtc::Coords;
 
 #[derive(WorldInit)]
@@ -36,6 +36,11 @@ async fn given_a_vector(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32
     tr.vars.insert(var, Coords::from_vector(x, y, z));
 }
 
+#[when(regex = r"^([a-z0-9]+) ← normalize\(([a-z0-9]+)\)$")]
+async fn normalized(tr: &mut TestRunner, to: String, from: String) {
+    tr.vars.insert(to, tr.vars[&from].normalize());
+}
+
 #[then(regex = r"^([a-z0-9]+).([xyzw]) = ([0-9.-]+)$")]
 async fn tuple_field_equals_value(tr: &mut TestRunner, var: String, field: char, value: f32) {
     match field {
@@ -45,6 +50,16 @@ async fn tuple_field_equals_value(tr: &mut TestRunner, var: String, field: char,
         'w' => assert!((tr.vars[&var].w - value).abs() < EPSILON),
         _ => unreachable!("invalid tuple field"),
     }
+}
+
+#[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
+async fn point_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
+    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
+}
+
+#[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
+async fn vector_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
+    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
 }
 
 #[then(regex = r"^([a-z0-9]+) is (not )?a point$")]
@@ -115,14 +130,19 @@ async fn tuple_div_scalar(tr: &mut TestRunner, a: String, s: f32, x: f32, y: f32
     assert_eq!(tr.vars[&a] / s, Coords::from((x, y, z, w)));
 }
 
-#[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
-async fn point_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
+#[then(regex = r"^magnitude\(([a-z0-9]+)\) = (√)?([0-9.-]+)$")]
+async fn vector_magnitude(tr: &mut TestRunner, a: String, sqrt: String, mut mag: f32) {
+    if !sqrt.is_empty() {
+        mag = mag.sqrt();
+    }
+    assert!((tr.vars[&a].length() - mag).abs() < EPSILON);
 }
 
-#[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
-async fn vector_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
+#[then(
+    regex = r"^normalize\(([a-z0-9]+)\) = (?:approximately )?vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
+)]
+async fn vector_normalize(tr: &mut TestRunner, a: String, x: f32, y: f32, z: f32) {
+    assert!((tr.vars[&a].normalize() - Coords::from_vector(x, y, z)).length() < 1e6);
 }
 
 #[tokio::main]
