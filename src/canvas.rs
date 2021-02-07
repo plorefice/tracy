@@ -1,6 +1,9 @@
 //! Virtual canvas to which the final image will be rendered.
 
-use std::ops::{Add, Mul, Sub};
+use std::{
+    ops::{Add, Mul, Sub},
+    slice,
+};
 
 /// A color in RGB format.
 #[derive(Debug, Default, Clone, Copy)]
@@ -119,11 +122,18 @@ impl Canvas {
         self.height
     }
 
-    /// Returns an iterator over the pixes of this canvas.
+    /// Returns an iterator over the pixels of this canvas.
     ///
     /// The canvas is traversed top-to-bottom, left-to-right.
-    pub fn iter(&self) -> std::slice::Iter<Color> {
+    pub fn iter(&self) -> slice::Iter<Color> {
         self.grid.iter()
+    }
+
+    /// Returns a mutable iterator over the pixels of this canvas.
+    ///
+    /// The canvas is traversed top-to-bottom, left-to-right.
+    pub fn iter_mut(&mut self) -> slice::IterMut<Color> {
+        self.grid.iter_mut()
     }
 
     /// Sets the pixel at position `(x,y)` to the specified color.
@@ -147,10 +157,29 @@ impl Canvas {
         ppm.reserve(self.width() * self.height() * 12);
 
         for y in 0..self.height() {
+            let mut line_len = 0;
+
             for x in 0..self.width() {
                 let (r, g, b) = self.get(x, y).unwrap().to_rgb888();
-                ppm += &format!("{} {} {} ", r, g, b);
+
+                // Lines should not be longer than 70 characters in PPM files.
+                // Iterate over each color component in order to split lines as close as possible
+                // to the 70 character mark.
+                for val in &[r, g, b] {
+                    let s = format!("{} ", val);
+
+                    // Swap out the last space for a newline and reset the length counter
+                    if line_len + s.len() > 70 {
+                        ppm.pop();
+                        ppm.push('\n');
+                        line_len = 0;
+                    }
+
+                    ppm += &s;
+                    line_len += s.len();
+                }
             }
+
             ppm.pop();
             ppm.push('\n');
         }

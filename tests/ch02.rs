@@ -66,6 +66,12 @@ async fn convert_to_ppm(tr: &mut TestRunner) {
     tr.ppm = tr.canvas.convert_to_ppm();
 }
 
+#[when(regex = r"every pixel of c is set to color\((.*), (.*), (.*)\)")]
+async fn set_all_pixels_to_color(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
+    let c = Color::new(r, g, b);
+    tr.canvas.iter_mut().for_each(|pixel| *pixel = c);
+}
+
 #[then(regex = r"^c.(red|green|blue) = (.*)$")]
 async fn color_component_equals(tr: &mut TestRunner, which: String, val: f32) {
     match which.as_str() {
@@ -136,6 +142,11 @@ async fn ppm_lines(tr: &mut TestRunner, step: &Step, start: usize, end: usize) {
             .skip(1)
             .collect::<Vec<_>>(),
     );
+}
+
+#[then("ppm ends with a newline character")]
+async fn ppm_ends_with_newline(tr: &mut TestRunner) {
+    assert_eq!(tr.ppm.chars().last().unwrap(), '\n');
 }
 
 #[tokio::main]
