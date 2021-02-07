@@ -101,6 +101,20 @@ async fn tuple_negation(tr: &mut TestRunner, a: String, x: f32, y: f32, z: f32, 
     assert_eq!(-tr.vars[&a], Coords::from((x, y, z, w)));
 }
 
+#[then(
+    regex = r"^([a-z0-9]+) \* ([0-9.-]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
+)]
+async fn tuple_by_scalar(tr: &mut TestRunner, a: String, s: f32, x: f32, y: f32, z: f32, w: f32) {
+    assert_eq!(tr.vars[&a] * s, Coords::from((x, y, z, w)));
+}
+
+#[then(
+    regex = r"^([a-z0-9]+) / ([0-9.-]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
+)]
+async fn tuple_div_scalar(tr: &mut TestRunner, a: String, s: f32, x: f32, y: f32, z: f32, w: f32) {
+    assert_eq!(tr.vars[&a] / s, Coords::from((x, y, z, w)));
+}
+
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn point_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
     assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));

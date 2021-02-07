@@ -5,7 +5,7 @@
 
 use std::{
     f32::EPSILON,
-    ops::{Add, Neg, Sub},
+    ops::{Add, Div, Mul, Neg, Sub},
 };
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
@@ -84,6 +84,32 @@ impl Neg for Coords {
             y: -self.y,
             z: -self.z,
             w: -self.w,
+        }
+    }
+}
+
+impl Mul<f32> for Coords {
+    type Output = Coords;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self::Output {
+            x: rhs * self.x,
+            y: rhs * self.y,
+            z: rhs * self.z,
+            w: rhs * self.w,
+        }
+    }
+}
+
+impl Div<f32> for Coords {
+    type Output = Coords;
+
+    fn div(self, rhs: f32) -> Self::Output {
+        Self::Output {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
+            w: self.w / rhs,
         }
     }
 }
