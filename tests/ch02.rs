@@ -1,6 +1,6 @@
 use std::convert::Infallible;
 
-use cucumber_rust::{async_trait, given, then, World, WorldInit};
+use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
 use trtc::canvas::{Canvas, Color};
 
 const EPSILON: f32 = 1e-6;
@@ -38,6 +38,14 @@ async fn given_another_color(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
 #[given(regex = r"^c ← canvas\((.*), (.*)\)$")]
 async fn given_a_canvas(tr: &mut TestRunner, w: usize, h: usize) {
     tr.canvas = Canvas::new(w, h);
+}
+
+#[given("red ← color(1, 0, 0)")]
+async fn given_the_red_color(_: &mut TestRunner) {}
+
+#[when(regex = r"^write_pixel\(c, (.*), (.*), red\)$")]
+async fn write_red_to_position(tr: &mut TestRunner, x: usize, y: usize) {
+    tr.canvas.put(x, y, Color::new(1., 0., 0.));
 }
 
 #[then(regex = r"^c.(red|green|blue) = (.*)$")]
@@ -85,6 +93,15 @@ async fn canvas_fill(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
         .canvas
         .iter()
         .all(|c| c.abs_diff_eq(&Color::new(r, g, b), EPSILON)));
+}
+
+#[then(regex = r"^pixel_at\(c, (.*), (.*)\) = red$")]
+async fn pixel_is_red(tr: &mut TestRunner, x: usize, y: usize) {
+    assert!(tr
+        .canvas
+        .get(x, y)
+        .unwrap()
+        .abs_diff_eq(&Color::new(1., 0., 0.), EPSILON));
 }
 
 #[tokio::main]

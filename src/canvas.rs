@@ -116,4 +116,19 @@ impl Canvas {
     pub fn iter(&self) -> std::slice::Iter<Color> {
         self.grid.iter()
     }
+
+    /// Sets the pixel at position `(x,y)` to the specified color.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the specified position does not lie within the canvas.
+    pub fn put(&mut self, x: usize, y: usize, c: Color) {
+        self.grid[y * self.width + x] = c;
+    }
+
+    /// Returns the color of the pixel at position `(x,y)`, or `None` is the position is not within
+    /// the canvas.
+    pub fn get(&self, x: usize, y: usize) -> Option<&Color> {
+        self.grid.get(y * self.width + x)
+    }
 }
