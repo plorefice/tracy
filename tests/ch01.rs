@@ -1,9 +1,11 @@
 #![allow(clippy::many_single_char_names)]
 
-use std::{collections::HashMap, convert::Infallible, f32::EPSILON};
+use std::{collections::HashMap, convert::Infallible};
 
 use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
 use trtc::math::Coords;
+
+const EPSILON: f32 = 1e-6;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
@@ -54,12 +56,12 @@ async fn tuple_field_equals_value(tr: &mut TestRunner, var: String, field: char,
 
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn point_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
+    assert!(tr.vars[&var].abs_diff_eq(&Coords::from((x, y, z, w)), EPSILON));
 }
 
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn vector_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
+    assert!(tr.vars[&var].abs_diff_eq(&Coords::from((x, y, z, w)), EPSILON));
 }
 
 #[then(regex = r"^([a-z0-9]+) is (not )?a point$")]
@@ -84,7 +86,7 @@ async fn tuple_sum_equals(
     z: f32,
     w: f32,
 ) {
-    assert_eq!(tr.vars[&a1] + tr.vars[&a2], Coords::from((x, y, z, w)));
+    assert!((tr.vars[&a1] + tr.vars[&a2]).abs_diff_eq(&Coords::from((x, y, z, w)), EPSILON));
 }
 
 #[then(regex = r"^([a-z0-9]+) - ([a-z0-9]+) = vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
@@ -96,7 +98,7 @@ async fn tuple_sub_equals_vector(
     y: f32,
     z: f32,
 ) {
-    assert_eq!(tr.vars[&a1] - tr.vars[&a2], Coords::from_vector(x, y, z));
+    assert!((tr.vars[&a1] - tr.vars[&a2]).abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
 }
 
 #[then(regex = r"^([a-z0-9]+) - ([a-z0-9]+) = point\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
@@ -108,26 +110,26 @@ async fn tuple_sub_equals_point(
     y: f32,
     z: f32,
 ) {
-    assert_eq!(tr.vars[&a1] - tr.vars[&a2], Coords::from_point(x, y, z));
+    assert!((tr.vars[&a1] - tr.vars[&a2]).abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"^-([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn tuple_negation(tr: &mut TestRunner, a: String, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(-tr.vars[&a], Coords::from((x, y, z, w)));
+    assert!((-tr.vars[&a]).abs_diff_eq(&Coords::from((x, y, z, w)), EPSILON));
 }
 
 #[then(
     regex = r"^([a-z0-9]+) \* ([0-9.-]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
 )]
 async fn tuple_by_scalar(tr: &mut TestRunner, a: String, s: f32, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&a] * s, Coords::from((x, y, z, w)));
+    assert!((tr.vars[&a] * s).abs_diff_eq(&Coords::from((x, y, z, w)), EPSILON));
 }
 
 #[then(
     regex = r"^([a-z0-9]+) / ([0-9.-]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
 )]
 async fn tuple_div_scalar(tr: &mut TestRunner, a: String, s: f32, x: f32, y: f32, z: f32, w: f32) {
-    assert_eq!(tr.vars[&a] / s, Coords::from((x, y, z, w)));
+    assert!((tr.vars[&a] / s).abs_diff_eq(&Coords::from((x, y, z, w)), EPSILON));
 }
 
 #[then(regex = r"^magnitude\(([a-z0-9]+)\) = (√)?([0-9.-]+)$")]
@@ -154,10 +156,9 @@ async fn dot_product(tr: &mut TestRunner, a: String, b: String, dot: f32) {
     regex = r"^cross\(([a-z0-9]+), ([a-z0-9]+)\) = vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
 )]
 async fn cross_product(tr: &mut TestRunner, a: String, b: String, x: f32, y: f32, z: f32) {
-    assert_eq!(
-        tr.vars[&a].cross(&tr.vars[&b]),
-        Coords::from_vector(x, y, z)
-    );
+    assert!(tr.vars[&a]
+        .cross(&tr.vars[&b])
+        .abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
 }
 
 #[tokio::main]

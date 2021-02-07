@@ -45,6 +45,15 @@ impl Coords {
         self.w == 0.0
     }
 
+    /// Returns true if the absolute difference of all elements between `self` and `other`
+    /// is less than or equal to `max_abs_diff`.
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        (self.x - other.x).abs() < max_abs_diff
+            && (self.y - other.y).abs() < max_abs_diff
+            && (self.z - other.z).abs() < max_abs_diff
+            && (self.w - other.w).abs() < max_abs_diff
+    }
+
     /// Computes the magnitude of `self`.
     pub fn length(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
@@ -139,14 +148,5 @@ impl Div<f32> for Coords {
             z: self.z / rhs,
             w: self.w / rhs,
         }
-    }
-}
-
-impl PartialEq for Coords {
-    fn eq(&self, other: &Self) -> bool {
-        (self.x - other.x).abs() < EPSILON
-            && (self.y - other.y).abs() < EPSILON
-            && (self.z - other.z).abs() < EPSILON
-            && (self.w - other.w).abs() < EPSILON
     }
 }
