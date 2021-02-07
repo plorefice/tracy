@@ -1,15 +1,17 @@
 use std::convert::Infallible;
 
-use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
+use cucumber_rust::{async_trait, gherkin::Step, given, then, when, World, WorldInit};
 use trtc::canvas::{Canvas, Color};
 
 const EPSILON: f32 = 1e-6;
 
-#[derive(WorldInit)]
+#[derive(Default, WorldInit)]
 pub struct TestRunner {
     canvas: Canvas,
+    ppm: String,
     c1: Color,
     c2: Color,
+    c3: Color,
 }
 
 #[async_trait(?Send)]
@@ -17,11 +19,7 @@ impl World for TestRunner {
     type Error = Infallible;
 
     async fn new() -> Result<Self, Infallible> {
-        Ok(Self {
-            canvas: Canvas::default(),
-            c1: Default::default(),
-            c2: Default::default(),
-        })
+        Ok(Self::default())
     }
 }
 
@@ -35,6 +33,11 @@ async fn given_another_color(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
     tr.c2 = Color::new(r, g, b);
 }
 
+#[given(regex = r"^c3 ← color\((.*), (.*), (.*)\)$")]
+async fn given_yet_another_color(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
+    tr.c3 = Color::new(r, g, b);
+}
+
 #[given(regex = r"^c ← canvas\((.*), (.*)\)$")]
 async fn given_a_canvas(tr: &mut TestRunner, w: usize, h: usize) {
     tr.canvas = Canvas::new(w, h);
@@ -46,6 +49,21 @@ async fn given_the_red_color(_: &mut TestRunner) {}
 #[when(regex = r"^write_pixel\(c, (.*), (.*), red\)$")]
 async fn write_red_to_position(tr: &mut TestRunner, x: usize, y: usize) {
     tr.canvas.put(x, y, Color::new(1., 0., 0.));
+}
+
+#[when(regex = r"^write_pixel\(c, (.*), (.*), c(\d)\)$")]
+async fn write_color_to_position(tr: &mut TestRunner, x: usize, y: usize, idx: String) {
+    match idx.as_str() {
+        "1" => tr.canvas.put(x, y, tr.c1),
+        "2" => tr.canvas.put(x, y, tr.c2),
+        "3" => tr.canvas.put(x, y, tr.c3),
+        _ => unreachable!("invalid color index"),
+    }
+}
+
+#[when("ppm ← canvas_to_ppm(c)")]
+async fn convert_to_ppm(tr: &mut TestRunner) {
+    tr.ppm = tr.canvas.convert_to_ppm();
 }
 
 #[then(regex = r"^c.(red|green|blue) = (.*)$")]
@@ -102,6 +120,22 @@ async fn pixel_is_red(tr: &mut TestRunner, x: usize, y: usize) {
         .get(x, y)
         .unwrap()
         .abs_diff_eq(&Color::new(1., 0., 0.), EPSILON));
+}
+
+#[then(regex = r"^lines (.*)-(.*) of ppm are$")]
+async fn ppm_lines(tr: &mut TestRunner, step: &Step, start: usize, end: usize) {
+    assert_eq!(
+        tr.ppm
+            .lines()
+            .skip(start - 1)
+            .take(end - start + 1)
+            .collect::<Vec<_>>(),
+        step.docstring()
+            .unwrap()
+            .lines()
+            .skip(1)
+            .collect::<Vec<_>>(),
+    );
 }
 
 #[tokio::main]

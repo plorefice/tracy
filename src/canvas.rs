@@ -32,6 +32,15 @@ impl Color {
             && (self.g - other.g).abs() < max_abs_diff
             && (self.b - other.b).abs() < max_abs_diff
     }
+
+    /// Returns the RGB888 representation of `self`.
+    pub fn to_rgb888(self) -> (u8, u8, u8) {
+        (
+            (self.r * 255.).max(0.).min(255.).round() as u8,
+            (self.g * 255.).max(0.).min(255.).round() as u8,
+            (self.b * 255.).max(0.).min(255.).round() as u8,
+        )
+    }
 }
 
 impl Add for Color {
@@ -130,5 +139,22 @@ impl Canvas {
     /// the canvas.
     pub fn get(&self, x: usize, y: usize) -> Option<&Color> {
         self.grid.get(y * self.width + x)
+    }
+
+    /// Converts the canvas' contents to PPM format.
+    pub fn convert_to_ppm(&self) -> String {
+        let mut ppm = format!("P3\n{} {}\n{}\n", self.width(), self.height(), 255);
+        ppm.reserve(self.width() * self.height() * 12);
+
+        for y in 0..self.height() {
+            for x in 0..self.width() {
+                let (r, g, b) = self.get(x, y).unwrap().to_rgb888();
+                ppm += &format!("{} {} {} ", r, g, b);
+            }
+            ppm.pop();
+            ppm.push('\n');
+        }
+
+        ppm
     }
 }
