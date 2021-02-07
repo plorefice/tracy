@@ -3,7 +3,10 @@
 #![deny(missing_debug_implementations)]
 #![warn(missing_docs)]
 
-use std::{f32::EPSILON, ops::Add};
+use std::{
+    f32::EPSILON,
+    ops::{Add, Sub},
+};
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
 #[derive(Debug, Default, Clone, Copy)]
@@ -55,6 +58,19 @@ impl Add for Coords {
             y: self.y + rhs.y,
             z: self.z + rhs.z,
             w: self.w + rhs.w,
+        }
+    }
+}
+
+impl Sub for Coords {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self::Output {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: self.w - rhs.w,
         }
     }
 }

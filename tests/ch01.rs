@@ -70,6 +70,30 @@ async fn tuple_sum_equals(
     assert_eq!(tr.vars[&a1] + tr.vars[&a2], Coords::from((x, y, z, w)));
 }
 
+#[then(regex = r"^([a-z0-9]+) - ([a-z0-9]+) = vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
+async fn tuple_sub_equals_vector(
+    tr: &mut TestRunner,
+    a1: String,
+    a2: String,
+    x: f32,
+    y: f32,
+    z: f32,
+) {
+    assert_eq!(tr.vars[&a1] - tr.vars[&a2], Coords::from_vector(x, y, z));
+}
+
+#[then(regex = r"^([a-z0-9]+) - ([a-z0-9]+) = point\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
+async fn tuple_sub_equals_point(
+    tr: &mut TestRunner,
+    a1: String,
+    a2: String,
+    x: f32,
+    y: f32,
+    z: f32,
+) {
+    assert_eq!(tr.vars[&a1] - tr.vars[&a2], Coords::from_point(x, y, z));
+}
+
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn point_is_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32, w: f32) {
     assert_eq!(tr.vars[&var], Coords::from((x, y, z, w)));
