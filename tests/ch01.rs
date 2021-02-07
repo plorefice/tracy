@@ -1,3 +1,5 @@
+#![allow(clippy::many_single_char_names)]
+
 use std::{collections::HashMap, convert::Infallible, f32::EPSILON};
 
 use cucumber_rust::{async_trait, given, then, World, WorldInit};
@@ -92,6 +94,11 @@ async fn tuple_sub_equals_point(
     z: f32,
 ) {
     assert_eq!(tr.vars[&a1] - tr.vars[&a2], Coords::from_point(x, y, z));
+}
+
+#[then(regex = r"^-([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
+async fn tuple_negation(tr: &mut TestRunner, a: String, x: f32, y: f32, z: f32, w: f32) {
+    assert_eq!(-tr.vars[&a], Coords::from((x, y, z, w)));
 }
 
 #[then(regex = r"^([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
