@@ -81,3 +81,39 @@ impl Mul for Color {
         }
     }
 }
+
+/// A canvas is a rectangular grid of pixels, each with its own [`Color`].
+#[derive(Debug, Default, Clone)]
+pub struct Canvas {
+    grid: Vec<Color>,
+    width: usize,
+    height: usize,
+}
+
+impl Canvas {
+    /// Creates a new canvas with the specified size and all pixels initialized to black.
+    pub fn new(width: usize, height: usize) -> Self {
+        Self {
+            grid: vec![Default::default(); width * height],
+            width,
+            height,
+        }
+    }
+
+    /// Returns the width of the canvas.
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    /// Returns the height of the canvas.
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
+    /// Returns an iterator over the pixes of this canvas.
+    ///
+    /// The canvas is traversed top-to-bottom, left-to-right.
+    pub fn iter(&self) -> std::slice::Iter<Color> {
+        self.grid.iter()
+    }
+}
