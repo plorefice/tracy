@@ -145,6 +145,11 @@ impl MatrixN {
         out
     }
 
+    /// Computes the minor of element `(i,j)`, ie. the determinant of the submatrix `(i,j)`.
+    pub fn minor(&self, i: usize, j: usize) -> f32 {
+        self.submatrix(i, j).det()
+    }
+
     /// Returns true if the two matrix have the same order and the absolute difference of all
     /// corresponding elements between `self` and `other` is less than or equal to `max_abs_diff`.
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {

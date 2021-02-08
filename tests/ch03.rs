@@ -60,6 +60,11 @@ async fn transpose_identity(tr: &mut TestRunner) {
     tr.a = MatrixN::identity(4).transpose();
 }
 
+#[given(regex = r"B ← submatrix\(A, (.*), (.*)\)")]
+async fn given_a_submatrix(tr: &mut TestRunner, row: usize, col: usize) {
+    tr.b = tr.a.submatrix(row, col);
+}
+
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]
 async fn matrix_element_equals(tr: &mut TestRunner, i: usize, j: usize, val: f32) {
     assert!((val - tr.a.get((i, j)).unwrap()).abs() < EPSILON);
@@ -109,9 +114,24 @@ async fn is_identity(tr: &mut TestRunner) {
     assert!(tr.a.abs_diff_eq(&MatrixN::identity(tr.a.order()), EPSILON));
 }
 
-#[then(regex = r"determinant\(A\) = (.*)")]
-async fn determinant(tr: &mut TestRunner, exp: f32) {
-    assert!((tr.a.det() - exp).abs() < EPSILON);
+#[then(regex = r"determinant\(([AB])\) = (.*)")]
+async fn determinant(tr: &mut TestRunner, which: String, exp: f32) {
+    let mat = match which.as_str() {
+        "A" => &tr.a,
+        "B" => &tr.b,
+        _ => unreachable!("invalid matrix variable"),
+    };
+    assert!((mat.det() - exp).abs() < EPSILON);
+}
+
+#[then(regex = r"minor\(([AB]), (.*), (.*)\) = (.*)")]
+async fn minor(tr: &mut TestRunner, which: String, row: usize, col: usize, exp: f32) {
+    let mat = match which.as_str() {
+        "A" => &tr.a,
+        "B" => &tr.b,
+        _ => unreachable!("invalid matrix variable"),
+    };
+    assert!((mat.minor(row, col) - exp).abs() < EPSILON);
 }
 
 #[then(regex = r"submatrix\(A, (.*), (.*)\) is the following .* matrix")]
