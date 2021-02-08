@@ -1,5 +1,7 @@
 //! Matrix representations and operations defined on them.
 
+use std::slice;
+
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone)]
 pub struct MatrixN {
@@ -75,6 +77,11 @@ impl MatrixN {
         self.data.get_unchecked_mut(idx)
     }
 
+    /// Iterates through this matrix coordinates in column-major order.
+    pub fn iter(&self) -> slice::Iter<f32> {
+        self.data.iter()
+    }
+
     /// Transposes `self`.
     pub fn transpose(&self) -> Self {
         let mut out = Self::zeros(self.order);
@@ -88,6 +95,16 @@ impl MatrixN {
         }
 
         out
+    }
+
+    /// Returns true if the two matrix have the same order and the absolute difference of all
+    /// corresponding elements between `self` and `other` is less than or equal to `max_abs_diff`.
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        self.order == other.order
+            && self
+                .iter()
+                .zip(other.iter())
+                .all(|(a, b)| (a - b).abs() <= max_abs_diff)
     }
 
     /// Returns the linear index in the matrix storage corresponding to element `(irow,icol)`.
