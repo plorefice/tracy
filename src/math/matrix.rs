@@ -1,6 +1,11 @@
 //! Matrix representations and operations defined on them.
 
-use std::{ops::Mul, slice};
+use std::{
+    ops::{Index, IndexMut, Mul},
+    slice,
+};
+
+use super::Coords;
 
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone)]
@@ -114,6 +119,20 @@ impl MatrixN {
     }
 }
 
+impl Index<(usize, usize)> for MatrixN {
+    type Output = f32;
+
+    fn index(&self, (i, j): (usize, usize)) -> &Self::Output {
+        self.data.index(self.liner_index(i, j))
+    }
+}
+
+impl IndexMut<(usize, usize)> for MatrixN {
+    fn index_mut(&mut self, (i, j): (usize, usize)) -> &mut Self::Output {
+        self.data.index_mut(self.liner_index(i, j))
+    }
+}
+
 impl Mul for MatrixN {
     type Output = Self;
 
@@ -157,5 +176,30 @@ impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
         }
 
         out
+    }
+}
+
+impl Mul<Coords> for MatrixN {
+    type Output = Coords;
+
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn mul(self, rhs: Coords) -> Self::Output {
+        &self * rhs
+    }
+}
+
+impl Mul<Coords> for &MatrixN {
+    type Output = Coords;
+
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    fn mul(self, rhs: Coords) -> Self::Output {
+        let data = <[f32; 4]>::from(rhs);
+
+        Self::Output {
+            x: (0..4).fold(0., |sum, i| sum + self[(0, i)] * data[i]),
+            y: (0..4).fold(0., |sum, i| sum + self[(1, i)] * data[i]),
+            z: (0..4).fold(0., |sum, i| sum + self[(2, i)] * data[i]),
+            w: (0..4).fold(0., |sum, i| sum + self[(3, i)] * data[i]),
+        }
     }
 }

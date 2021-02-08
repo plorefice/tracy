@@ -24,6 +24,12 @@ impl From<(f32, f32, f32, f32)> for Coords {
     }
 }
 
+impl From<Coords> for [f32; 4] {
+    fn from(c: Coords) -> Self {
+        [c.x, c.y, c.z, c.w]
+    }
+}
+
 impl Coords {
     /// Creates a new tuple from the coordinates of a point in space.
     pub fn from_point(x: f32, y: f32, z: f32) -> Self {

@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 
 use cucumber_rust::{async_trait, gherkin::Step, given, then, World, WorldInit};
-use trtc::math::MatrixN;
+use trtc::math::{Coords, MatrixN};
 
 const EPSILON: f32 = 1e-6;
 
@@ -9,6 +9,7 @@ const EPSILON: f32 = 1e-6;
 pub struct TestRunner {
     a: MatrixN,
     b: MatrixN,
+    tuple: Coords,
 }
 
 #[async_trait(?Send)]
@@ -19,6 +20,7 @@ impl World for TestRunner {
         Ok(Self {
             a: MatrixN::zeros(0),
             b: MatrixN::zeros(0),
+            tuple: Default::default(),
         })
     }
 }
@@ -48,6 +50,11 @@ async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
     tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
 }
 
+#[given("b ← tuple(1, 2, 3, 1)")]
+async fn given_a_tuple(tr: &mut TestRunner) {
+    tr.tuple = Coords::from((1., 2., 3., 1.));
+}
+
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]
 async fn matrix_element_equals(tr: &mut TestRunner, i: usize, j: usize, val: f32) {
     assert!((val - tr.a.get((i, j)).unwrap()).abs() < EPSILON);
@@ -68,6 +75,12 @@ async fn a_mul_b(tr: &mut TestRunner, step: &Step) {
     let res = &tr.a * &tr.b;
     let exp = MatrixN::from_row_slice(4, parse_table_data(step));
     assert!(res.abs_diff_eq(&exp, EPSILON));
+}
+
+#[then("A * b = tuple(18, 24, 33, 1)")]
+async fn a_mul_tuple(tr: &mut TestRunner) {
+    let res = &tr.a * tr.tuple;
+    assert!(res.abs_diff_eq(&Coords::from((18., 24., 33., 1.)), EPSILON));
 }
 
 #[tokio::main]
