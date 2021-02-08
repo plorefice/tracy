@@ -55,6 +55,11 @@ async fn given_a_tuple(tr: &mut TestRunner, x: f32, y: f32, z: f32, w: f32) {
     tr.tuple = Coords::from((x, y, z, w));
 }
 
+#[given("A ← transpose(identity_matrix)")]
+async fn transpose_identity(tr: &mut TestRunner) {
+    tr.a = MatrixN::identity(4).transpose();
+}
+
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]
 async fn matrix_element_equals(tr: &mut TestRunner, i: usize, j: usize, val: f32) {
     assert!((val - tr.a.get((i, j)).unwrap()).abs() < EPSILON);
@@ -91,6 +96,17 @@ async fn a_times_identity(tr: &mut TestRunner) {
 #[then("identity_matrix * a = a")]
 async fn identity_times_tuple(tr: &mut TestRunner) {
     assert!((MatrixN::identity(4) * tr.tuple).abs_diff_eq(&tr.tuple, EPSILON));
+}
+
+#[then("transpose(A) is the following matrix:")]
+async fn transpose(tr: &mut TestRunner, step: &Step) {
+    let exp = MatrixN::from_row_slice(4, parse_table_data(step));
+    assert!(tr.a.transpose().abs_diff_eq(&exp, EPSILON));
+}
+
+#[then("A = identity_matrix")]
+async fn is_identity(tr: &mut TestRunner) {
+    assert!(tr.a.abs_diff_eq(&MatrixN::identity(tr.a.order()), EPSILON));
 }
 
 #[tokio::main]
