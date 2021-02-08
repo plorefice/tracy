@@ -142,7 +142,9 @@ impl Canvas {
     ///
     /// Panics if the specified position does not lie within the canvas.
     pub fn put(&mut self, x: usize, y: usize, c: Color) {
-        self.grid[y * self.width + x] = c;
+        if x < self.width() && y < self.height() {
+            self.grid[y * self.width + x] = c;
+        }
     }
 
     /// Returns the color of the pixel at position `(x,y)`, or `None` is the position is not within

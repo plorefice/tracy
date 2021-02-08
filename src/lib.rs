@@ -6,6 +6,7 @@
 pub mod canvas;
 pub mod math;
 
+use canvas::{Canvas, Color};
 use math::Coords;
 use wasm_bindgen::{prelude::*, Clamped};
 use web_sys::{CanvasRenderingContext2d, ImageData};
@@ -13,44 +14,42 @@ use web_sys::{CanvasRenderingContext2d, ImageData};
 /// WASM entry point.
 #[wasm_bindgen]
 pub fn draw(ctx: &CanvasRenderingContext2d, width: u32, height: u32) -> Result<(), JsValue> {
+    console_error_panic_hook::set_once();
+
     let data = ImageData::new_with_u8_clamped_array_and_sh(
         Clamped(&render_projectile(width as usize, height as usize)),
         width,
         height,
     )?;
+
     ctx.put_image_data(&data, 0.0, 0.0)
 }
 
 fn render_projectile(width: usize, height: usize) -> Vec<u8> {
-    let mut raw_image = Vec::with_capacity(width * height * 4);
-
-    // Fill with black background
-    for _ in 0..height {
-        for _ in 0..width {
-            raw_image.push(0);
-            raw_image.push(0);
-            raw_image.push(0);
-            raw_image.push(255);
-        }
-    }
+    let mut canvas = Canvas::new(width, height);
 
     let mut pos = Coords::from_point(0., 1., 0.);
-    let mut vel = Coords::from_vector(1., 1., 0.);
+    let mut vel = Coords::from_vector(1., 1.8, 0.).normalize() * 6.;
 
     let gravity = Coords::from_vector(0., -0.1, 0.);
-    let wind = Coords::from_vector(-0.03, 0., 0.);
+    let wind = Coords::from_vector(-0.01, 0., 0.);
 
     while pos.y > 0. {
-        let cx = (pos.x * 15.) as usize;
-        let cy = height - (pos.y * 15.) as usize;
+        canvas.put(
+            pos.x.round() as usize,
+            height - pos.y.round() as usize,
+            Color::new(1., 1., 1.),
+        );
 
-        raw_image[cy * 4 * width + cx * 4] = 255;
-        raw_image[cy * 4 * width + cx * 4 + 1] = 255;
-        raw_image[cy * 4 * width + cx * 4 + 2] = 255;
-
-        pos = pos + vel;
-        vel = vel + gravity + wind;
+        pos += vel;
+        vel += gravity + wind;
     }
 
-    raw_image
+    canvas
+        .iter()
+        .flat_map(|c| {
+            let (r, g, b) = c.to_rgb888();
+            vec![r, g, b, 255]
+        })
+        .collect()
 }
