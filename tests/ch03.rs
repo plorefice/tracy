@@ -3,12 +3,13 @@ use std::convert::Infallible;
 use cucumber_rust::{async_trait, gherkin::Step, given, then, World, WorldInit};
 use trtc::math::{Coords, MatrixN};
 
-const EPSILON: f32 = 1e-6;
+const EPSILON: f32 = 1e-4;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
     a: MatrixN,
     b: MatrixN,
+    c: MatrixN,
     tuple: Coords,
 }
 
@@ -20,6 +21,7 @@ impl World for TestRunner {
         Ok(Self {
             a: MatrixN::zeros(0),
             b: MatrixN::zeros(0),
+            c: MatrixN::zeros(0),
             tuple: Default::default(),
         })
     }
@@ -45,9 +47,14 @@ async fn given_matrix_b(tr: &mut TestRunner, step: &Step) {
     tr.b = MatrixN::from_row_slice(4, parse_table_data(step));
 }
 
-#[given(regex = r"^the following (.*)x(?:.*) matrix [MA]:$")]
-async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
-    tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
+#[given(regex = r"^the following (.*)x(?:.*) matrix ([MAB])?:$")]
+async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize, which: String) {
+    let mat = match which.as_str() {
+        "A" | "M" => &mut tr.a,
+        "B" => &mut tr.b,
+        _ => unreachable!("invalid matrix variable"),
+    };
+    *mat = MatrixN::from_row_slice(order, parse_table_data(step));
 }
 
 #[given(regex = r".* ← tuple\((.*), (.*), (.*), (.*)\)")]
@@ -65,9 +72,35 @@ async fn given_a_submatrix(tr: &mut TestRunner, row: usize, col: usize) {
     tr.b = tr.a.submatrix(row, col);
 }
 
+#[given("B ← inverse(A)")]
+async fn given_a_inverse(tr: &mut TestRunner) {
+    tr.b = tr.a.inverse().unwrap();
+}
+
+#[given("C ← A * B")]
+async fn given_a_times_b(tr: &mut TestRunner) {
+    tr.c = &tr.a * &tr.b;
+}
+
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]
 async fn matrix_element_equals(tr: &mut TestRunner, i: usize, j: usize, val: f32) {
     assert!((val - tr.a.get((i, j)).unwrap()).abs() < EPSILON);
+}
+
+#[then(regex = r"^B\[(.*),(.*)\] = (-?)(.*)/(.*)$")]
+async fn b_element_equals(
+    tr: &mut TestRunner,
+    i: usize,
+    j: usize,
+    neg: String,
+    num: f32,
+    denom: f32,
+) {
+    let mut val = num / denom;
+    if !neg.is_empty() {
+        val = -val;
+    }
+    assert!((val - tr.b.get((i, j)).unwrap()).abs() < EPSILON);
 }
 
 #[then("A = B")]
@@ -149,6 +182,33 @@ async fn submatrix(tr: &mut TestRunner, step: &Step, row: usize, col: usize) {
     let res = tr.a.submatrix(row, col);
     let exp = MatrixN::from_row_slice(tr.a.order() - 1, parse_table_data(step));
     assert!(res.abs_diff_eq(&exp, EPSILON));
+}
+
+#[then("A is invertible")]
+async fn invertible(tr: &mut TestRunner) {
+    assert!(tr.a.det().abs() > EPSILON);
+}
+
+#[then("A is not invertible")]
+async fn not_invertible(tr: &mut TestRunner) {
+    assert!(tr.a.det().abs() < EPSILON);
+}
+
+#[then("B is the following 4x4 matrix:")]
+async fn b_is_matrix(tr: &mut TestRunner, step: &Step) {
+    let exp = MatrixN::from_row_slice(4, parse_table_data(step));
+    assert!(tr.b.abs_diff_eq(&exp, EPSILON));
+}
+
+#[then("inverse(A) is the following 4x4 matrix:")]
+async fn inverse_of_a(tr: &mut TestRunner, step: &Step) {
+    let exp = MatrixN::from_row_slice(4, parse_table_data(step));
+    assert!(tr.a.inverse().unwrap().abs_diff_eq(&exp, EPSILON));
+}
+
+#[then("C * inverse(B) = A")]
+async fn product_by_its_inverse(tr: &mut TestRunner) {
+    assert!((&tr.c * tr.b.inverse().unwrap()).abs_diff_eq(&tr.a, EPSILON));
 }
 
 #[tokio::main]

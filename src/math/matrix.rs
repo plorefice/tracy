@@ -124,6 +124,25 @@ impl MatrixN {
         out
     }
 
+    /// Returns the inverse of the matrix, or `None` if the matrix is not invertible.
+    pub fn inverse(&self) -> Option<MatrixN> {
+        let det = self.det();
+        if det == 0. {
+            return None;
+        }
+
+        let mut out = Self::zeros(self.order());
+
+        for i in 0..out.order() {
+            for j in 0..out.order() {
+                let c = self.cofactor(i, j);
+                out[(j, i)] = c / det;
+            }
+        }
+
+        Some(out)
+    }
+
     /// Computes the determinant of the matrix.
     pub fn det(&self) -> f32 {
         if self.order() == 2 {
