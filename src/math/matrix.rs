@@ -126,7 +126,11 @@ impl MatrixN {
 
     /// Computes the determinant of the matrix.
     pub fn det(&self) -> f32 {
-        self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
+        if self.order() == 2 {
+            self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
+        } else {
+            (0..self.order()).fold(0., |det, i| det + self[(0, i)] * self.cofactor(0, i))
+        }
     }
 
     /// Returns the matrix of order `n-1` obtain by removing `row` and `col` from `self`.
