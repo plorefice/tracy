@@ -23,6 +23,17 @@ impl MatrixN {
         }
     }
 
+    /// Creates the identity matrix of order `n`.
+    pub fn identity(n: usize) -> Self {
+        let mut data = vec![0.; n * n];
+
+        for i in 0..n {
+            data[i * n + i] = 1.;
+        }
+
+        Self { data, order: n }
+    }
+
     /// Creates a matrix of order `n` with its elements filled with the components provided
     /// by a slice in column-major order.
     ///
@@ -47,6 +58,11 @@ impl MatrixN {
     /// Panics if `data.len() != n * n`.
     pub fn from_row_slice<D: AsRef<[f32]>>(n: usize, data: D) -> Self {
         Self::from_column_slice(n, data).transpose()
+    }
+
+    /// Returns the order of this matrix, ie. the number of its rows/columns.
+    pub fn order(&self) -> usize {
+        self.order
     }
 
     /// Returns a reference to the element at position `(i,j)`, or `None` if the index is

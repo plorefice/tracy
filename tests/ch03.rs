@@ -50,9 +50,9 @@ async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
     tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
 }
 
-#[given("b ← tuple(1, 2, 3, 1)")]
-async fn given_a_tuple(tr: &mut TestRunner) {
-    tr.tuple = Coords::from((1., 2., 3., 1.));
+#[given(regex = r".* ← tuple\((.*), (.*), (.*), (.*)\)")]
+async fn given_a_tuple(tr: &mut TestRunner, x: f32, y: f32, z: f32, w: f32) {
+    tr.tuple = Coords::from((x, y, z, w));
 }
 
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]
@@ -71,16 +71,26 @@ async fn a_ne_b(tr: &mut TestRunner) {
 }
 
 #[then("A * B is the following 4x4 matrix:")]
-async fn a_mul_b(tr: &mut TestRunner, step: &Step) {
+async fn a_times_b(tr: &mut TestRunner, step: &Step) {
     let res = &tr.a * &tr.b;
     let exp = MatrixN::from_row_slice(4, parse_table_data(step));
     assert!(res.abs_diff_eq(&exp, EPSILON));
 }
 
 #[then("A * b = tuple(18, 24, 33, 1)")]
-async fn a_mul_tuple(tr: &mut TestRunner) {
+async fn a_times_tuple(tr: &mut TestRunner) {
     let res = &tr.a * tr.tuple;
     assert!(res.abs_diff_eq(&Coords::from((18., 24., 33., 1.)), EPSILON));
+}
+
+#[then("A * identity_matrix = A")]
+async fn a_times_identity(tr: &mut TestRunner) {
+    assert!((&tr.a * MatrixN::identity(tr.a.order())).abs_diff_eq(&tr.a, EPSILON));
+}
+
+#[then("identity_matrix * a = a")]
+async fn identity_times_tuple(tr: &mut TestRunner) {
+    assert!((MatrixN::identity(4) * tr.tuple).abs_diff_eq(&tr.tuple, EPSILON));
 }
 
 #[tokio::main]
