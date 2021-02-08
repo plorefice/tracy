@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/plorefice/trtc#readme",
   "dependencies": {
+    "bootstrap": "^5.0.0-beta1",
     "trtc": "file:../pkg"
   },
   "devDependencies": {

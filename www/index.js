@@ -8,11 +8,9 @@ var ctx = canvas.getContext('2d');
 
 /* Workaround for retina displays */
 const pixelRatio = window.devicePixelRatio || 1;
-
-canvas.width = width * pixelRatio;
-canvas.height = height * pixelRatio;
-canvas.style.width = `${width}px`;
-canvas.style.height = `${height}px`;
-ctx.scale(pixelRatio, pixelRatio);
+canvas.width = width;
+canvas.height = height;
+canvas.style.width = `${width / pixelRatio}px`;
+canvas.style.height = `${height / pixelRatio}px`;
 
 wasm.draw(ctx, width, height);
