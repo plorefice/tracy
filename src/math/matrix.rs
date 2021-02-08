@@ -104,6 +104,11 @@ impl MatrixN {
         self.data.iter()
     }
 
+    /// Mutably iterates through this matrix coordinates in column-major order.
+    pub fn iter_mut(&mut self) -> slice::IterMut<f32> {
+        self.data.iter_mut()
+    }
+
     /// Transposes `self`.
     pub fn transpose(&self) -> Self {
         let mut out = Self::zeros(self.order);
@@ -122,6 +127,22 @@ impl MatrixN {
     /// Computes the determinant of the matrix.
     pub fn det(&self) -> f32 {
         self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
+    }
+
+    /// Returns the matrix of order `n-1` obtain by removing `row` and `col` from `self`.
+    pub fn submatrix(&self, row: usize, col: usize) -> MatrixN {
+        let mut out = MatrixN::zeros(self.order() - 1);
+        let mut iter = out.iter_mut();
+
+        for j in 0..self.order() {
+            for i in 0..self.order() {
+                if i != row && j != col {
+                    *iter.next().unwrap() = self[(i, j)];
+                }
+            }
+        }
+
+        out
     }
 
     /// Returns true if the two matrix have the same order and the absolute difference of all

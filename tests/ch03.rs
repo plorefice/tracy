@@ -114,6 +114,13 @@ async fn determinant(tr: &mut TestRunner, exp: f32) {
     assert!((tr.a.det() - exp).abs() < EPSILON);
 }
 
+#[then(regex = r"submatrix\(A, (.*), (.*)\) is the following .* matrix")]
+async fn submatrix(tr: &mut TestRunner, step: &Step, row: usize, col: usize) {
+    let res = tr.a.submatrix(row, col);
+    let exp = MatrixN::from_row_slice(tr.a.order() - 1, parse_table_data(step));
+    assert!(res.abs_diff_eq(&exp, EPSILON));
+}
+
 #[tokio::main]
 async fn main() {
     let runner = TestRunner::init(&["./features/ch03"]);
