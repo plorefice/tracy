@@ -29,7 +29,7 @@ fn render_projectile(width: usize, height: usize) -> Vec<u8> {
     let mut canvas = Canvas::new(width, height);
 
     let mut pos = Coords::from_point(0., 1., 0.);
-    let mut vel = Coords::from_vector(1., 1.8, 0.).normalize() * 6.;
+    let mut vel = Coords::from_vector(1., 1.8, 0.).normalize() * 11.25;
 
     let gravity = Coords::from_vector(0., -0.1, 0.);
     let wind = Coords::from_vector(-0.01, 0., 0.);

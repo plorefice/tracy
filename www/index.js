@@ -1,6 +1,18 @@
 import * as wasm from "trtc";
 
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
+const width = 900;
+const height = 550;
 
-wasm.draw(ctx, canvas.width, canvas.height);
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+
+/* Workaround for retina displays */
+const pixelRatio = window.devicePixelRatio || 1;
+
+canvas.width = width * pixelRatio;
+canvas.height = height * pixelRatio;
+canvas.style.width = `${width}px`;
+canvas.style.height = `${height}px`;
+ctx.scale(pixelRatio, pixelRatio);
+
+wasm.draw(ctx, width, height);
