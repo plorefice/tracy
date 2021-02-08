@@ -119,6 +119,11 @@ impl MatrixN {
         out
     }
 
+    /// Computes the determinant of the matrix.
+    pub fn det(&self) -> f32 {
+        self[(0, 0)] * self[(1, 1)] - self[(0, 1)] * self[(1, 0)]
+    }
+
     /// Returns true if the two matrix have the same order and the absolute difference of all
     /// corresponding elements between `self` and `other` is less than or equal to `max_abs_diff`.
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {

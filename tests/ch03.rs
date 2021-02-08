@@ -45,7 +45,7 @@ async fn given_matrix_b(tr: &mut TestRunner, step: &Step) {
     tr.b = MatrixN::from_row_slice(4, parse_table_data(step));
 }
 
-#[given(regex = r"^the following (.*)x(?:.*) matrix M:$")]
+#[given(regex = r"^the following (.*)x(?:.*) matrix [MA]:$")]
 async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
     tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
 }
@@ -107,6 +107,11 @@ async fn transpose(tr: &mut TestRunner, step: &Step) {
 #[then("A = identity_matrix")]
 async fn is_identity(tr: &mut TestRunner) {
     assert!(tr.a.abs_diff_eq(&MatrixN::identity(tr.a.order()), EPSILON));
+}
+
+#[then(regex = r"determinant\(A\) = (.*)")]
+async fn determinant(tr: &mut TestRunner, exp: f32) {
+    assert!((tr.a.det() - exp).abs() < EPSILON);
 }
 
 #[tokio::main]
