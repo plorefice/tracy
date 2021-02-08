@@ -35,17 +35,17 @@ fn parse_table_data(step: &Step) -> Vec<f32> {
 
 #[given(regex = r"^the following (.*)x(?:.*) matrix M:$")]
 async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
-    tr.a = MatrixN::from_row_slice(order, &parse_table_data(step));
+    tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
 }
 
 #[given("the following matrix A:")]
 async fn given_matrix_a(tr: &mut TestRunner, step: &Step) {
-    tr.a = MatrixN::from_row_slice(4, &parse_table_data(step));
+    tr.a = MatrixN::from_row_slice(4, parse_table_data(step));
 }
 
 #[given("the following matrix B:")]
 async fn given_matrix_b(tr: &mut TestRunner, step: &Step) {
-    tr.b = MatrixN::from_row_slice(4, &parse_table_data(step));
+    tr.b = MatrixN::from_row_slice(4, parse_table_data(step));
 }
 
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]

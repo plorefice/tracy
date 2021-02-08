@@ -24,7 +24,8 @@ impl MatrixN {
     /// # Panics
     ///
     /// Panics if `data.len() != n * n`.
-    pub fn from_column_slice(n: usize, data: &[f32]) -> Self {
+    pub fn from_column_slice<D: AsRef<[f32]>>(n: usize, data: D) -> Self {
+        let data = data.as_ref();
         assert_eq!(n * n, data.len());
 
         Self {
@@ -39,7 +40,7 @@ impl MatrixN {
     /// # Panics
     ///
     /// Panics if `data.len() != n * n`.
-    pub fn from_row_slice(n: usize, data: &[f32]) -> Self {
+    pub fn from_row_slice<D: AsRef<[f32]>>(n: usize, data: D) -> Self {
         Self::from_column_slice(n, data).transpose()
     }
 
