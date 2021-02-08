@@ -141,7 +141,6 @@ impl Mul<MatrixN> for &MatrixN {
 impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
     type Output = MatrixN;
 
-    #[rustfmt::skip]
     fn mul(self, rhs: &'b MatrixN) -> Self::Output {
         assert_eq!(rhs.order, self.order);
 
@@ -150,11 +149,9 @@ impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
         for i in 0..out.order {
             for j in 0..out.order {
                 unsafe {
-                    *out.get_unchecked_mut((i, j)) =
-                          self.get_unchecked((i, 0)) * rhs.get_unchecked((0, j))
-                        + self.get_unchecked((i, 1)) * rhs.get_unchecked((1, j))
-                        + self.get_unchecked((i, 2)) * rhs.get_unchecked((2, j))
-                        + self.get_unchecked((i, 3)) * rhs.get_unchecked((3, j));
+                    *out.get_unchecked_mut((i, j)) = (0..out.order).fold(0., |sum, idx| {
+                        sum + self.get_unchecked((i, idx)) * rhs.get_unchecked((idx, j))
+                    });
                 }
             }
         }
