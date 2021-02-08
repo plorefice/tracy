@@ -16,16 +16,16 @@
 <body>
   <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
 
-  <main>
-    <!-- Title card -->
-    <section class="py-5 text-center container">
-      <div class="row">
-        <h1 class="fw-light">The Ray Tracer Challenge</h1>
-        <h3><small class="lead text-muted">An experiment in Rust and WebAssembly</small></h3>
-      </div>
-    </section>
+  <!-- Title card -->
+  <section class="py-5 text-center container">
+    <div class="row">
+      <h1 class="fw-light">The Ray Tracer Challenge</h1>
+      <h3><small class="lead text-muted">An experiment in Rust and WebAssembly</small></h3>
+    </div>
+  </section>
 
-    <!-- Main content -->
+  <!-- Main content -->
+  <main>
     <section class="container">
       <div class="border rounded bg-light accordion accordion-flush" id="chapter-list">
 
@@ -46,9 +46,15 @@
         </div>
 
       </div>
-
     </section>
   </main>
+
+  <!-- Footer -->
+  <footer class="fixed-bottom text-center text-muted">
+    <div class="container">
+      <pre><a class="link-secondary" href="https://github.com/plorefice/trtc">View on Github</a></pre>
+    </div>
+  </footer>
 
   <!-- Async WASM load -->
   <script src="./bootstrap.js"></script>
