@@ -33,11 +33,6 @@ fn parse_table_data(step: &Step) -> Vec<f32> {
         .unwrap()
 }
 
-#[given(regex = r"^the following (.*)x(?:.*) matrix M:$")]
-async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
-    tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
-}
-
 #[given("the following matrix A:")]
 async fn given_matrix_a(tr: &mut TestRunner, step: &Step) {
     tr.a = MatrixN::from_row_slice(4, parse_table_data(step));
@@ -48,6 +43,11 @@ async fn given_matrix_b(tr: &mut TestRunner, step: &Step) {
     tr.b = MatrixN::from_row_slice(4, parse_table_data(step));
 }
 
+#[given(regex = r"^the following (.*)x(?:.*) matrix M:$")]
+async fn given_a_matrix(tr: &mut TestRunner, step: &Step, order: usize) {
+    tr.a = MatrixN::from_row_slice(order, parse_table_data(step));
+}
+
 #[then(regex = r"^M\[(.*),(.*)\] = (.*)$")]
 async fn matrix_element_equals(tr: &mut TestRunner, i: usize, j: usize, val: f32) {
     assert!((val - tr.a.get((i, j)).unwrap()).abs() < EPSILON);
@@ -55,12 +55,19 @@ async fn matrix_element_equals(tr: &mut TestRunner, i: usize, j: usize, val: f32
 
 #[then("A = B")]
 async fn a_eq_b(tr: &mut TestRunner) {
-    assert!(tr.a.abs_diff_eq(&tr.b, EPSILON))
+    assert!(tr.a.abs_diff_eq(&tr.b, EPSILON));
 }
 
 #[then("A != B")]
 async fn a_ne_b(tr: &mut TestRunner) {
-    assert!(!tr.a.abs_diff_eq(&tr.b, EPSILON))
+    assert!(!tr.a.abs_diff_eq(&tr.b, EPSILON));
+}
+
+#[then("A * B is the following 4x4 matrix:")]
+async fn a_mul_b(tr: &mut TestRunner, step: &Step) {
+    let res = &tr.a * &tr.b;
+    let exp = MatrixN::from_row_slice(4, parse_table_data(step));
+    assert!(res.abs_diff_eq(&exp, EPSILON));
 }
 
 #[tokio::main]

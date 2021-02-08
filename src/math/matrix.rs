@@ -1,6 +1,6 @@
 //! Matrix representations and operations defined on them.
 
-use std::slice;
+use std::{ops::Mul, slice};
 
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone)]
@@ -111,5 +111,54 @@ impl MatrixN {
     /// Returns the linear index in the matrix storage corresponding to element `(irow,icol)`.
     fn liner_index(&self, irow: usize, icol: usize) -> usize {
         icol * self.order + irow
+    }
+}
+
+impl Mul for MatrixN {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        &self * &rhs
+    }
+}
+
+impl Mul<&MatrixN> for MatrixN {
+    type Output = Self;
+
+    fn mul(self, rhs: &Self) -> Self::Output {
+        &self * rhs
+    }
+}
+
+impl Mul<MatrixN> for &MatrixN {
+    type Output = MatrixN;
+
+    fn mul(self, rhs: MatrixN) -> Self::Output {
+        self * &rhs
+    }
+}
+
+impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
+    type Output = MatrixN;
+
+    #[rustfmt::skip]
+    fn mul(self, rhs: &'b MatrixN) -> Self::Output {
+        assert_eq!(rhs.order, self.order);
+
+        let mut out = Self::Output::zeros(self.order);
+
+        for i in 0..out.order {
+            for j in 0..out.order {
+                unsafe {
+                    *out.get_unchecked_mut((i, j)) =
+                          self.get_unchecked((i, 0)) * rhs.get_unchecked((0, j))
+                        + self.get_unchecked((i, 1)) * rhs.get_unchecked((1, j))
+                        + self.get_unchecked((i, 2)) * rhs.get_unchecked((2, j))
+                        + self.get_unchecked((i, 3)) * rhs.get_unchecked((3, j));
+                }
+            }
+        }
+
+        out
     }
 }
