@@ -150,6 +150,17 @@ impl MatrixN {
         self.submatrix(i, j).det()
     }
 
+    /// Computes the cofactor of element `(i,j)`, ie. the possibly negated minor of `(i,j)`.
+    pub fn cofactor(&self, i: usize, j: usize) -> f32 {
+        let minor = self.minor(i, j);
+
+        if (i + j) % 2 == 0 {
+            minor
+        } else {
+            -minor
+        }
+    }
+
     /// Returns true if the two matrix have the same order and the absolute difference of all
     /// corresponding elements between `self` and `other` is less than or equal to `max_abs_diff`.
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {

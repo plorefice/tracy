@@ -134,6 +134,16 @@ async fn minor(tr: &mut TestRunner, which: String, row: usize, col: usize, exp: 
     assert!((mat.minor(row, col) - exp).abs() < EPSILON);
 }
 
+#[then(regex = r"cofactor\(([AB]), (.*), (.*)\) = (.*)")]
+async fn cofactor(tr: &mut TestRunner, which: String, row: usize, col: usize, exp: f32) {
+    let mat = match which.as_str() {
+        "A" => &tr.a,
+        "B" => &tr.b,
+        _ => unreachable!("invalid matrix variable"),
+    };
+    assert!((mat.cofactor(row, col) - exp).abs() < EPSILON);
+}
+
 #[then(regex = r"submatrix\(A, (.*), (.*)\) is the following .* matrix")]
 async fn submatrix(tr: &mut TestRunner, step: &Step, row: usize, col: usize) {
     let res = tr.a.submatrix(row, col);
