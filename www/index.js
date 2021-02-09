@@ -1,13 +1,14 @@
 import * as wasm from "trtc";
 
-const width = 900;
-const height = 550;
+const collapsibles = document.getElementsByClassName('accordion-collapse')
 
-var collapsible = document.getElementById('ch02')
+Array.from(collapsibles).forEach(collapsible => {
+    var canvas = collapsible.getElementsByTagName('canvas')[0]
+    var ctx = canvas.getContext('2d')
 
-// When the 'show' event is triggered, compute and set the canvas size to avoid glitches later on
-collapsible.addEventListener('show.bs.collapse', function () {
-        var canvas = document.getElementById('canvas');
+    // When the 'show' event is triggered, compute and set the canvas size to avoid glitches
+    collapsible.addEventListener('show.bs.collapse', function () {
+        const { width, height } = wasm.getCanvasSize(collapsible.id);
 
         /* Workaround for retina displays */
         const pixelRatio = window.devicePixelRatio || 1;
@@ -15,12 +16,10 @@ collapsible.addEventListener('show.bs.collapse', function () {
         canvas.height = height;
         canvas.style.width = `${width / pixelRatio}px`;
         canvas.style.height = `${height / pixelRatio}px`;
-})
+    })
 
-// When the collapsible is fully shown, start rendering the scene
-collapsible.addEventListener('shown.bs.collapse', function () {
-        var canvas = document.getElementById('canvas');
-        var ctx = canvas.getContext('2d');
-
-        wasm.draw(ctx, width, height);
-})
+    // When the collapsible is fully shown, start rendering the scene
+    collapsible.addEventListener('shown.bs.collapse', function () {
+        wasm.draw(ctx, collapsible.id);
+    })
+});

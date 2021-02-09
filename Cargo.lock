@@ -759,6 +759,7 @@ dependencies = [
  "console_error_panic_hook",
  "cucumber_rust",
  "js-sys",
+ "lazy_static",
  "tokio",
  "wasm-bindgen",
  "web-sys",
