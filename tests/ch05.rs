@@ -1,7 +1,11 @@
 use std::{convert::Infallible, f32};
 
 use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
-use trtc::{math::Coords, query::Ray};
+use trtc::{
+    math::Coords,
+    query::{Ray, RayCast},
+    shape::Sphere,
+};
 
 const EPSILON: f32 = 1e-4;
 
@@ -10,6 +14,8 @@ pub struct TestRunner {
     origin: Coords,
     direction: Coords,
     ray: Ray,
+    sphere: Sphere,
+    xs: Vec<f32>,
 }
 
 #[async_trait(?Send)]
@@ -21,6 +27,8 @@ impl World for TestRunner {
             origin: Coords::default(),
             direction: Coords::default(),
             ray: Ray::default(),
+            sphere: Sphere,
+            xs: Vec::new(),
         })
     }
 }
@@ -43,9 +51,17 @@ async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy
     );
 }
 
+#[given("s ← sphere()")]
+async fn given_a_sphere(_: &mut TestRunner) {}
+
 #[when("r ← ray(origin, direction)")]
 async fn build_ray(tr: &mut TestRunner) {
     tr.ray = Ray::new(tr.origin, tr.direction);
+}
+
+#[when("xs ← intersect(s, r)")]
+async fn sphere_intersects_ray(tr: &mut TestRunner) {
+    tr.xs = tr.sphere.intersects_ray(&tr.ray);
 }
 
 #[then("r.origin = origin")]
@@ -64,6 +80,16 @@ async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32)
         .ray
         .point_at(t)
         .abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+}
+
+#[then(regex = r"xs\.count = (.*)")]
+async fn xs_count(tr: &mut TestRunner, n: usize) {
+    assert_eq!(tr.xs.len(), n);
+}
+
+#[then(regex = r"xs\[(.*)\] = (.*)")]
+async fn xs_index(tr: &mut TestRunner, i: usize, t: f32) {
+    assert!((tr.xs[i] - t).abs() < EPSILON);
 }
 
 #[tokio::main]

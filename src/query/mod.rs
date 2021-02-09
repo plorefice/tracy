@@ -2,6 +2,12 @@
 
 use crate::math::Coords;
 
+/// Trait of objects which can be tested for intersection with a ray.
+pub trait RayCast {
+    /// Computes all the intersection poinst between `self` and `ray`.
+    fn intersects_ray(&self, ray: &Ray) -> Vec<f32>;
+}
+
 /// A ray starting from a point in space and traveling along a direction.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Ray {

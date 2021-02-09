@@ -7,6 +7,7 @@ pub mod canvas;
 pub mod math;
 pub mod query;
 pub mod scenes;
+pub mod shape;
 
 use scenes::SceneSize;
 use wasm_bindgen::{prelude::*, Clamped};
