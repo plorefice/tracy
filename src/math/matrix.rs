@@ -60,6 +60,15 @@ impl MatrixN {
         Self::from_column_slice(n, data).transpose()
     }
 
+    /// Creates a matrix that applies a translation of `(x,y,z)`.
+    pub fn translation(x: f32, y: f32, z: f32) -> Self {
+        let mut out = Self::identity(4);
+        out[(0, 3)] = x;
+        out[(1, 3)] = y;
+        out[(2, 3)] = z;
+        out
+    }
+
     /// Returns the order of this matrix, ie. the number of its rows/columns.
     pub fn order(&self) -> usize {
         self.order
