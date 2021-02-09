@@ -5,6 +5,8 @@
 
 mod coords;
 mod matrix;
+mod ray;
 
 pub use coords::*;
 pub use matrix::*;
+pub use ray::*;
