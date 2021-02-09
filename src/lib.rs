@@ -5,6 +5,7 @@
 
 pub mod canvas;
 pub mod math;
+pub mod query;
 pub mod scenes;
 
 use scenes::SceneSize;

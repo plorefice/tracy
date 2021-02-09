@@ -1,7 +1,7 @@
 use std::{convert::Infallible, f32};
 
 use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
-use trtc::math::{Coords, Ray};
+use trtc::{math::Coords, query::Ray};
 
 const EPSILON: f32 = 1e-4;
 
@@ -50,19 +50,19 @@ async fn build_ray(tr: &mut TestRunner) {
 
 #[then("r.origin = origin")]
 async fn check_ray_origin(tr: &mut TestRunner) {
-    assert!(tr.ray.origin().abs_diff_eq(&tr.origin, EPSILON));
+    assert!(tr.ray.origin.abs_diff_eq(&tr.origin, EPSILON));
 }
 
 #[then("r.direction = direction")]
 async fn check_ray_direction(tr: &mut TestRunner) {
-    assert!(tr.ray.direction().abs_diff_eq(&tr.direction, EPSILON));
+    assert!(tr.ray.dir.abs_diff_eq(&tr.direction, EPSILON));
 }
 
 #[then(regex = r"position\(r, (.*)\) = point\((.*), (.*), (.*)\)")]
 async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32) {
     assert!(tr
         .ray
-        .position(t)
+        .point_at(t)
         .abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
 }
 
