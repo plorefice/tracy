@@ -61,6 +61,19 @@ async fn given_a_full_quarter_rotation(tr: &mut TestRunner, axis: String) {
     };
 }
 
+#[given(regex = r"transform ← shearing\((.*), (.*), (.*), (.*), (.*), (.*)\)")]
+async fn given_a_shearing(
+    tr: &mut TestRunner,
+    xy: f32,
+    xz: f32,
+    yx: f32,
+    yz: f32,
+    zx: f32,
+    zy: f32,
+) {
+    tr.transform = MatrixN::from_shear(xy, xz, yx, yz, zx, zy);
+}
+
 #[given("inv ← inverse(transform)")]
 async fn given_the_inverse_of_a_transform(tr: &mut TestRunner) {
     tr.inv = tr.transform.inverse().unwrap();

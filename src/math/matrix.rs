@@ -108,6 +108,18 @@ impl MatrixN {
         out
     }
 
+    /// Creates a matrix that applies the specified shear.
+    pub fn from_shear(xy: f32, xz: f32, yx: f32, yz: f32, zx: f32, zy: f32) -> Self {
+        let mut out = Self::identity(4);
+        out[(0, 1)] = xy;
+        out[(0, 2)] = xz;
+        out[(1, 0)] = yx;
+        out[(1, 2)] = yz;
+        out[(2, 0)] = zx;
+        out[(2, 1)] = zy;
+        out
+    }
+
     /// Returns the order of this matrix, ie. the number of its rows/columns.
     pub fn order(&self) -> usize {
         self.order
