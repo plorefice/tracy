@@ -11,6 +11,16 @@ use scenes::SceneSize;
 use wasm_bindgen::{prelude::*, Clamped};
 use web_sys::{CanvasRenderingContext2d, ImageData};
 
+/// Performs the required initialization for this crate.
+///
+/// **Important:** this function should be called once by the JavaScript code, when the page is
+/// first loaded and before any other function. Failing to do so might result in things not working
+/// properly.
+#[wasm_bindgen]
+pub fn init() {
+    console_error_panic_hook::set_once();
+}
+
 /// Returns the desired canvas size to render scene `id`.
 ///
 /// `UNDEFINED` is returned if `id` is not a valid scene identifier.
@@ -24,8 +34,6 @@ pub fn get_canvas_size(id: String) -> Result<SceneSize, JsValue> {
 /// `UNDEFINED` is returned if `id` is not a valid scene identifier.
 #[wasm_bindgen]
 pub fn draw(ctx: &CanvasRenderingContext2d, id: String) -> Result<(), JsValue> {
-    console_error_panic_hook::set_once();
-
     let config = scenes::get_config(id).ok_or(JsValue::UNDEFINED)?;
 
     let scene = (config.render_fn)(config.size.width, config.size.height);

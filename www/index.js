@@ -1,5 +1,7 @@
 import * as wasm from "trtc";
 
+wasm.init();
+
 const collapsibles = document.getElementsByClassName('accordion-collapse')
 
 Array.from(collapsibles).forEach(collapsible => {
