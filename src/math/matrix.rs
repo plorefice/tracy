@@ -98,6 +98,16 @@ impl MatrixN {
         out
     }
 
+    /// Creates a matrix that applies a rotation of `rad` radians around the `z` axis.
+    pub fn from_rotation_z(rad: f32) -> Self {
+        let mut out = Self::identity(4);
+        out[(0, 0)] = rad.cos();
+        out[(0, 1)] = -rad.sin();
+        out[(1, 0)] = rad.sin();
+        out[(1, 1)] = rad.cos();
+        out
+    }
+
     /// Returns the order of this matrix, ie. the number of its rows/columns.
     pub fn order(&self) -> usize {
         self.order

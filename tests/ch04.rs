@@ -51,6 +51,11 @@ async fn given_a_half_quarter_rotation_on_y(tr: &mut TestRunner) {
     tr.hq = MatrixN::from_rotation_y(f32::consts::PI / 4.);
 }
 
+#[given("half_quarter ← rotation_z(π / 4)")]
+async fn given_a_half_quarter_rotation_on_z(tr: &mut TestRunner) {
+    tr.hq = MatrixN::from_rotation_z(f32::consts::PI / 4.);
+}
+
 #[given("full_quarter ← rotation_x(π / 2)")]
 async fn given_a_full_quarter_rotation_on_x(tr: &mut TestRunner) {
     tr.fq = MatrixN::from_rotation_x(f32::consts::PI / 2.);
@@ -59,6 +64,11 @@ async fn given_a_full_quarter_rotation_on_x(tr: &mut TestRunner) {
 #[given("full_quarter ← rotation_y(π / 2)")]
 async fn given_a_full_quarter_rotation_on_y(tr: &mut TestRunner) {
     tr.fq = MatrixN::from_rotation_y(f32::consts::PI / 2.);
+}
+
+#[given("full_quarter ← rotation_z(π / 2)")]
+async fn given_a_full_quarter_rotation_on_z(tr: &mut TestRunner) {
+    tr.fq = MatrixN::from_rotation_z(f32::consts::PI / 2.);
 }
 
 #[given("inv ← inverse(transform)")]
