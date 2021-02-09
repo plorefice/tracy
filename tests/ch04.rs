@@ -41,34 +41,24 @@ async fn given_a_scaling(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     tr.transform = MatrixN::from_scale(x, y, z);
 }
 
-#[given("half_quarter ← rotation_x(π / 4)")]
-async fn given_a_half_quarter_rotation_on_x(tr: &mut TestRunner) {
-    tr.hq = MatrixN::from_rotation_x(f32::consts::PI / 4.);
+#[given(regex = r"half_quarter ← rotation_([xyz])\(π / 4\)")]
+async fn given_a_half_quarter_rotation(tr: &mut TestRunner, axis: String) {
+    tr.hq = match axis.as_str() {
+        "x" => MatrixN::from_rotation_x(f32::consts::PI / 4.),
+        "y" => MatrixN::from_rotation_y(f32::consts::PI / 4.),
+        "z" => MatrixN::from_rotation_z(f32::consts::PI / 4.),
+        _ => unreachable!("invalid rotation axis"),
+    };
 }
 
-#[given("half_quarter ← rotation_y(π / 4)")]
-async fn given_a_half_quarter_rotation_on_y(tr: &mut TestRunner) {
-    tr.hq = MatrixN::from_rotation_y(f32::consts::PI / 4.);
-}
-
-#[given("half_quarter ← rotation_z(π / 4)")]
-async fn given_a_half_quarter_rotation_on_z(tr: &mut TestRunner) {
-    tr.hq = MatrixN::from_rotation_z(f32::consts::PI / 4.);
-}
-
-#[given("full_quarter ← rotation_x(π / 2)")]
-async fn given_a_full_quarter_rotation_on_x(tr: &mut TestRunner) {
-    tr.fq = MatrixN::from_rotation_x(f32::consts::PI / 2.);
-}
-
-#[given("full_quarter ← rotation_y(π / 2)")]
-async fn given_a_full_quarter_rotation_on_y(tr: &mut TestRunner) {
-    tr.fq = MatrixN::from_rotation_y(f32::consts::PI / 2.);
-}
-
-#[given("full_quarter ← rotation_z(π / 2)")]
-async fn given_a_full_quarter_rotation_on_z(tr: &mut TestRunner) {
-    tr.fq = MatrixN::from_rotation_z(f32::consts::PI / 2.);
+#[given(regex = r"full_quarter ← rotation_([xyz])\(π / 2\)")]
+async fn given_a_full_quarter_rotation(tr: &mut TestRunner, axis: String) {
+    tr.fq = match axis.as_str() {
+        "x" => MatrixN::from_rotation_x(f32::consts::PI / 2.),
+        "y" => MatrixN::from_rotation_y(f32::consts::PI / 2.),
+        "z" => MatrixN::from_rotation_z(f32::consts::PI / 2.),
+        _ => unreachable!("invalid rotation axis"),
+    };
 }
 
 #[given("inv ← inverse(transform)")]
