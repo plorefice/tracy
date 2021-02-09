@@ -1,13 +1,13 @@
 //! Generators for each chapter's exercises.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, f32};
 
 use lazy_static::lazy_static;
 use wasm_bindgen::prelude::*;
 
 use crate::{
     canvas::{Canvas, Color},
-    math::Coords,
+    math::{Coords, MatrixN},
 };
 
 /// The dimensions of a scene in pixels.
@@ -86,5 +86,19 @@ fn chapter_02(width: usize, height: usize) -> Canvas {
 
 /// Renders the final scene from Chapter 4.
 fn chapter_04(width: usize, height: usize) -> Canvas {
-    Canvas::new(width, height)
+    let mut canvas = Canvas::new(width, height);
+
+    let (wf, hf) = (width as f32, height as f32);
+
+    let radius = wf / 3.;
+    let move_to_center = MatrixN::from_translation(wf / 2., hf / 2., 0.);
+
+    for i in 0..12 {
+        let rotate = MatrixN::from_rotation_z(f32::consts::PI / 6. * i as f32);
+        let pos = &move_to_center * rotate * Coords::from_point(0., radius, 0.);
+
+        canvas.put(pos.x as usize, pos.y as usize, Color::new(1., 1., 1.));
+    }
+
+    canvas
 }
