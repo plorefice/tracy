@@ -61,7 +61,7 @@ impl MatrixN {
     }
 
     /// Creates a matrix that applies a translation of `(x,y,z)`.
-    pub fn translation(x: f32, y: f32, z: f32) -> Self {
+    pub fn from_translation(x: f32, y: f32, z: f32) -> Self {
         let mut out = Self::identity(4);
         out[(0, 3)] = x;
         out[(1, 3)] = y;
@@ -70,7 +70,7 @@ impl MatrixN {
     }
 
     /// Creates a matrix that applies a non-uniform scaling of `(x,y,z)`.
-    pub fn scale(x: f32, y: f32, z: f32) -> Self {
+    pub fn from_scale(x: f32, y: f32, z: f32) -> Self {
         let mut out = Self::identity(4);
         out[(0, 0)] = x;
         out[(1, 1)] = y;

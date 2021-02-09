@@ -29,12 +29,12 @@ impl World for TestRunner {
 
 #[given(regex = r"transform ← translation\((.*), (.*), (.*)\)")]
 async fn given_a_translation(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.transform = MatrixN::translation(x, y, z);
+    tr.transform = MatrixN::from_translation(x, y, z);
 }
 
 #[given(regex = r"transform ← scaling\((.*), (.*), (.*)\)")]
 async fn given_a_scaling(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.transform = MatrixN::scale(x, y, z);
+    tr.transform = MatrixN::from_scale(x, y, z);
 }
 
 #[given("inv ← inverse(transform)")]
