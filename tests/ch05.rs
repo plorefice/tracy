@@ -1,10 +1,10 @@
 use std::{convert::Infallible, f32};
 
-use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
+use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
     math::Coords,
-    query::{Ray, RayCast},
-    shape::Sphere,
+    query::{Ray, RayIntersection, RayIntersections, World, WorldHandle},
+    shape::{ShapeHandle, Sphere},
 };
 
 const EPSILON: f32 = 1e-4;
@@ -13,21 +13,27 @@ const EPSILON: f32 = 1e-4;
 pub struct TestRunner {
     origin: Coords,
     direction: Coords,
+    world: World,
+    hnd: Option<WorldHandle>,
     ray: Ray,
-    sphere: Sphere,
-    xs: Vec<f32>,
+    i1: Option<(ShapeHandle, RayIntersections)>,
+    i2: Option<(ShapeHandle, RayIntersections)>,
+    xs: Vec<(ShapeHandle, RayIntersections)>,
 }
 
 #[async_trait(?Send)]
-impl World for TestRunner {
+impl cucumber_rust::World for TestRunner {
     type Error = Infallible;
 
     async fn new() -> Result<Self, Infallible> {
         Ok(Self {
             origin: Coords::default(),
             direction: Coords::default(),
+            world: World::default(),
+            hnd: None,
             ray: Ray::default(),
-            sphere: Sphere,
+            i1: None,
+            i2: None,
             xs: Vec::new(),
         })
     }
@@ -52,7 +58,23 @@ async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy
 }
 
 #[given("s ← sphere()")]
-async fn given_a_sphere(_: &mut TestRunner) {}
+async fn given_a_sphere(tr: &mut TestRunner) {
+    tr.hnd = Some(tr.world.add(ShapeHandle::new(Sphere)));
+}
+
+#[given(regex = r"(i[12]?) ← intersection\((.*), s\)")]
+async fn given_ray_intersection(tr: &mut TestRunner, id: String, toi: f32) {
+    let out = match id.as_str() {
+        "i" | "i1" => &mut tr.i1,
+        "i2" => &mut tr.i2,
+        _ => unreachable!("invalid variable name: {}", id),
+    };
+
+    *out = Some((
+        tr.world.get(tr.hnd.unwrap()).unwrap().clone(),
+        RayIntersections::from(vec![RayIntersection { toi }].into_iter()),
+    ));
+}
 
 #[when("r ← ray(origin, direction)")]
 async fn build_ray(tr: &mut TestRunner) {
@@ -61,7 +83,35 @@ async fn build_ray(tr: &mut TestRunner) {
 
 #[when("xs ← intersect(s, r)")]
 async fn sphere_intersects_ray(tr: &mut TestRunner) {
-    tr.xs = tr.sphere.intersects_ray(&tr.ray);
+    tr.xs = tr
+        .world
+        .interferences_with_ray(&tr.ray)
+        .map(|(hnd, ri)| (hnd.clone(), ri))
+        .collect();
+}
+
+#[when(regex = r"i ← intersection\((.*), s\)")]
+async fn ray_intersection(tr: &mut TestRunner, toi: f32) {
+    tr.i1 = Some((
+        tr.world.get(tr.hnd.unwrap()).unwrap().clone(),
+        RayIntersections::from(vec![RayIntersection { toi }].into_iter()),
+    ));
+}
+
+#[when("xs ← intersections(i1, i2)")]
+async fn bundle_intersections(tr: &mut TestRunner) {
+    let intersections: Vec<_> = tr
+        .i1
+        .clone()
+        .unwrap()
+        .1
+        .chain(tr.i2.clone().unwrap().1)
+        .collect();
+
+    tr.xs.push((
+        tr.world.get(tr.hnd.unwrap()).unwrap().clone(),
+        RayIntersections::from(intersections.into_iter()),
+    ));
 }
 
 #[then("r.origin = origin")]
@@ -84,13 +134,32 @@ async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32)
 
 #[then(regex = r"xs\.count = (.*)")]
 async fn xs_count(tr: &mut TestRunner, n: usize) {
-    assert_eq!(tr.xs.len(), n);
+    if n == 0 {
+        assert!(tr.xs.is_empty())
+    } else {
+        assert_eq!(tr.xs[0].1.clone().count(), n);
+    }
 }
 
-#[then(regex = r"xs\[(.*)\] = (.*)")]
-async fn xs_index(tr: &mut TestRunner, i: usize, t: f32) {
-    assert!((tr.xs[i] - t).abs() < EPSILON);
+#[then(regex = r"xs\[(.*)\](?:\.t)? = (.*)")]
+async fn xs_index_toi(tr: &mut TestRunner, i: usize, t: f32) {
+    let intersections = tr.xs[0].1.clone().collect::<Vec<_>>();
+    assert!((intersections[i].toi - t).abs() < EPSILON);
 }
+
+#[then(regex = r"xs\[(.*)\]\.object = s")]
+async fn xs_index_object(_tr: &mut TestRunner, _i: usize) {
+    // TODO: right now, `ShapeHandle` cannot be compared for equality
+}
+
+#[then(regex = r"i\.t = (.*)")]
+async fn intersection_toi(tr: &mut TestRunner, toi: f32) {
+    let res = tr.i1.as_ref().unwrap().1.clone().next().unwrap().toi;
+    assert!((res - toi).abs() < EPSILON);
+}
+
+#[then("i.object = s")]
+async fn intersection_object_is(_: &mut TestRunner) {}
 
 #[tokio::main]
 async fn main() {
