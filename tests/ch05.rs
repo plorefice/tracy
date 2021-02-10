@@ -16,9 +16,9 @@ pub struct TestRunner {
     world: World,
     hnd: Option<WorldHandle>,
     ray: Ray,
-    i1: Option<(ShapeHandle, RayIntersections)>,
-    i2: Option<(ShapeHandle, RayIntersections)>,
-    xs: Vec<(ShapeHandle, RayIntersections)>,
+    is: Vec<RayIntersection>,
+    xs: Option<RayIntersections>,
+    hit: Option<RayIntersection>,
 }
 
 #[async_trait(?Send)]
@@ -32,9 +32,9 @@ impl cucumber_rust::World for TestRunner {
             world: World::default(),
             hnd: None,
             ray: Ray::default(),
-            i1: None,
-            i2: None,
-            xs: Vec::new(),
+            is: Vec::new(),
+            xs: None,
+            hit: None,
         })
     }
 }
@@ -62,18 +62,24 @@ async fn given_a_sphere(tr: &mut TestRunner) {
     tr.hnd = Some(tr.world.add(ShapeHandle::new(Sphere)));
 }
 
-#[given(regex = r"(i[12]?) ← intersection\((.*), s\)")]
-async fn given_ray_intersection(tr: &mut TestRunner, id: String, toi: f32) {
-    let out = match id.as_str() {
-        "i" | "i1" => &mut tr.i1,
-        "i2" => &mut tr.i2,
-        _ => unreachable!("invalid variable name: {}", id),
-    };
+#[given(regex = r"(i[0-9]?) ← intersection\((.*), s\)")]
+async fn given_ray_intersection(tr: &mut TestRunner, _id: String, toi: f32) {
+    tr.is.push(RayIntersection { toi });
+}
 
-    *out = Some((
-        tr.world.get(tr.hnd.unwrap()).unwrap().clone(),
-        RayIntersections::from(vec![RayIntersection { toi }].into_iter()),
-    ));
+#[given(regex = r"xs ← intersections\((.*)\)")]
+async fn given_a_bundle_of_intersections(tr: &mut TestRunner, ids: String) {
+    let ids = ids
+        .split(", ")
+        .map(|id| id.trim_start_matches('i').parse::<usize>().unwrap() - 1)
+        .collect::<Vec<_>>();
+
+    let mut reordered = Vec::with_capacity(ids.len());
+    for id in ids {
+        reordered.push(tr.is[id].clone());
+    }
+
+    tr.xs = Some(RayIntersections::from(reordered.into_iter()));
 }
 
 #[when("r ← ray(origin, direction)")]
@@ -86,32 +92,33 @@ async fn sphere_intersects_ray(tr: &mut TestRunner) {
     tr.xs = tr
         .world
         .interferences_with_ray(&tr.ray)
-        .map(|(hnd, ri)| (hnd.clone(), ri))
-        .collect();
+        .map(|(_, ri)| ri)
+        .next();
 }
 
 #[when(regex = r"i ← intersection\((.*), s\)")]
 async fn ray_intersection(tr: &mut TestRunner, toi: f32) {
-    tr.i1 = Some((
-        tr.world.get(tr.hnd.unwrap()).unwrap().clone(),
-        RayIntersections::from(vec![RayIntersection { toi }].into_iter()),
-    ));
+    tr.is.push(RayIntersection { toi });
 }
 
-#[when("xs ← intersections(i1, i2)")]
-async fn bundle_intersections(tr: &mut TestRunner) {
-    let intersections: Vec<_> = tr
-        .i1
-        .clone()
-        .unwrap()
-        .1
-        .chain(tr.i2.clone().unwrap().1)
-        .collect();
+#[when(regex = r"xs ← intersections\((.*)\)")]
+async fn bundle_intersections(tr: &mut TestRunner, ids: String) {
+    let ids = ids
+        .split(", ")
+        .map(|id| id.trim_start_matches('i').parse::<usize>().unwrap() - 1)
+        .collect::<Vec<_>>();
 
-    tr.xs.push((
-        tr.world.get(tr.hnd.unwrap()).unwrap().clone(),
-        RayIntersections::from(intersections.into_iter()),
-    ));
+    let mut reordered = Vec::with_capacity(ids.len());
+    for id in ids {
+        reordered.push(tr.is[id].clone());
+    }
+
+    tr.xs = Some(RayIntersections::from(reordered.into_iter()));
+}
+
+#[when("i ← hit(xs)")]
+async fn ray_hit(tr: &mut TestRunner) {
+    tr.hit = tr.xs.as_ref().unwrap().clone().hit();
 }
 
 #[then("r.origin = origin")]
@@ -135,15 +142,15 @@ async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32)
 #[then(regex = r"xs\.count = (.*)")]
 async fn xs_count(tr: &mut TestRunner, n: usize) {
     if n == 0 {
-        assert!(tr.xs.is_empty())
+        assert!(tr.xs.is_none())
     } else {
-        assert_eq!(tr.xs[0].1.clone().count(), n);
+        assert_eq!(tr.xs.as_ref().unwrap().clone().count(), n);
     }
 }
 
 #[then(regex = r"xs\[(.*)\](?:\.t)? = (.*)")]
 async fn xs_index_toi(tr: &mut TestRunner, i: usize, t: f32) {
-    let intersections = tr.xs[0].1.clone().collect::<Vec<_>>();
+    let intersections = tr.xs.as_ref().unwrap().clone().collect::<Vec<_>>();
     assert!((intersections[i].toi - t).abs() < EPSILON);
 }
 
@@ -154,12 +161,22 @@ async fn xs_index_object(_tr: &mut TestRunner, _i: usize) {
 
 #[then(regex = r"i\.t = (.*)")]
 async fn intersection_toi(tr: &mut TestRunner, toi: f32) {
-    let res = tr.i1.as_ref().unwrap().1.clone().next().unwrap().toi;
-    assert!((res - toi).abs() < EPSILON);
+    assert!((tr.is[0].toi - toi).abs() < EPSILON);
 }
 
 #[then("i.object = s")]
 async fn intersection_object_is(_: &mut TestRunner) {}
+
+#[then(regex = r"i = i(.*)")]
+async fn check_hit(tr: &mut TestRunner, id: String) {
+    let id = id.parse::<usize>().unwrap() - 1;
+    assert!((tr.hit.as_ref().unwrap().toi - tr.is[id].toi).abs() < EPSILON);
+}
+
+#[then("i is nothing")]
+async fn check_not_hit(tr: &mut TestRunner) {
+    assert!(tr.hit.is_none());
+}
 
 #[tokio::main]
 async fn main() {

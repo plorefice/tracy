@@ -1,6 +1,6 @@
 //! Geometric queries for ray tracing.
 
-use std::{slice::Iter, vec::IntoIter};
+use std::{cmp::Ordering, slice::Iter, vec::IntoIter};
 
 use crate::{
     math::Coords,
@@ -38,6 +38,14 @@ impl Iterator for RayIntersections {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.intersections.next()
+    }
+}
+
+impl RayIntersections {
+    /// Returns the first intersection to have hit the target.
+    pub fn hit(self) -> Option<RayIntersection> {
+        self.filter(|r| r.toi >= 0.)
+            .min_by(|a, b| a.toi.partial_cmp(&b.toi).unwrap_or(Ordering::Greater))
     }
 }
 
