@@ -62,8 +62,8 @@ lazy_static! {
             "chapter05",
             SceneConfig {
                 size: SceneSize {
-                    width: 256,
-                    height: 256,
+                    width: 512,
+                    height: 512,
                 },
                 render_fn: Box::new(chapter_05),
             },

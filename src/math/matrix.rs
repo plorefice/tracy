@@ -186,21 +186,32 @@ impl MatrixN {
 
     /// Returns the inverse of the matrix, or `None` if the matrix is not invertible.
     pub fn inverse(&self) -> Option<MatrixN> {
-        let det = self.det();
-        if det == 0. {
-            return None;
-        }
-
-        let mut out = Self::zeros(self.order());
-
-        for i in 0..out.order() {
-            for j in 0..out.order() {
-                let c = self.cofactor(i, j);
-                out[(j, i)] = c / det;
+        match self.order() {
+            0 => None,
+            4 => {
+                let mut out = Self::zeros(4);
+                if do_inverse4(self, &mut out) {
+                    Some(out)
+                } else {
+                    None
+                }
+            }
+            n => {
+                let mut out = Self::zeros(n);
+                let det = self.det();
+                if det != 0. {
+                    for i in 0..n {
+                        for j in 0..n {
+                            let c = self.cofactor(i, j);
+                            out[(j, i)] = c / det;
+                        }
+                    }
+                    Some(out)
+                } else {
+                    None
+                }
             }
         }
-
-        Some(out)
     }
 
     /// Computes the determinant of the matrix.
@@ -342,5 +353,105 @@ impl Mul<Coords> for &MatrixN {
             z: (0..4).fold(0., |sum, i| sum + self[(2, i)] * data[i]),
             w: (0..4).fold(0., |sum, i| sum + self[(3, i)] * data[i]),
         }
+    }
+}
+
+// NOTE: this is an extremely efficient, loop-unrolled matrix inverse from MESA (MIT licensed).
+fn do_inverse4(m: &MatrixN, out: &mut MatrixN) -> bool {
+    let m = m.data.as_slice();
+
+    out[(0, 0)] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15]
+        + m[9] * m[7] * m[14]
+        + m[13] * m[6] * m[11]
+        - m[13] * m[7] * m[10];
+
+    out[(1, 0)] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15]
+        - m[9] * m[3] * m[14]
+        - m[13] * m[2] * m[11]
+        + m[13] * m[3] * m[10];
+
+    out[(2, 0)] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15]
+        + m[5] * m[3] * m[14]
+        + m[13] * m[2] * m[7]
+        - m[13] * m[3] * m[6];
+
+    out[(3, 0)] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11]
+        - m[5] * m[3] * m[10]
+        - m[9] * m[2] * m[7]
+        + m[9] * m[3] * m[6];
+
+    out[(0, 1)] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15]
+        - m[8] * m[7] * m[14]
+        - m[12] * m[6] * m[11]
+        + m[12] * m[7] * m[10];
+
+    out[(1, 1)] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15]
+        + m[8] * m[3] * m[14]
+        + m[12] * m[2] * m[11]
+        - m[12] * m[3] * m[10];
+
+    out[(2, 1)] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15]
+        - m[4] * m[3] * m[14]
+        - m[12] * m[2] * m[7]
+        + m[12] * m[3] * m[6];
+
+    out[(3, 1)] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11]
+        + m[4] * m[3] * m[10]
+        + m[8] * m[2] * m[7]
+        - m[8] * m[3] * m[6];
+
+    out[(0, 2)] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15]
+        + m[8] * m[7] * m[13]
+        + m[12] * m[5] * m[11]
+        - m[12] * m[7] * m[9];
+
+    out[(1, 2)] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15]
+        - m[8] * m[3] * m[13]
+        - m[12] * m[1] * m[11]
+        + m[12] * m[3] * m[9];
+
+    out[(2, 2)] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15]
+        + m[4] * m[3] * m[13]
+        + m[12] * m[1] * m[7]
+        - m[12] * m[3] * m[5];
+
+    out[(0, 3)] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14]
+        - m[8] * m[6] * m[13]
+        - m[12] * m[5] * m[10]
+        + m[12] * m[6] * m[9];
+
+    out[(3, 2)] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11]
+        - m[4] * m[3] * m[9]
+        - m[8] * m[1] * m[7]
+        + m[8] * m[3] * m[5];
+
+    out[(1, 3)] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14]
+        + m[8] * m[2] * m[13]
+        + m[12] * m[1] * m[10]
+        - m[12] * m[2] * m[9];
+
+    out[(2, 3)] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14]
+        - m[4] * m[2] * m[13]
+        - m[12] * m[1] * m[6]
+        + m[12] * m[2] * m[5];
+
+    out[(3, 3)] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10]
+        + m[4] * m[2] * m[9]
+        + m[8] * m[1] * m[6]
+        - m[8] * m[2] * m[5];
+
+    let det = m[0] * out[(0, 0)] + m[1] * out[(0, 1)] + m[2] * out[(0, 2)] + m[3] * out[(0, 3)];
+
+    if det != 0. {
+        let inv_det = 1. / det;
+
+        for j in 0..4 {
+            for i in 0..4 {
+                out[(i, j)] *= inv_det;
+            }
+        }
+        true
+    } else {
+        false
     }
 }
