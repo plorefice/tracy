@@ -3,7 +3,7 @@
 use std::{cmp::Ordering, slice::Iter, vec::IntoIter};
 
 use crate::{
-    math::Coords,
+    math::{Coords, MatrixN},
     shape::{Shape, ShapeHandle},
 };
 
@@ -78,6 +78,14 @@ impl Ray {
         Self {
             origin: Coords::from_point(origin.x, origin.y, origin.z),
             dir: Coords::from_vector(dir.x, dir.y, dir.z),
+        }
+    }
+
+    /// Creates a new ray by applying a transformation to `self`.
+    pub fn transform_by(&self, m: &MatrixN) -> Self {
+        Self {
+            origin: m * self.origin,
+            dir: m * self.dir,
         }
     }
 
