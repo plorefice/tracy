@@ -6,7 +6,10 @@ pub use sphere::*;
 
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 
-use crate::query::{Ray, RayCast, RayIntersections};
+use crate::{
+    math::MatrixN,
+    query::{Ray, RayCast, RayIntersections},
+};
 
 /// Trait implemented by all supported shapes.
 pub trait Shape: 'static + Debug + Send + Sync {
@@ -19,10 +22,10 @@ pub trait Shape: 'static + Debug + Send + Sync {
 
 /// Blanket implementation of [`RayCast`] for a shape.
 impl RayCast for dyn Shape {
-    fn intersects_ray(&self, ray: &Ray) -> Option<RayIntersections> {
+    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
         self.as_ray_cast()
             .expect("this shape does not implement `RayCast`")
-            .intersects_ray(ray)
+            .intersects_ray(m, ray)
     }
 }
 

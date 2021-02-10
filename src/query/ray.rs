@@ -6,8 +6,8 @@ use crate::math::{Coords, MatrixN};
 
 /// Trait of objects which can be tested for intersection with a ray.
 pub trait RayCast {
-    /// Computes all the intersection poinst between `self` and `ray`.
-    fn intersects_ray(&self, ray: &Ray) -> Option<RayIntersections>;
+    /// Computes all the intersection poinst between the transformed `self` and `ray`.
+    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections>;
 }
 
 /// A ray starting from a point in space and traveling along a direction.

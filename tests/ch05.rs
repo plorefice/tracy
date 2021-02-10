@@ -3,7 +3,9 @@ use std::{convert::Infallible, f32};
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
     math::{Coords, MatrixN},
-    query::{Ray, RayIntersection, RayIntersections, World, WorldHandle},
+    query::{
+        CollisionObject, CollisionObjectHandle, Ray, RayIntersection, RayIntersections, World,
+    },
     shape::{ShapeHandle, Sphere},
 };
 
@@ -14,7 +16,7 @@ pub struct TestRunner {
     origin: Coords,
     direction: Coords,
     world: World,
-    hnd: Option<WorldHandle>,
+    hnd: Option<CollisionObjectHandle>,
     r1: Ray,
     r2: Ray,
     is: Vec<RayIntersection>,
@@ -63,7 +65,10 @@ async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy
 
 #[given("s ← sphere()")]
 async fn given_a_sphere(tr: &mut TestRunner) {
-    tr.hnd = Some(tr.world.add(ShapeHandle::new(Sphere)));
+    tr.hnd = Some(tr.world.add(CollisionObject::new(
+        ShapeHandle::new(Sphere),
+        MatrixN::identity(4),
+    )));
 }
 
 #[given(regex = r"(i[0-9]?) ← intersection\((.*), s\)")]
@@ -86,7 +91,7 @@ async fn given_a_bundle_of_intersections(tr: &mut TestRunner, ids: String) {
     tr.xs = Some(RayIntersections::from(reordered.into_iter()));
 }
 
-#[given(regex = r"m ← translation\((.*), (.*), (.*)\)")]
+#[given(regex = r"[mt] ← translation\((.*), (.*), (.*)\)")]
 async fn given_a_translation(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     tr.m = MatrixN::from_translation(x, y, z);
 }
@@ -138,6 +143,24 @@ async fn ray_hit(tr: &mut TestRunner) {
 #[when("r2 ← transform(r, m)")]
 async fn transform_ray(tr: &mut TestRunner) {
     tr.r2 = tr.r1.transform_by(&tr.m);
+}
+
+#[when("set_transform(s, t)")]
+async fn set_transform(tr: &mut TestRunner) {
+    let co = tr.world.get_mut(tr.hnd.unwrap()).unwrap();
+    co.set_transform(tr.m.clone());
+}
+
+#[when(regex = r"set_transform\(s, scaling\((.*), (.*), (.*)\)\)")]
+async fn set_scaling(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    let co = tr.world.get_mut(tr.hnd.unwrap()).unwrap();
+    co.set_transform(MatrixN::from_scale(x, y, z));
+}
+
+#[when(regex = r"set_transform\(s, translation\((.*), (.*), (.*)\)\)")]
+async fn set_translation(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    let co = tr.world.get_mut(tr.hnd.unwrap()).unwrap();
+    co.set_transform(MatrixN::from_translation(x, y, z));
 }
 
 #[then("r.origin = origin")]
@@ -211,6 +234,18 @@ async fn check_hit(tr: &mut TestRunner, id: String) {
 #[then("i is nothing")]
 async fn check_not_hit(tr: &mut TestRunner) {
     assert!(tr.hit.is_none());
+}
+
+#[then("s.transform = identity_matrix")]
+async fn sphere_default_transform(_: &mut TestRunner) {
+    let co = CollisionObject::new(ShapeHandle::new(Sphere), MatrixN::identity(4));
+    assert!(co.transform().abs_diff_eq(&MatrixN::identity(4), EPSILON));
+}
+
+#[then("s.transform = t")]
+async fn sphere_transform(tr: &mut TestRunner) {
+    let co = tr.world.get(tr.hnd.unwrap()).unwrap();
+    assert!(co.transform().abs_diff_eq(&tr.m, EPSILON));
 }
 
 #[tokio::main]

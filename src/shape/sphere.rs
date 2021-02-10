@@ -1,7 +1,7 @@
 //! The unit sphere shape.
 
 use crate::{
-    math::Coords,
+    math::{Coords, MatrixN},
     query::{Ray, RayCast, RayIntersection, RayIntersections},
 };
 
@@ -19,7 +19,8 @@ impl Shape for Sphere {
 }
 
 impl RayCast for Sphere {
-    fn intersects_ray(&self, ray: &Ray) -> Option<RayIntersections> {
+    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
+        let ray = ray.transform_by(&m.inverse()?);
         let distance = ray.origin - Coords::from_point(0., 0., 0.);
 
         let a = ray.dir.dot(&ray.dir);
