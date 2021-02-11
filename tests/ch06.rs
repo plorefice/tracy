@@ -4,7 +4,7 @@ use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
     canvas::Color,
     math::{MatrixN, Point, Vector},
-    query::{CollisionObject, CollisionObjectHandle, Ray, RayCast, World},
+    query::{Object, Ray, RayCast},
     rendering::{Material, PointLight},
     shape::{ShapeHandle, Sphere},
 };
@@ -13,8 +13,7 @@ const EPSILON: f32 = 1e-4;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
-    world: World,
-    s: Option<CollisionObjectHandle>,
+    sphere: Option<Object>,
     m: MatrixN,
     v: Vector,
     n: Vector,
@@ -33,8 +32,7 @@ impl cucumber_rust::World for TestRunner {
 
     async fn new() -> Result<Self, Infallible> {
         Ok(Self {
-            world: World::new(),
-            s: None,
+            sphere: None,
             m: MatrixN::zeros(4),
             v: Vector::default(),
             n: Vector::default(),
@@ -51,10 +49,7 @@ impl cucumber_rust::World for TestRunner {
 
 #[given("s ← sphere()")]
 async fn given_a_sphere(tr: &mut TestRunner) {
-    tr.s = Some(tr.world.add(CollisionObject::new(
-        ShapeHandle::new(Sphere),
-        MatrixN::identity(4),
-    )));
+    tr.sphere = Some(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
 }
 
 #[given("m ← material()")]
@@ -64,14 +59,15 @@ async fn given_a_material(tr: &mut TestRunner) {
 
 #[given("set_transform(s, m)")]
 async fn given_a_transformed_sphere(tr: &mut TestRunner) {
-    let co = tr.world.get_mut(tr.s.unwrap()).unwrap();
-    co.set_transform(tr.m.clone());
+    tr.sphere.as_mut().unwrap().set_transform(tr.m.clone());
 }
 
 #[given(regex = r"set_transform\(s, translation\((.*), (.*), (.*)\)\)")]
 async fn given_a_translated_sphere(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    let co = tr.world.get_mut(tr.s.unwrap()).unwrap();
-    co.set_transform(MatrixN::from_translation(x, y, z));
+    tr.sphere
+        .as_mut()
+        .unwrap()
+        .set_transform(MatrixN::from_translation(x, y, z));
 }
 
 #[given(regex = r"m ← scaling\((.*), (.*), (.*)\) \* rotation_z\((.*)\)")]
@@ -99,14 +95,19 @@ async fn given_light_position(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     tr.position = Point::from_point(x, y, z);
 }
 
+#[given(regex = r"m\.ambient ← (.*)")]
+async fn given_an_ambient_value(tr: &mut TestRunner, ambient: f32) {
+    tr.material.ambient = ambient;
+}
+
 #[when(regex = r"n ← normal_at\(s, point\((.*), (.*), (.*)\)\)")]
 async fn compute_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    let co = tr.world.get(tr.s.unwrap()).unwrap();
+    let sphere = tr.sphere.as_ref().unwrap();
 
-    tr.ns = co
+    tr.ns = sphere
         .shape()
         .toi_and_normal_with_ray(
-            co.transform(),
+            sphere.transform(),
             &Ray::new(Point::default(), Vector::from_vector(x, y, z)),
         )
         .map(|xs| xs.map(|x| x.normal).collect())
@@ -125,6 +126,16 @@ async fn create_point_light(tr: &mut TestRunner) {
         color: tr.color,
         intensity: 1.,
     };
+}
+
+#[when("m ← s.material")]
+async fn sphere_to_material(tr: &mut TestRunner) {
+    tr.material = *tr.sphere.as_ref().unwrap().material();
+}
+
+#[when("s.material ← m")]
+async fn material_to_sphere(tr: &mut TestRunner) {
+    tr.sphere.as_mut().unwrap().set_material(tr.material);
 }
 
 #[then(regex = r"n = vector\((.*), (.*), (.*)\)")]
@@ -170,6 +181,16 @@ async fn check_material_properties(tr: &mut TestRunner, field: String, val: f32)
         _ => unreachable!("invalid field name"),
     };
     assert!((field - val).abs() < EPSILON);
+}
+
+#[then("m = material()")]
+async fn material_is_default(tr: &mut TestRunner) {
+    assert_eq!(tr.material, Material::default());
+}
+
+#[then("s.material = m")]
+async fn sphere_material(tr: &mut TestRunner) {
+    assert_eq!(*tr.sphere.as_ref().unwrap().material(), tr.material);
 }
 
 #[tokio::main]

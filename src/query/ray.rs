@@ -23,7 +23,7 @@ pub trait RayCast {
 }
 
 /// A ray starting from a point in space and traveling along a direction.
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
     /// Starting point of the ray.
     pub origin: Point,

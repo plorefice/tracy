@@ -12,7 +12,7 @@ pub type Point = Coords;
 pub type Vector = Coords;
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Coords {
     /// The `x` component of this tuple.
     pub x: f32,

@@ -8,7 +8,7 @@ use wasm_bindgen::prelude::*;
 use crate::{
     canvas::{Canvas, Color},
     math::{MatrixN, Point, Vector},
-    query::{CollisionObject, Ray, World},
+    query::{Object, Ray, World},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -122,10 +122,7 @@ fn chapter_05(width: usize, height: usize) -> Canvas {
 
     let canvas_size = width as f32;
 
-    world.add(CollisionObject::new(
-        ShapeHandle::new(Sphere),
-        MatrixN::identity(4),
-    ));
+    world.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
 
     let ray_origin = Point::from_point(0., 0., -5.);
 

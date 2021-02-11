@@ -3,7 +3,7 @@ use std::{convert::Infallible, f32};
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
     math::{MatrixN, Point, Vector},
-    query::{CollisionObject, Ray, RayCast, RayIntersection, RayIntersections},
+    query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -13,7 +13,7 @@ const EPSILON: f32 = 1e-4;
 pub struct TestRunner {
     origin: Point,
     direction: Vector,
-    sphere: Option<CollisionObject>,
+    sphere: Option<Object>,
     r1: Ray,
     r2: Ray,
     is: Vec<f32>,
@@ -31,8 +31,14 @@ impl cucumber_rust::World for TestRunner {
             origin: Point::default(),
             direction: Vector::default(),
             sphere: None,
-            r1: Ray::default(),
-            r2: Ray::default(),
+            r1: Ray {
+                origin: Point::default(),
+                dir: Vector::default(),
+            },
+            r2: Ray {
+                origin: Point::default(),
+                dir: Vector::default(),
+            },
             is: Vec::new(),
             xs: Vec::new(),
             hit: None,
@@ -61,10 +67,7 @@ async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy
 
 #[given("s ← sphere()")]
 async fn given_a_sphere(tr: &mut TestRunner) {
-    tr.sphere = Some(CollisionObject::new(
-        ShapeHandle::new(Sphere),
-        MatrixN::identity(4),
-    ));
+    tr.sphere = Some(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
 }
 
 #[given(regex = r"(i[0-9]?) ← intersection\((.*), s\)")]
@@ -221,7 +224,7 @@ async fn check_not_hit(tr: &mut TestRunner) {
 
 #[then("s.transform = identity_matrix")]
 async fn sphere_default_transform(_: &mut TestRunner) {
-    let co = CollisionObject::new(ShapeHandle::new(Sphere), MatrixN::identity(4));
+    let co = Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4));
     assert!(co.transform().abs_diff_eq(&MatrixN::identity(4), EPSILON));
 }
 

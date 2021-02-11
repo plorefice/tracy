@@ -1,21 +1,21 @@
 //! Geometric queries for ray tracing.
 
-mod collision;
+mod object;
 mod ray;
 
-pub use collision::*;
+pub use object::*;
 pub use ray::*;
 
 use std::slice::Iter;
 
 /// A handle to an object in a world.
 #[derive(Debug, Clone, Copy)]
-pub struct CollisionObjectHandle(u32);
+pub struct ObjectHandle(u32);
 
 /// A container of collidable objects.
 #[derive(Debug, Default)]
 pub struct World {
-    objects: Vec<CollisionObject>,
+    objects: Vec<Object>,
 }
 
 impl World {
@@ -27,18 +27,18 @@ impl World {
     }
 
     /// Adds an object to this world.
-    pub fn add(&mut self, object: CollisionObject) -> CollisionObjectHandle {
+    pub fn add(&mut self, object: Object) -> ObjectHandle {
         self.objects.push(object);
-        CollisionObjectHandle(self.objects.len() as u32 - 1)
+        ObjectHandle(self.objects.len() as u32 - 1)
     }
 
     /// Returns a reference to the object identified by this handle.
-    pub fn get(&self, handle: CollisionObjectHandle) -> Option<&CollisionObject> {
+    pub fn get(&self, handle: ObjectHandle) -> Option<&Object> {
         self.objects.get(handle.0 as usize)
     }
 
     /// Returns a mutable reference to the object identified by this handle.
-    pub fn get_mut(&mut self, handle: CollisionObjectHandle) -> Option<&mut CollisionObject> {
+    pub fn get_mut(&mut self, handle: ObjectHandle) -> Option<&mut Object> {
         self.objects.get_mut(handle.0 as usize)
     }
 
@@ -55,11 +55,11 @@ impl World {
 #[derive(Debug, Clone)]
 pub struct InterferencesWithRay<'a> {
     ray: &'a Ray,
-    objects: Iter<'a, CollisionObject>,
+    objects: Iter<'a, Object>,
 }
 
 impl<'a> Iterator for InterferencesWithRay<'a> {
-    type Item = (&'a CollisionObject, RayIntersections);
+    type Item = (&'a Object, RayIntersections);
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(obj) = self.objects.next() {

@@ -3,7 +3,7 @@
 use crate::canvas::Color;
 
 /// A material with standard properties.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Material {
     /// Diffuse color.
     pub color: Color,

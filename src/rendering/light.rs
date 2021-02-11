@@ -3,7 +3,7 @@
 use crate::{canvas::Color, math::Point};
 
 /// A point light source.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct PointLight {
     /// Position of the light source in the world.
     pub position: Point,

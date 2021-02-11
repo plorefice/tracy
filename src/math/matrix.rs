@@ -8,7 +8,7 @@ use std::{
 use super::Coords;
 
 /// A NxN, column-major matrix.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MatrixN {
     data: Vec<f32>,
     order: usize,

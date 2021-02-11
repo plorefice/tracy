@@ -6,7 +6,7 @@ use std::{
 };
 
 /// A color in RGB format.
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Color {
     /// The red component of this color.
     pub r: f32,
