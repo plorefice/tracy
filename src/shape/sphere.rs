@@ -1,7 +1,7 @@
 //! The unit sphere shape.
 
 use crate::{
-    math::{Coords, MatrixN},
+    math::{MatrixN, Point},
     query::{Ray, RayCast, RayIntersection, RayIntersections},
 };
 
@@ -22,7 +22,7 @@ impl RayCast for Sphere {
     fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
         let inv = m.inverse()?;
         let ray = ray.transform_by(&inv);
-        let distance = ray.origin - Coords::from_point(0., 0., 0.);
+        let distance = ray.origin - Point::from_point(0., 0., 0.);
 
         let a = ray.dir.dot(&ray.dir);
         let b = 2. * ray.dir.dot(&distance);

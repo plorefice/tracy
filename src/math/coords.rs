@@ -5,6 +5,12 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+/// A point in 3D space.
+pub type Point = Coords;
+
+/// A vector in 3D space.
+pub type Vector = Coords;
+
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct Coords {

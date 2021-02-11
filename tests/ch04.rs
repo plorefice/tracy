@@ -1,17 +1,17 @@
 use std::{convert::Infallible, f32};
 
 use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
-use trtc::math::{Coords, MatrixN};
+use trtc::math::{MatrixN, Point, Vector};
 
 const EPSILON: f32 = 1e-4;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
-    p: Coords,
-    p2: Coords,
-    p3: Coords,
-    p4: Coords,
-    v: Coords,
+    p: Point,
+    p2: Point,
+    p3: Point,
+    p4: Point,
+    v: Vector,
 
     inv: MatrixN,
     transform: MatrixN,
@@ -113,12 +113,12 @@ async fn given_the_inverse_of_half_quarter(tr: &mut TestRunner) {
 
 #[given(regex = r"p ← point\((.*), (.*), (.*)\)")]
 async fn given_a_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.p = Coords::from_point(x, y, z);
+    tr.p = Point::from_point(x, y, z);
 }
 
 #[given(regex = r"v ← vector\((.*), (.*), (.*)\)")]
 async fn given_a_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.v = Coords::from_vector(x, y, z);
+    tr.v = Vector::from_vector(x, y, z);
 }
 
 #[when(regex = r"(p[234]) ← ([ABC]) \* (p[234]?)")]
@@ -147,12 +147,12 @@ async fn transform_chain(tr: &mut TestRunner) {
 
 #[then(regex = r"(?:transform|T) \* p = point\((.*), (.*), (.*)\)")]
 async fn transform_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.transform * tr.p).abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+    assert!((&tr.transform * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"transform \* v = vector\((.*), (.*), (.*)\)")]
 async fn transform_by_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.transform * tr.v).abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+    assert!((&tr.transform * tr.v).abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
 }
 
 #[then("transform * v = v")]
@@ -162,22 +162,22 @@ async fn transform_by_vector_is_self(tr: &mut TestRunner) {
 
 #[then(regex = r"inv \* p = point\((.*), (.*), (.*)\)")]
 async fn inverse_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.inv * tr.p).abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+    assert!((&tr.inv * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"inv \* v = vector\((.*), (.*), (.*)\)")]
 async fn inverse_by_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.inv * tr.v).abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+    assert!((&tr.inv * tr.v).abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
 }
 
 #[then(regex = r"half_quarter \* p = point\((.*), (.*), (.*)\)")]
 async fn half_quarter_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.hq * tr.p).abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+    assert!((&tr.hq * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"full_quarter \* p = point\((.*), (.*), (.*)\)")]
 async fn full_quarter_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.fq * tr.p).abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+    assert!((&tr.fq * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"(p[234]) = point\((.*), (.*), (.*)\)")]
@@ -189,7 +189,7 @@ async fn point_equals(tr: &mut TestRunner, which: String, x: f32, y: f32, z: f32
         _ => unreachable!("unexpected point name"),
     };
 
-    assert!(p.abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+    assert!(p.abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[tokio::main]

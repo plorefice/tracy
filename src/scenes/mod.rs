@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::{
     canvas::{Canvas, Color},
-    math::{Coords, MatrixN},
+    math::{MatrixN, Point, Vector},
     query::{CollisionObject, Ray, World},
     shape::{ShapeHandle, Sphere},
 };
@@ -76,11 +76,11 @@ lazy_static! {
 fn chapter_02(width: usize, height: usize) -> Canvas {
     let mut canvas = Canvas::new(width, height);
 
-    let mut pos = Coords::from_point(0., 1., 0.);
-    let mut vel = Coords::from_vector(1., 1.8, 0.).normalize() * 11.25;
+    let mut pos = Point::from_point(0., 1., 0.);
+    let mut vel = Vector::from_vector(1., 1.8, 0.).normalize() * 11.25;
 
-    let gravity = Coords::from_vector(0., -0.1, 0.);
-    let wind = Coords::from_vector(-0.01, 0., 0.);
+    let gravity = Vector::from_vector(0., -0.1, 0.);
+    let wind = Vector::from_vector(-0.01, 0., 0.);
 
     while pos.y > 0. {
         canvas.put(
@@ -107,7 +107,7 @@ fn chapter_04(width: usize, height: usize) -> Canvas {
 
     for i in 0..12 {
         let rotate = MatrixN::from_rotation_z(f32::consts::PI / 6. * i as f32);
-        let pos = &move_to_center * rotate * Coords::from_point(0., radius, 0.);
+        let pos = &move_to_center * rotate * Point::from_point(0., radius, 0.);
 
         canvas.put(pos.x as usize, pos.y as usize, Color::new(1., 1., 1.));
     }
@@ -127,7 +127,7 @@ fn chapter_05(width: usize, height: usize) -> Canvas {
         MatrixN::identity(4),
     ));
 
-    let ray_origin = Coords::from_point(0., 0., -5.);
+    let ray_origin = Point::from_point(0., 0., -5.);
 
     let wall_z = 10.;
     let wall_size = 7.;
@@ -139,7 +139,7 @@ fn chapter_05(width: usize, height: usize) -> Canvas {
         for x in 0..width {
             let wall_x = -wall_size / 2. + pixel_size * x as f32;
 
-            let target = Coords::from_point(wall_x, wall_y, wall_z);
+            let target = Point::from_point(wall_x, wall_y, wall_z);
             let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
 
             for (_, xs) in world.interferences_with_ray(&ray) {

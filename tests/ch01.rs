@@ -3,7 +3,7 @@
 use std::{collections::HashMap, convert::Infallible};
 
 use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
-use trtc::math::Coords;
+use trtc::math::{Coords, Point, Vector};
 
 const EPSILON: f32 = 1e-6;
 
@@ -30,12 +30,12 @@ async fn given_a_tuple(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32,
 
 #[given(regex = r"^([a-z0-9]+) ← point\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn given_a_point(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32) {
-    tr.vars.insert(var, Coords::from_point(x, y, z));
+    tr.vars.insert(var, Point::from_point(x, y, z));
 }
 
 #[given(regex = r"^([a-z0-9]+) ← vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
 async fn given_a_vector(tr: &mut TestRunner, var: String, x: f32, y: f32, z: f32) {
-    tr.vars.insert(var, Coords::from_vector(x, y, z));
+    tr.vars.insert(var, Vector::from_vector(x, y, z));
 }
 
 #[when(regex = r"^([a-z0-9]+) ← normalize\(([a-z0-9]+)\)$")]
@@ -98,7 +98,7 @@ async fn tuple_sub_equals_vector(
     y: f32,
     z: f32,
 ) {
-    assert!((tr.vars[&a1] - tr.vars[&a2]).abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+    assert!((tr.vars[&a1] - tr.vars[&a2]).abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
 }
 
 #[then(regex = r"^([a-z0-9]+) - ([a-z0-9]+) = point\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
@@ -110,7 +110,7 @@ async fn tuple_sub_equals_point(
     y: f32,
     z: f32,
 ) {
-    assert!((tr.vars[&a1] - tr.vars[&a2]).abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+    assert!((tr.vars[&a1] - tr.vars[&a2]).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"^-([a-z0-9]+) = tuple\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$")]
@@ -144,7 +144,7 @@ async fn vector_magnitude(tr: &mut TestRunner, a: String, sqrt: String, mut mag:
     regex = r"^normalize\(([a-z0-9]+)\) = (?:approximately )?vector\(([0-9.-]+), ([0-9.-]+), ([0-9.-]+)\)$"
 )]
 async fn vector_normalize(tr: &mut TestRunner, a: String, x: f32, y: f32, z: f32) {
-    assert!((tr.vars[&a].normalize() - Coords::from_vector(x, y, z)).length() < 1e6);
+    assert!((tr.vars[&a].normalize() - Vector::from_vector(x, y, z)).length() < 1e6);
 }
 
 #[then(regex = r"^dot\(([a-z0-9]+), ([a-z0-9]+)\) = ([0-9.-]+)$")]
@@ -158,7 +158,7 @@ async fn dot_product(tr: &mut TestRunner, a: String, b: String, dot: f32) {
 async fn cross_product(tr: &mut TestRunner, a: String, b: String, x: f32, y: f32, z: f32) {
     assert!(tr.vars[&a]
         .cross(&tr.vars[&b])
-        .abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+        .abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
 }
 
 #[tokio::main]

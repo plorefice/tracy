@@ -2,7 +2,7 @@ use std::{convert::Infallible, f32};
 
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
-    math::{Coords, MatrixN},
+    math::{MatrixN, Point, Vector},
     query::{CollisionObject, CollisionObjectHandle, Ray, RayCast, World},
     shape::{ShapeHandle, Sphere},
 };
@@ -14,10 +14,10 @@ pub struct TestRunner {
     world: World,
     s: Option<CollisionObjectHandle>,
     m: MatrixN,
-    v: Coords,
-    n: Coords,
-    r: Coords,
-    ns: Vec<Coords>,
+    v: Vector,
+    n: Vector,
+    r: Vector,
+    ns: Vec<Vector>,
 }
 
 #[async_trait(?Send)]
@@ -29,9 +29,9 @@ impl cucumber_rust::World for TestRunner {
             world: World::new(),
             s: None,
             m: MatrixN::zeros(4),
-            v: Coords::default(),
-            n: Coords::default(),
-            r: Coords::default(),
+            v: Vector::default(),
+            n: Vector::default(),
+            r: Vector::default(),
             ns: Vec::new(),
         })
     }
@@ -64,12 +64,12 @@ async fn given_a_scale_and_rotation(tr: &mut TestRunner, x: f32, y: f32, z: f32,
 
 #[given(regex = r"v ← vector\((.*), (.*), (.*)\)")]
 async fn given_a_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.v = Coords::from_vector(x, y, z);
+    tr.v = Vector::from_vector(x, y, z);
 }
 
 #[given(regex = r"n ← vector\((.*), (.*), (.*)\)")]
 async fn given_a_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.n = Coords::from_vector(x, y, z);
+    tr.n = Vector::from_vector(x, y, z);
 }
 
 #[when(regex = r"n ← normal_at\(s, point\((.*), (.*), (.*)\)\)")]
@@ -80,7 +80,7 @@ async fn compute_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
         .shape()
         .toi_and_normal_with_ray(
             co.transform(),
-            &Ray::new(Coords::default(), Coords::from_vector(x, y, z)),
+            &Ray::new(Point::default(), Vector::from_vector(x, y, z)),
         )
         .map(|xs| xs.map(|x| x.normal).collect())
         .unwrap_or_default();
@@ -96,7 +96,7 @@ async fn check_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     assert!(tr
         .ns
         .iter()
-        .any(|n| n.abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON)));
+        .any(|n| n.abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON)));
 }
 
 #[then("n = normalize(n)")]
@@ -106,7 +106,7 @@ async fn normals_are_normalized(tr: &mut TestRunner) {
 
 #[then(regex = r"r = vector\((.*), (.*), (.*)\)")]
 async fn check_reflection(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!(tr.r.abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+    assert!(tr.r.abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
 }
 
 #[tokio::main]

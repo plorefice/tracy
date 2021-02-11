@@ -2,7 +2,7 @@ use std::{convert::Infallible, f32};
 
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
-    math::{Coords, MatrixN},
+    math::{MatrixN, Point, Vector},
     query::{CollisionObject, Ray, RayCast, RayIntersection, RayIntersections},
     shape::{ShapeHandle, Sphere},
 };
@@ -11,8 +11,8 @@ const EPSILON: f32 = 1e-4;
 
 #[derive(WorldInit)]
 pub struct TestRunner {
-    origin: Coords,
-    direction: Coords,
+    origin: Point,
+    direction: Vector,
     sphere: Option<CollisionObject>,
     r1: Ray,
     r2: Ray,
@@ -28,8 +28,8 @@ impl cucumber_rust::World for TestRunner {
 
     async fn new() -> Result<Self, Infallible> {
         Ok(Self {
-            origin: Coords::default(),
-            direction: Coords::default(),
+            origin: Point::default(),
+            direction: Vector::default(),
             sphere: None,
             r1: Ray::default(),
             r2: Ray::default(),
@@ -43,19 +43,19 @@ impl cucumber_rust::World for TestRunner {
 
 #[given(regex = r"origin ← point\((.*), (.*), (.*)\)")]
 async fn given_an_origin(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.origin = Coords::from_point(x, y, z);
+    tr.origin = Point::from_point(x, y, z);
 }
 
 #[given(regex = r"direction ← vector\((.*), (.*), (.*)\)")]
 async fn given_a_direction(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.direction = Coords::from_vector(x, y, z);
+    tr.direction = Vector::from_vector(x, y, z);
 }
 
 #[given(regex = r"r ← ray\(point\((.*), (.*), (.*)\), vector\((.*), (.*), (.*)\)\)")]
 async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy: f32, vz: f32) {
     tr.r1 = Ray::new(
-        Coords::from_point(px, py, pz),
-        Coords::from_vector(vx, vy, vz),
+        Point::from_point(px, py, pz),
+        Vector::from_vector(vx, vy, vz),
     );
 }
 
@@ -120,7 +120,7 @@ async fn ray_hit(tr: &mut TestRunner) {
     tr.hit = RayIntersections::from(
         tr.xs
             .iter()
-            .map(|&toi| RayIntersection::new(toi, Coords::default()))
+            .map(|&toi| RayIntersection::new(toi, Vector::default()))
             .collect::<Vec<_>>()
             .into_iter(),
     )
@@ -161,7 +161,7 @@ async fn check_r2_origin(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     assert!(tr
         .r2
         .origin
-        .abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+        .abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then("r.direction = direction")]
@@ -174,7 +174,7 @@ async fn check_r2_direction(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     assert!(tr
         .r2
         .dir
-        .abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+        .abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
 }
 
 #[then(regex = r"position\(r, (.*)\) = point\((.*), (.*), (.*)\)")]
@@ -182,7 +182,7 @@ async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32)
     assert!(tr
         .r1
         .point_at(t)
-        .abs_diff_eq(&Coords::from_point(x, y, z), EPSILON));
+        .abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
 }
 
 #[then(regex = r"xs\.count = (.*)")]
