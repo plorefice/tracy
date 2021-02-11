@@ -6,6 +6,7 @@
 pub mod canvas;
 pub mod math;
 pub mod query;
+pub mod rendering;
 pub mod scene;
 pub mod shape;
 

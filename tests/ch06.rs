@@ -2,8 +2,10 @@ use std::{convert::Infallible, f32};
 
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
+    canvas::Color,
     math::{MatrixN, Point, Vector},
     query::{CollisionObject, CollisionObjectHandle, Ray, RayCast, World},
+    rendering::PointLight,
     shape::{ShapeHandle, Sphere},
 };
 
@@ -18,6 +20,10 @@ pub struct TestRunner {
     n: Vector,
     r: Vector,
     ns: Vec<Vector>,
+
+    light: PointLight,
+    color: Color,
+    position: Point,
 }
 
 #[async_trait(?Send)]
@@ -33,6 +39,10 @@ impl cucumber_rust::World for TestRunner {
             n: Vector::default(),
             r: Vector::default(),
             ns: Vec::new(),
+
+            light: PointLight::default(),
+            color: Color::default(),
+            position: Point::default(),
         })
     }
 }
@@ -72,6 +82,16 @@ async fn given_a_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     tr.n = Vector::from_vector(x, y, z);
 }
 
+#[given(regex = r"intensity ← color\((.*), (.*), (.*)\)")]
+async fn given_light_intensity(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
+    tr.color = Color::new(r, g, b);
+}
+
+#[given(regex = r"position ← point\((.*), (.*), (.*)\)")]
+async fn given_light_position(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    tr.position = Point::from_point(x, y, z);
+}
+
 #[when(regex = r"n ← normal_at\(s, point\((.*), (.*), (.*)\)\)")]
 async fn compute_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     let co = tr.world.get(tr.s.unwrap()).unwrap();
@@ -91,6 +111,15 @@ async fn reflect_vector(tr: &mut TestRunner) {
     tr.r = tr.v.reflect(&tr.n);
 }
 
+#[when("light ← point_light(position, intensity)")]
+async fn create_point_light(tr: &mut TestRunner) {
+    tr.light = PointLight {
+        position: tr.position,
+        color: tr.color,
+        intensity: 1.,
+    };
+}
+
 #[then(regex = r"n = vector\((.*), (.*), (.*)\)")]
 async fn check_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     assert!(tr
@@ -107,6 +136,16 @@ async fn normals_are_normalized(tr: &mut TestRunner) {
 #[then(regex = r"r = vector\((.*), (.*), (.*)\)")]
 async fn check_reflection(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     assert!(tr.r.abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
+}
+
+#[then("light.position = position")]
+async fn check_light_position(tr: &mut TestRunner) {
+    assert!(tr.light.position.abs_diff_eq(&tr.position, EPSILON));
+}
+
+#[then("light.intensity = intensity")]
+async fn check_light_intensity(tr: &mut TestRunner) {
+    assert!(tr.light.color.abs_diff_eq(&tr.color, EPSILON));
 }
 
 #[tokio::main]
