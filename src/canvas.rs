@@ -23,8 +23,11 @@ impl From<(f32, f32, f32)> for Color {
 }
 
 impl Color {
+    /// The black color.
+    pub const BLACK: Color = Color::new(0., 0., 0.);
+
     /// Creates a new color from its components.
-    pub fn new(r: f32, g: f32, b: f32) -> Self {
+    pub const fn new(r: f32, g: f32, b: f32) -> Self {
         Self { r, g, b }
     }
 
