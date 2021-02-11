@@ -2,7 +2,7 @@
 
 use std::{
     f32::EPSILON,
-    ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
@@ -92,18 +92,130 @@ impl Coords {
     }
 }
 
-impl Add for Coords {
-    type Output = Self;
+macro_rules! impl_ref_unary_op {
+    (impl $imp:ident, $method:ident for $t:ty) => {
+        impl<'a> $imp for &'a $t {
+            type Output = <$t as $imp>::Output;
 
-    fn add(self, rhs: Self) -> Self::Output {
-        Self::Output {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-            w: self.w + rhs.w,
+            #[inline]
+            fn $method(self) -> <$t as $imp>::Output {
+                $imp::$method(*self)
+            }
         }
-    }
+    };
 }
+
+macro_rules! impl_ref_bin_op {
+    (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {
+        impl<'a> $imp<$u> for &'a $t {
+            type Output = <$t as $imp<$u>>::Output;
+
+            #[inline]
+            fn $method(self, other: $u) -> <$t as $imp<$u>>::Output {
+                $imp::$method(*self, other)
+            }
+        }
+
+        impl<'a> $imp<&'a $u> for $t {
+            type Output = <$t as $imp<$u>>::Output;
+
+            #[inline]
+            fn $method(self, other: &'a $u) -> <$t as $imp<$u>>::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<'a, 'b> $imp<&'a $u> for &'b $t {
+            type Output = <$t as $imp<$u>>::Output;
+
+            #[inline]
+            fn $method(self, other: &'a $u) -> <$t as $imp<$u>>::Output {
+                $imp::$method(*self, *other)
+            }
+        }
+    };
+}
+
+macro_rules! impl_ops {
+    ($($t:ty)*) => ($(
+        impl Add for $t {
+            type Output = Self;
+
+            fn add(self, rhs: Self) -> Self::Output {
+                Self::Output {
+                    x: self.x + rhs.x,
+                    y: self.y + rhs.y,
+                    z: self.z + rhs.z,
+                    w: self.w + rhs.w,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Add, add for $t, $t);
+
+        impl Sub for $t {
+            type Output = Self;
+
+            fn sub(self, rhs: Self) -> Self::Output {
+                Self::Output {
+                    x: self.x - rhs.x,
+                    y: self.y - rhs.y,
+                    z: self.z - rhs.z,
+                    w: self.w - rhs.w,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Sub, sub for $t, $t);
+
+        impl Mul<f32> for $t {
+            type Output = $t;
+
+            fn mul(self, rhs: f32) -> Self::Output {
+                Self::Output {
+                    x: rhs * self.x,
+                    y: rhs * self.y,
+                    z: rhs * self.z,
+                    w: rhs * self.w,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Mul, mul for $t, f32);
+
+        impl Div<f32> for $t {
+            type Output = $t;
+
+            fn div(self, rhs: f32) -> Self::Output {
+                Self::Output {
+                    x: self.x / rhs,
+                    y: self.y / rhs,
+                    z: self.z / rhs,
+                    w: self.w / rhs,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Div, div for $t, f32);
+
+        impl Neg for $t {
+            type Output = Self;
+
+            fn neg(self) -> Self::Output {
+                Self::Output {
+                    x: -self.x,
+                    y: -self.y,
+                    z: -self.z,
+                    w: -self.w,
+                }
+            }
+        }
+
+        impl_ref_unary_op!(impl Neg, neg for $t);
+    )*)
+}
+
+impl_ops!(Coords);
 
 impl AddAssign for Coords {
     fn add_assign(&mut self, rhs: Self) {
@@ -111,19 +223,6 @@ impl AddAssign for Coords {
         self.y += rhs.y;
         self.z += rhs.z;
         self.w += rhs.w;
-    }
-}
-
-impl Sub for Coords {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self::Output {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: self.w - rhs.w,
-        }
     }
 }
 
@@ -136,32 +235,6 @@ impl SubAssign for Coords {
     }
 }
 
-impl Neg for Coords {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        Self::Output {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
-            w: -self.w,
-        }
-    }
-}
-
-impl Mul<f32> for Coords {
-    type Output = Coords;
-
-    fn mul(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: rhs * self.x,
-            y: rhs * self.y,
-            z: rhs * self.z,
-            w: rhs * self.w,
-        }
-    }
-}
-
 impl MulAssign<f32> for Coords {
     fn mul_assign(&mut self, rhs: f32) {
         self.x *= rhs;
@@ -171,15 +244,11 @@ impl MulAssign<f32> for Coords {
     }
 }
 
-impl Div<f32> for Coords {
-    type Output = Coords;
-
-    fn div(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            x: self.x / rhs,
-            y: self.y / rhs,
-            z: self.z / rhs,
-            w: self.w / rhs,
-        }
+impl DivAssign<f32> for Coords {
+    fn div_assign(&mut self, rhs: f32) {
+        self.x /= rhs;
+        self.y /= rhs;
+        self.z /= rhs;
+        self.w /= rhs;
     }
 }
