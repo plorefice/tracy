@@ -3,7 +3,7 @@ use std::{convert::Infallible, f32};
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
     math::{Coords, MatrixN},
-    query::{CollisionObject, CollisionObjectHandle, World},
+    query::{CollisionObject, CollisionObjectHandle, Ray, RayCast, World},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -14,7 +14,7 @@ pub struct TestRunner {
     world: World,
     s: Option<CollisionObjectHandle>,
     m: MatrixN,
-    n: Coords,
+    ns: Vec<Coords>,
 }
 
 #[async_trait(?Send)]
@@ -26,7 +26,7 @@ impl cucumber_rust::World for TestRunner {
             world: World::new(),
             s: None,
             m: MatrixN::zeros(4),
-            n: Coords::default(),
+            ns: Vec::new(),
         })
     }
 }
@@ -58,22 +58,29 @@ async fn given_a_scale_and_rotation(tr: &mut TestRunner, x: f32, y: f32, z: f32,
 
 #[when(regex = r"n ← normal_at\(s, point\((.*), (.*), (.*)\)\)")]
 async fn compute_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.n = tr
-        .world
-        .get(tr.s.unwrap())
-        .unwrap()
+    let co = tr.world.get(tr.s.unwrap()).unwrap();
+
+    tr.ns = co
         .shape()
-        .normal_at(&Coords::from_point(x, y, z));
+        .toi_and_normal_with_ray(
+            co.transform(),
+            &Ray::new(Coords::default(), Coords::from_vector(x, y, z)),
+        )
+        .map(|xs| xs.map(|x| x.normal).collect())
+        .unwrap_or_default();
 }
 
 #[then(regex = r"n = vector\((.*), (.*), (.*)\)")]
 async fn check_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!(tr.n.abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
+    assert!(tr
+        .ns
+        .iter()
+        .any(|n| n.abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON)));
 }
 
 #[then("n = normalize(n)")]
 async fn normals_are_normalized(tr: &mut TestRunner) {
-    assert!(tr.n.abs_diff_eq(&tr.n.normalize(), EPSILON));
+    assert!(tr.ns.iter().all(|n| n.abs_diff_eq(&n.normalize(), EPSILON)));
 }
 
 #[tokio::main]

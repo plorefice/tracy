@@ -12,10 +12,6 @@ use super::Shape;
 pub struct Sphere;
 
 impl Shape for Sphere {
-    fn normal_at(&self, p: &Coords) -> Coords {
-        (p - Coords::from_point(0., 0., 0.)).normalize()
-    }
-
     #[inline]
     fn as_ray_cast(&self) -> Option<&dyn RayCast> {
         Some(self)
@@ -24,7 +20,8 @@ impl Shape for Sphere {
 
 impl RayCast for Sphere {
     fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
-        let ray = ray.transform_by(&m.inverse()?);
+        let inv = m.inverse()?;
+        let ray = ray.transform_by(&inv);
         let distance = ray.origin - Coords::from_point(0., 0., 0.);
 
         let a = ray.dir.dot(&ray.dir);
@@ -36,19 +33,19 @@ impl RayCast for Sphere {
         if discriminant < 0. {
             None
         } else {
-            Some(RayIntersections {
-                intersections: vec![
-                    RayIntersection::new(
-                        (-b - discriminant.sqrt()) / (2. * a),
-                        Coords::from_vector(0., 0., 0.),
-                    ),
-                    RayIntersection::new(
-                        (-b + discriminant.sqrt()) / (2. * a),
-                        Coords::from_vector(0., 0., 0.),
-                    ),
+            Some(RayIntersections::from(
+                [
+                    (-b - discriminant.sqrt()) / (2. * a),
+                    (-b + discriminant.sqrt()) / (2. * a),
                 ]
+                .iter()
+                .map(|&toi| {
+                    let normal = inv.transpose() * (ray.origin + ray.dir * toi);
+                    RayIntersection::new(toi, normal.to_vector().normalize())
+                })
+                .collect::<Vec<_>>()
                 .into_iter(),
-            })
+            ))
         }
     }
 }

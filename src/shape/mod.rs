@@ -7,15 +7,12 @@ pub use sphere::*;
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 
 use crate::{
-    math::{Coords, MatrixN},
+    math::MatrixN,
     query::{Ray, RayCast, RayIntersections},
 };
 
 /// Trait implemented by all supported shapes.
 pub trait Shape: 'static + Debug + Send + Sync {
-    /// Returns the normal of `self` at point `p`.
-    fn normal_at(&self, p: &Coords) -> Coords;
-
     /// The `RayCast` implementation of `self`.
     #[inline]
     fn as_ray_cast(&self) -> Option<&dyn RayCast> {

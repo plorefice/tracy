@@ -51,6 +51,18 @@ impl Coords {
         self.w == 0.0
     }
 
+    /// Converts `self` into a point.
+    pub fn to_point(mut self) -> Self {
+        self.w = 1.;
+        self
+    }
+
+    /// Converts `self` into a vector.
+    pub fn to_vector(mut self) -> Self {
+        self.w = 0.;
+        self
+    }
+
     /// Returns true if the absolute difference of all elements between `self` and `other`
     /// is less than or equal to `max_abs_diff`.
     pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
