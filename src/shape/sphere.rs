@@ -12,6 +12,10 @@ use super::Shape;
 pub struct Sphere;
 
 impl Shape for Sphere {
+    fn normal_at(&self, p: &Coords) -> Coords {
+        (p - Coords::from_point(0., 0., 0.)).normalize()
+    }
+
     #[inline]
     fn as_ray_cast(&self) -> Option<&dyn RayCast> {
         Some(self)

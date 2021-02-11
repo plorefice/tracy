@@ -53,3 +53,7 @@ name = "ch04"
 [[test]]
 harness = false
 name = "ch05"
+
+[[test]]
+harness = false
+name = "ch06"
