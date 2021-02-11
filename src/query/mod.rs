@@ -63,7 +63,10 @@ impl<'a> Iterator for InterferencesWithRay<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(obj) = self.objects.next() {
-            if let Some(intersections) = obj.shape().intersects_ray(obj.transform(), self.ray) {
+            if let Some(intersections) = obj
+                .shape()
+                .toi_and_normal_with_ray(obj.transform(), self.ray)
+            {
                 return Some((obj, intersections));
             }
         }

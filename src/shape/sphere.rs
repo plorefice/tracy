@@ -23,7 +23,7 @@ impl Shape for Sphere {
 }
 
 impl RayCast for Sphere {
-    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
+    fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
         let ray = ray.transform_by(&m.inverse()?);
         let distance = ray.origin - Coords::from_point(0., 0., 0.);
 
@@ -38,8 +38,14 @@ impl RayCast for Sphere {
         } else {
             Some(RayIntersections {
                 intersections: vec![
-                    RayIntersection::new((-b - discriminant.sqrt()) / (2. * a)),
-                    RayIntersection::new((-b + discriminant.sqrt()) / (2. * a)),
+                    RayIntersection::new(
+                        (-b - discriminant.sqrt()) / (2. * a),
+                        Coords::from_vector(0., 0., 0.),
+                    ),
+                    RayIntersection::new(
+                        (-b + discriminant.sqrt()) / (2. * a),
+                        Coords::from_vector(0., 0., 0.),
+                    ),
                 ]
                 .into_iter(),
             })

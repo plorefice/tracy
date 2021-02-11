@@ -6,8 +6,20 @@ use crate::math::{Coords, MatrixN};
 
 /// Trait of objects which can be tested for intersection with a ray.
 pub trait RayCast {
-    /// Computes all the intersection poinst between the transformed `self` and `ray`.
-    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections>;
+    /// Computes all the intersection points between `self` and `ray`, using transform `m`.
+    fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections>;
+
+    /// Computes all the TOIs between `self` and `ray` using transform `m`.
+    fn toi_with_ray(&self, m: &MatrixN, ray: &Ray) -> Vec<f32> {
+        self.toi_and_normal_with_ray(m, ray)
+            .map(|xs| xs.map(|x| x.toi).collect())
+            .unwrap_or_default()
+    }
+
+    /// Returns true if this ray hits `self`.
+    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> bool {
+        self.toi_and_normal_with_ray(m, ray).is_some()
+    }
 }
 
 /// A ray starting from a point in space and traveling along a direction.
@@ -48,12 +60,14 @@ impl Ray {
 pub struct RayIntersection {
     /// The time of impact of this intersection.
     pub toi: f32,
+    /// The normal vector at the point of impact.
+    pub normal: Coords,
 }
 
 impl RayIntersection {
     /// Creates a new intersection.
-    pub fn new(toi: f32) -> Self {
-        Self { toi }
+    pub fn new(toi: f32, normal: Coords) -> Self {
+        Self { toi, normal }
     }
 }
 

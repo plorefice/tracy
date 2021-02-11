@@ -25,10 +25,10 @@ pub trait Shape: 'static + Debug + Send + Sync {
 
 /// Blanket implementation of [`RayCast`] for a shape.
 impl RayCast for dyn Shape {
-    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
+    fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
         self.as_ray_cast()
             .expect("this shape does not implement `RayCast`")
-            .intersects_ray(m, ray)
+            .toi_and_normal_with_ray(m, ray)
     }
 }
 

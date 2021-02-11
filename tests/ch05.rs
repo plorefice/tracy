@@ -3,9 +3,7 @@ use std::{convert::Infallible, f32};
 use cucumber_rust::{async_trait, given, then, when, WorldInit};
 use trtc::{
     math::{Coords, MatrixN},
-    query::{
-        CollisionObject, CollisionObjectHandle, Ray, RayIntersection, RayIntersections, World,
-    },
+    query::{CollisionObject, Ray, RayCast, RayIntersection, RayIntersections},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -15,13 +13,12 @@ const EPSILON: f32 = 1e-4;
 pub struct TestRunner {
     origin: Coords,
     direction: Coords,
-    world: World,
-    hnd: Option<CollisionObjectHandle>,
+    sphere: Option<CollisionObject>,
     r1: Ray,
     r2: Ray,
-    is: Vec<RayIntersection>,
-    xs: Option<RayIntersections>,
-    hit: Option<RayIntersection>,
+    is: Vec<f32>,
+    xs: Vec<f32>,
+    hit: Option<f32>,
     m: MatrixN,
 }
 
@@ -33,14 +30,13 @@ impl cucumber_rust::World for TestRunner {
         Ok(Self {
             origin: Coords::default(),
             direction: Coords::default(),
-            world: World::default(),
-            hnd: None,
+            sphere: None,
             r1: Ray::default(),
             r2: Ray::default(),
             is: Vec::new(),
-            xs: None,
+            xs: Vec::new(),
             hit: None,
-            m: MatrixN::zeros(0),
+            m: MatrixN::identity(4),
         })
     }
 }
@@ -65,15 +61,15 @@ async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy
 
 #[given("s ← sphere()")]
 async fn given_a_sphere(tr: &mut TestRunner) {
-    tr.hnd = Some(tr.world.add(CollisionObject::new(
+    tr.sphere = Some(CollisionObject::new(
         ShapeHandle::new(Sphere),
         MatrixN::identity(4),
-    )));
+    ));
 }
 
 #[given(regex = r"(i[0-9]?) ← intersection\((.*), s\)")]
 async fn given_ray_intersection(tr: &mut TestRunner, _id: String, toi: f32) {
-    tr.is.push(RayIntersection { toi });
+    tr.is.push(toi);
 }
 
 #[given(regex = r"xs ← intersections\((.*)\)")]
@@ -83,12 +79,9 @@ async fn given_a_bundle_of_intersections(tr: &mut TestRunner, ids: String) {
         .map(|id| id.trim_start_matches('i').parse::<usize>().unwrap() - 1)
         .collect::<Vec<_>>();
 
-    let mut reordered = Vec::with_capacity(ids.len());
     for id in ids {
-        reordered.push(tr.is[id].clone());
+        tr.xs.push(tr.is[id]);
     }
-
-    tr.xs = Some(RayIntersections::from(reordered.into_iter()));
 }
 
 #[given(regex = r"[mt] ← translation\((.*), (.*), (.*)\)")]
@@ -108,36 +101,31 @@ async fn build_ray(tr: &mut TestRunner) {
 
 #[when("xs ← intersect(s, r)")]
 async fn sphere_intersects_ray(tr: &mut TestRunner) {
-    tr.xs = tr
-        .world
-        .interferences_with_ray(&tr.r1)
-        .map(|(_, ri)| ri)
-        .next();
+    let co = tr.sphere.as_ref().unwrap();
+    tr.xs = co.shape().toi_with_ray(co.transform(), &tr.r1);
 }
 
 #[when(regex = r"i ← intersection\((.*), s\)")]
 async fn ray_intersection(tr: &mut TestRunner, toi: f32) {
-    tr.is.push(RayIntersection { toi });
+    tr.is.push(toi);
 }
 
 #[when(regex = r"xs ← intersections\((.*)\)")]
 async fn bundle_intersections(tr: &mut TestRunner, ids: String) {
-    let ids = ids
-        .split(", ")
-        .map(|id| id.trim_start_matches('i').parse::<usize>().unwrap() - 1)
-        .collect::<Vec<_>>();
-
-    let mut reordered = Vec::with_capacity(ids.len());
-    for id in ids {
-        reordered.push(tr.is[id].clone());
-    }
-
-    tr.xs = Some(RayIntersections::from(reordered.into_iter()));
+    given_a_bundle_of_intersections(tr, ids).await
 }
 
 #[when("i ← hit(xs)")]
 async fn ray_hit(tr: &mut TestRunner) {
-    tr.hit = tr.xs.as_ref().unwrap().clone().hit();
+    tr.hit = RayIntersections::from(
+        tr.xs
+            .iter()
+            .map(|&toi| RayIntersection::new(toi, Coords::default()))
+            .collect::<Vec<_>>()
+            .into_iter(),
+    )
+    .hit()
+    .map(|x| x.toi);
 }
 
 #[when("r2 ← transform(r, m)")]
@@ -147,19 +135,19 @@ async fn transform_ray(tr: &mut TestRunner) {
 
 #[when("set_transform(s, t)")]
 async fn set_transform(tr: &mut TestRunner) {
-    let co = tr.world.get_mut(tr.hnd.unwrap()).unwrap();
+    let co = tr.sphere.as_mut().unwrap();
     co.set_transform(tr.m.clone());
 }
 
 #[when(regex = r"set_transform\(s, scaling\((.*), (.*), (.*)\)\)")]
 async fn set_scaling(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    let co = tr.world.get_mut(tr.hnd.unwrap()).unwrap();
+    let co = tr.sphere.as_mut().unwrap();
     co.set_transform(MatrixN::from_scale(x, y, z));
 }
 
 #[when(regex = r"set_transform\(s, translation\((.*), (.*), (.*)\)\)")]
 async fn set_translation(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    let co = tr.world.get_mut(tr.hnd.unwrap()).unwrap();
+    let co = tr.sphere.as_mut().unwrap();
     co.set_transform(MatrixN::from_translation(x, y, z));
 }
 
@@ -199,17 +187,12 @@ async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32)
 
 #[then(regex = r"xs\.count = (.*)")]
 async fn xs_count(tr: &mut TestRunner, n: usize) {
-    if n == 0 {
-        assert!(tr.xs.is_none())
-    } else {
-        assert_eq!(tr.xs.as_ref().unwrap().clone().count(), n);
-    }
+    assert_eq!(tr.xs.len(), n);
 }
 
 #[then(regex = r"xs\[(.*)\](?:\.t)? = (.*)")]
 async fn xs_index_toi(tr: &mut TestRunner, i: usize, t: f32) {
-    let intersections = tr.xs.as_ref().unwrap().clone().collect::<Vec<_>>();
-    assert!((intersections[i].toi - t).abs() < EPSILON);
+    assert!((tr.xs[i] - t).abs() < EPSILON);
 }
 
 #[then(regex = r"xs\[(.*)\]\.object = s")]
@@ -219,7 +202,7 @@ async fn xs_index_object(_tr: &mut TestRunner, _i: usize) {
 
 #[then(regex = r"i\.t = (.*)")]
 async fn intersection_toi(tr: &mut TestRunner, toi: f32) {
-    assert!((tr.is[0].toi - toi).abs() < EPSILON);
+    assert!((tr.is[0] - toi).abs() < EPSILON);
 }
 
 #[then("i.object = s")]
@@ -228,7 +211,7 @@ async fn intersection_object_is(_: &mut TestRunner) {}
 #[then(regex = r"i = i(.*)")]
 async fn check_hit(tr: &mut TestRunner, id: String) {
     let id = id.parse::<usize>().unwrap() - 1;
-    assert!((tr.hit.as_ref().unwrap().toi - tr.is[id].toi).abs() < EPSILON);
+    assert!((tr.hit.as_ref().unwrap() - tr.is[id]).abs() < EPSILON);
 }
 
 #[then("i is nothing")]
@@ -244,7 +227,7 @@ async fn sphere_default_transform(_: &mut TestRunner) {
 
 #[then("s.transform = t")]
 async fn sphere_transform(tr: &mut TestRunner) {
-    let co = tr.world.get(tr.hnd.unwrap()).unwrap();
+    let co = tr.sphere.as_mut().unwrap();
     assert!(co.transform().abs_diff_eq(&tr.m, EPSILON));
 }
 
