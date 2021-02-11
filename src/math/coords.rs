@@ -102,6 +102,13 @@ impl Coords {
             self.x * rhs.y - self.y * rhs.x,
         )
     }
+
+    /// Reflects `self` around `n`.
+    ///
+    /// This operation only makes sense on vectors.
+    pub fn reflect(&self, n: &Self) -> Self {
+        self - n * 2. * self.dot(n)
+    }
 }
 
 macro_rules! impl_ref_unary_op {

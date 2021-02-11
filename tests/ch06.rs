@@ -14,6 +14,9 @@ pub struct TestRunner {
     world: World,
     s: Option<CollisionObjectHandle>,
     m: MatrixN,
+    v: Coords,
+    n: Coords,
+    r: Coords,
     ns: Vec<Coords>,
 }
 
@@ -26,6 +29,9 @@ impl cucumber_rust::World for TestRunner {
             world: World::new(),
             s: None,
             m: MatrixN::zeros(4),
+            v: Coords::default(),
+            n: Coords::default(),
+            r: Coords::default(),
             ns: Vec::new(),
         })
     }
@@ -56,6 +62,16 @@ async fn given_a_scale_and_rotation(tr: &mut TestRunner, x: f32, y: f32, z: f32,
     tr.m = MatrixN::from_scale(x, y, z) * MatrixN::from_rotation_z(rad);
 }
 
+#[given(regex = r"v ← vector\((.*), (.*), (.*)\)")]
+async fn given_a_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    tr.v = Coords::from_vector(x, y, z);
+}
+
+#[given(regex = r"n ← vector\((.*), (.*), (.*)\)")]
+async fn given_a_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    tr.n = Coords::from_vector(x, y, z);
+}
+
 #[when(regex = r"n ← normal_at\(s, point\((.*), (.*), (.*)\)\)")]
 async fn compute_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     let co = tr.world.get(tr.s.unwrap()).unwrap();
@@ -70,6 +86,11 @@ async fn compute_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
         .unwrap_or_default();
 }
 
+#[when("r ← reflect(v, n)")]
+async fn reflect_vector(tr: &mut TestRunner) {
+    tr.r = tr.v.reflect(&tr.n);
+}
+
 #[then(regex = r"n = vector\((.*), (.*), (.*)\)")]
 async fn check_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
     assert!(tr
@@ -81,6 +102,11 @@ async fn check_normal(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
 #[then("n = normalize(n)")]
 async fn normals_are_normalized(tr: &mut TestRunner) {
     assert!(tr.ns.iter().all(|n| n.abs_diff_eq(&n.normalize(), EPSILON)));
+}
+
+#[then(regex = r"r = vector\((.*), (.*), (.*)\)")]
+async fn check_reflection(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    assert!(tr.r.abs_diff_eq(&Coords::from_vector(x, y, z), EPSILON));
 }
 
 #[tokio::main]
