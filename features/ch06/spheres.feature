@@ -38,3 +38,15 @@ Feature: Spheres
     And set_transform(s, m)
     When n ← normal_at(s, point(0, 0.70711, -0.70711))
     Then n = vector(0, 0.97014, -0.24254)
+
+  Scenario: A sphere has a default material
+    Given s ← sphere()
+    When m ← s.material
+    Then m = material()
+
+  Scenario: A sphere may be assigned a material
+    Given s ← sphere()
+    And m ← material()
+    And m.ambient ← 1
+    When s.material ← m
+    Then s.material = m

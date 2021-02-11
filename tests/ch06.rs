@@ -5,7 +5,7 @@ use trtc::{
     canvas::Color,
     math::{MatrixN, Point, Vector},
     query::{CollisionObject, CollisionObjectHandle, Ray, RayCast, World},
-    rendering::PointLight,
+    rendering::{Material, PointLight},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -24,6 +24,7 @@ pub struct TestRunner {
     light: PointLight,
     color: Color,
     position: Point,
+    material: Material,
 }
 
 #[async_trait(?Send)]
@@ -43,6 +44,7 @@ impl cucumber_rust::World for TestRunner {
             light: PointLight::default(),
             color: Color::default(),
             position: Point::default(),
+            material: Material::default(),
         })
     }
 }
@@ -53,6 +55,11 @@ async fn given_a_sphere(tr: &mut TestRunner) {
         ShapeHandle::new(Sphere),
         MatrixN::identity(4),
     )));
+}
+
+#[given("m ← material()")]
+async fn given_a_material(tr: &mut TestRunner) {
+    tr.material = Material::default();
 }
 
 #[given("set_transform(s, m)")]
@@ -146,6 +153,23 @@ async fn check_light_position(tr: &mut TestRunner) {
 #[then("light.intensity = intensity")]
 async fn check_light_intensity(tr: &mut TestRunner) {
     assert!(tr.light.color.abs_diff_eq(&tr.color, EPSILON));
+}
+
+#[then(regex = r"m.color = color\((.*), (.*), (.*)\)")]
+async fn check_material_color(tr: &mut TestRunner, r: f32, g: f32, b: f32) {
+    assert!(tr.material.color.abs_diff_eq(&Color::new(r, g, b), EPSILON));
+}
+
+#[then(regex = r"m.(ambient|diffuse|specular|shininess) = (.*)")]
+async fn check_material_properties(tr: &mut TestRunner, field: String, val: f32) {
+    let field = match field.as_str() {
+        "ambient" => tr.material.ambient,
+        "diffuse" => tr.material.diffuse,
+        "specular" => tr.material.specular,
+        "shininess" => tr.material.shininess,
+        _ => unreachable!("invalid field name"),
+    };
+    assert!((field - val).abs() < EPSILON);
 }
 
 #[tokio::main]
