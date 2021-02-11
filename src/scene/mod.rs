@@ -9,6 +9,7 @@ use crate::{
     canvas::{Canvas, Color},
     math::{MatrixN, Point, Vector},
     query::{Object, Ray, World},
+    rendering::{self, Material, PointLight},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -66,6 +67,16 @@ lazy_static! {
                     height: 512,
                 },
                 render_fn: Box::new(chapter_05),
+            },
+        );
+        map.insert(
+            "chapter06",
+            SceneConfig {
+                size: SceneSize {
+                    width: 512,
+                    height: 512,
+                },
+                render_fn: Box::new(chapter_06),
             },
         );
         map
@@ -142,6 +153,62 @@ fn chapter_05(width: usize, height: usize) -> Canvas {
             for (_, xs) in world.interferences_with_ray(&ray) {
                 if xs.hit().is_some() {
                     canvas.put(x, y, Color::new(1., 0., 0.));
+                }
+            }
+        }
+    }
+
+    canvas
+}
+
+/// Render the final scene from Chapter 6.
+fn chapter_06(width: usize, height: usize) -> Canvas {
+    let mut canvas = Canvas::new(width, height);
+    let mut world = World::new();
+
+    let canvas_size = width as f32;
+
+    world.add(Object::new_with_material(
+        ShapeHandle::new(Sphere),
+        MatrixN::identity(4),
+        Material {
+            color: Color::new(1., 0.2, 1.),
+            ..Default::default()
+        },
+    ));
+
+    let light = PointLight {
+        position: Point::from_point(-10., 10., -10.),
+        color: Color::new(1., 1., 1.),
+        intensity: 1.,
+    };
+
+    let ray_origin = Point::from_point(0., 0., -5.);
+
+    let wall_z = 10.;
+    let wall_size = 7.;
+    let pixel_size = wall_size / canvas_size;
+
+    for y in 0..height {
+        let wall_y = wall_size / 2. - pixel_size * y as f32;
+
+        for x in 0..width {
+            let wall_x = -wall_size / 2. + pixel_size * x as f32;
+
+            let target = Point::from_point(wall_x, wall_y, wall_z);
+            let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
+
+            for (obj, xs) in world.interferences_with_ray(&ray) {
+                if let Some(hit) = xs.hit() {
+                    let color = rendering::phong_lighting(
+                        obj.material(),
+                        &light,
+                        &ray.point_at(hit.toi),
+                        &(-ray.dir),
+                        &hit.normal,
+                    );
+
+                    canvas.put(x, y, color);
                 }
             }
         }

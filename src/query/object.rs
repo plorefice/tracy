@@ -11,11 +11,11 @@ pub struct Object {
 impl Object {
     /// Creates a new object with the given shape and transformation.
     pub fn new(shape: ShapeHandle, transform: MatrixN) -> Self {
-        Self::new_with_material(shape, Default::default(), transform)
+        Self::new_with_material(shape, transform, Default::default())
     }
 
     /// Creates a new object with the given material.
-    pub fn new_with_material(shape: ShapeHandle, material: Material, transform: MatrixN) -> Self {
+    pub fn new_with_material(shape: ShapeHandle, transform: MatrixN, material: Material) -> Self {
         Self {
             shape,
             material,
