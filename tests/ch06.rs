@@ -13,6 +13,7 @@ const EPSILON: f32 = 1e-4;
 pub struct TestRunner {
     world: World,
     s: Option<CollisionObjectHandle>,
+    m: MatrixN,
     n: Coords,
 }
 
@@ -24,6 +25,7 @@ impl cucumber_rust::World for TestRunner {
         Ok(Self {
             world: World::new(),
             s: None,
+            m: MatrixN::zeros(4),
             n: Coords::default(),
         })
     }
@@ -35,6 +37,23 @@ async fn given_a_sphere(tr: &mut TestRunner) {
         ShapeHandle::new(Sphere),
         MatrixN::identity(4),
     )));
+}
+
+#[given("set_transform(s, m)")]
+async fn given_a_transformed_sphere(tr: &mut TestRunner) {
+    let co = tr.world.get_mut(tr.s.unwrap()).unwrap();
+    co.set_transform(tr.m.clone());
+}
+
+#[given(regex = r"set_transform\(s, translation\((.*), (.*), (.*)\)\)")]
+async fn given_a_translated_sphere(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
+    let co = tr.world.get_mut(tr.s.unwrap()).unwrap();
+    co.set_transform(MatrixN::from_translation(x, y, z));
+}
+
+#[given(regex = r"m ← scaling\((.*), (.*), (.*)\) \* rotation_z\((.*)\)")]
+async fn given_a_scale_and_rotation(tr: &mut TestRunner, x: f32, y: f32, z: f32, rad: f32) {
+    tr.m = MatrixN::from_scale(x, y, z) * MatrixN::from_rotation_z(rad);
 }
 
 #[when(regex = r"n ← normal_at\(s, point\((.*), (.*), (.*)\)\)")]
