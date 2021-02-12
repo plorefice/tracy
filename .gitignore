@@ -1,7 +1,12 @@
+# Rust artifacts
 /target
 **/*.rs.bk
 Cargo.lock
+
+# wasm-pack artifacts
 bin/
 pkg/
 wasm-pack.log
-*.ppm
+
+# npm artifacts
+/node_modules

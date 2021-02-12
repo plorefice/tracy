@@ -6,6 +6,7 @@ version = "0.1.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+path = "trtc-rs/lib.rs"
 
 [features]
 default = ["console_error_panic_hook"]
