@@ -3,7 +3,6 @@
 use std::{collections::HashMap, f32};
 
 use lazy_static::lazy_static;
-use wasm_bindgen::prelude::*;
 
 use crate::{
     canvas::{Canvas, Color},
@@ -13,72 +12,15 @@ use crate::{
     shape::{ShapeHandle, Sphere},
 };
 
-/// The dimensions of a scene in pixels.
-#[wasm_bindgen]
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct SceneSize {
-    /// Horizontal size.
-    pub width: usize,
-    /// Vertical size.
-    pub height: usize,
-}
-
-/// Common settings for each rendered scene.
-#[derive(Debug)]
-pub(crate) struct SceneConfig {
-    pub size: SceneSize,
-    pub render_fn: Box<fn(usize, usize) -> Canvas>,
-}
-
-/// Returns the settings for scene `id`, or `None` if no such scene exists.
-pub(crate) fn get_config<S: AsRef<str>>(id: S) -> Option<&'static SceneConfig> {
-    SCENES.get(id.as_ref())
-}
+type RenderFn = fn(usize, usize) -> Canvas;
 
 lazy_static! {
-    // TODO: it would be nice to have this in a nice serialization format.
-    static ref SCENES: HashMap<&'static str, SceneConfig> = {
+    pub(crate) static ref SCENES: HashMap<&'static str, RenderFn> = {
         let mut map = HashMap::new();
-        map.insert(
-            "chapter02",
-            SceneConfig {
-                size: SceneSize {
-                    width: 900,
-                    height: 550,
-                },
-                render_fn: Box::new(chapter_02),
-            },
-        );
-        map.insert(
-            "chapter04",
-            SceneConfig {
-                size: SceneSize {
-                    width: 480,
-                    height: 480,
-                },
-                render_fn: Box::new(chapter_04),
-            },
-        );
-        map.insert(
-            "chapter05",
-            SceneConfig {
-                size: SceneSize {
-                    width: 512,
-                    height: 512,
-                },
-                render_fn: Box::new(chapter_05),
-            },
-        );
-        map.insert(
-            "chapter06",
-            SceneConfig {
-                size: SceneSize {
-                    width: 512,
-                    height: 512,
-                },
-                render_fn: Box::new(chapter_06),
-            },
-        );
+        map.insert("chapter02", chapter_02 as RenderFn);
+        map.insert("chapter04", chapter_04 as RenderFn);
+        map.insert("chapter05", chapter_05 as RenderFn);
+        map.insert("chapter06", chapter_06 as RenderFn);
         map
     };
 }
