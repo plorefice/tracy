@@ -26,11 +26,17 @@ pub fn init() {
 
 /// WASM interface for scene rendering.
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SceneRenderer;
 
 #[wasm_bindgen]
 impl SceneRenderer {
+    /// Creates a new scene renderer.
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Self {
+        Self
+    }
+
     /// Renders scene `id` to `ctx`.
     ///
     /// `UNDEFINED` is returned if `id` is not a valid scene identifier.
