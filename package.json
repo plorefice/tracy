@@ -1,7 +1,7 @@
 {
-  "name": "react-client",
+  "name": "trtc",
   "version": "0.1.0",
-  "homepage": "/trtc",
+  "homepage": ".",
   "private": true,
   "dependencies": {
     "@babel/core": "7.12.3",
