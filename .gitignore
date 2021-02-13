@@ -4,9 +4,10 @@
 Cargo.lock
 
 # wasm-pack artifacts
-bin/
-pkg/
+/bin
+/pkg
 wasm-pack.log
 
 # npm artifacts
 /node_modules
+/build
