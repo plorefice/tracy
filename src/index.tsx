@@ -2,6 +2,8 @@ import * as React from 'react';
 import { render } from 'react-dom';
 import { BrowserRouter as Router, Link, Route } from 'react-router-dom';
 
+import "./index.scss";
+
 import { SceneRenderer } from 'trtc';
 
 import { IScene } from './scenes/scene';
