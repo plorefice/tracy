@@ -104,6 +104,7 @@ fn main() {
     let (width, height) = (512, 512);
     let mut scenes = get_scene_list();
     let mut texture_id = None;
+    let mut state_changed = false;
 
     // Event loop
     event_loop.run(move |event, _, control_flow| {
@@ -180,9 +181,14 @@ fn main() {
                                 {
                                     ui.text(im::ImString::new(&scene.description()));
                                     ui.separator();
-                                    scene.draw(&ui);
+                                    state_changed |= scene.draw(&ui);
+                                    ui.separator();
+                                    let force = ui.button(&im_str!("Render it!##{}", i), [0., 0.]);
 
-                                    if ui.button(&im_str!("Render it!##{}", i), [0., 0.]) {
+                                    if (state_changed
+                                        && ui.is_mouse_released(im::MouseButton::Left))
+                                        || force
+                                    {
                                         texture_id = Some(render_to_texture(
                                             texture_id,
                                             scene.as_ref(),
@@ -192,6 +198,8 @@ fn main() {
                                             &device,
                                             &mut renderer,
                                         ));
+
+                                        state_changed = false;
                                     }
                                 }
                             }

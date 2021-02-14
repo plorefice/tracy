@@ -45,9 +45,9 @@ impl Scene for Trajectory {
         canvas
     }
 
-    fn draw(&mut self, ui: &Ui) {
+    fn draw(&mut self, ui: &Ui) -> bool {
         Slider::new(&im_str!("{}##{}", "Velocity", self.name()))
             .range(0.1..=20.0)
-            .build(&ui, &mut self.velocity);
+            .build(&ui, &mut self.velocity)
     }
 }

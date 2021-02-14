@@ -13,7 +13,7 @@ pub trait Scene {
     fn name(&self) -> String;
     fn description(&self) -> String;
     fn render(&self, width: usize, height: usize) -> Canvas;
-    fn draw(&mut self, ui: &Ui);
+    fn draw(&mut self, ui: &Ui) -> bool;
 }
 
 /// Returns a list of all the available scenes.

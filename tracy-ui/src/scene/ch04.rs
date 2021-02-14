@@ -38,5 +38,7 @@ impl Scene for Clock {
         canvas
     }
 
-    fn draw(&mut self, _: &Ui) {}
+    fn draw(&mut self, _: &Ui) -> bool {
+        false
+    }
 }
