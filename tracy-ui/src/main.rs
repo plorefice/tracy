@@ -4,6 +4,7 @@ use futures::executor::block_on;
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use winit::{
+    dpi::LogicalSize,
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::Window,
@@ -22,7 +23,10 @@ fn main() {
     let (window, size, surface) = {
         let window = Window::new(&event_loop).unwrap();
         window.set_title("Tracy UI");
-        window.set_maximized(true);
+        window.set_inner_size(LogicalSize {
+            width: 1280,
+            height: 640,
+        });
 
         let size = window.inner_size();
         let surface = unsafe { instance.create_surface(&window) };
@@ -174,7 +178,21 @@ fn main() {
                             [size[0] + WINDOW_PAD_X, size[1] + WINDOW_PAD_Y],
                             im::Condition::FirstUseEver,
                         )
+                        .position([48., 48.], im::Condition::FirstUseEver)
                         .build(&ui, || im::Image::new(texture_id, size).build(&ui));
+
+                    let window = im::Window::new(im_str!("Scenarios"));
+
+                    window
+                        .size([400., 512.], im::Condition::FirstUseEver)
+                        .position([832., 48.], im::Condition::FirstUseEver)
+                        .build(&ui, || {
+                            for name in scene::SCENES.keys() {
+                                if im::CollapsingHeader::new(&im_str!("{}", name)).build(&ui) {
+                                    ui.button(im_str!("Render"), [0., 0.]);
+                                }
+                            }
+                        });
                 }
 
                 let mut encoder: wgpu::CommandEncoder =
