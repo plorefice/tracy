@@ -7,8 +7,15 @@ use tracy::{
 use super::Scene;
 
 /// A rendering of the final scene from Chapter 2.
+#[derive(Debug, Clone, Copy)]
 pub struct Trajectory {
-    pub(super) velocity: f32,
+    velocity: f32,
+}
+
+impl Default for Trajectory {
+    fn default() -> Self {
+        Self { velocity: 11.25 }
+    }
 }
 
 impl Scene for Trajectory {

@@ -11,7 +11,8 @@ use tracy::{
 
 use super::Scene;
 
-/// A rendering of the final scene from Chapter 4.
+/// A rendering of the final scene from Chapter 6.
+#[derive(Debug, Default, Clone, Copy)]
 pub struct PhongSphere;
 
 impl Scene for PhongSphere {

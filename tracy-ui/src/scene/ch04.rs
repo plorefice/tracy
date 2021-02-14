@@ -9,6 +9,7 @@ use tracy::{
 use super::Scene;
 
 /// A rendering of the final scene from Chapter 4.
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Clock;
 
 impl Scene for Clock {

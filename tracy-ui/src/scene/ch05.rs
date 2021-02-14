@@ -10,8 +10,19 @@ use tracy::{
 
 use super::Scene;
 
-/// A rendering of the final scene from Chapter 4.
-pub struct FlatSphere;
+/// A rendering of the final scene from Chapter 5.
+#[derive(Debug, Clone, Copy)]
+pub struct FlatSphere {
+    color: Color,
+}
+
+impl Default for FlatSphere {
+    fn default() -> Self {
+        Self {
+            color: Color::new(1., 0., 0.),
+        }
+    }
+}
 
 impl Scene for FlatSphere {
     fn name(&self) -> String {
@@ -47,7 +58,7 @@ impl Scene for FlatSphere {
 
                 for (_, xs) in world.interferences_with_ray(&ray) {
                     if xs.hit().is_some() {
-                        canvas.put(x, y, Color::new(1., 0., 0.));
+                        canvas.put(x, y, self.color);
                     }
                 }
             }

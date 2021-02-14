@@ -19,9 +19,9 @@ pub trait Scene {
 /// Returns a list of all the available scenes.
 pub fn get_scene_list() -> Vec<Box<dyn Scene>> {
     vec![
-        Box::new(ch02::Trajectory { velocity: 11.25 }),
-        Box::new(ch04::Clock),
-        Box::new(ch05::FlatSphere),
-        Box::new(ch06::PhongSphere),
+        Box::new(ch02::Trajectory::default()),
+        Box::new(ch04::Clock::default()),
+        Box::new(ch05::FlatSphere::default()),
+        Box::new(ch06::PhongSphere::default()),
     ]
 }
