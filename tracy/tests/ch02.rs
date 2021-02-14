@@ -1,7 +1,7 @@
 use std::convert::Infallible;
 
 use cucumber_rust::{async_trait, gherkin::Step, given, then, when, World, WorldInit};
-use trtc::canvas::{Canvas, Color};
+use tracy::canvas::{Canvas, Color};
 
 const EPSILON: f32 = 1e-6;
 
