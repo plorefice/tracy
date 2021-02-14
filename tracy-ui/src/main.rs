@@ -18,6 +18,9 @@ use winit::{
 
 mod scene;
 
+const CANVAS_WIDTH: usize = 512;
+const CANVAS_HEIGHT: usize = 512;
+
 const WINDOW_PAD_X: f32 = 16.;
 const WINDOW_PAD_Y: f32 = 36.;
 
@@ -101,7 +104,6 @@ fn main() {
     let mut last_cursor = None;
 
     // Set up scene
-    let (width, height) = (512, 512);
     let mut scenes = get_scene_list();
     let mut texture_id = None;
 
@@ -151,54 +153,15 @@ fn main() {
                     .expect("Failed to prepare frame");
 
                 let ui = imgui.frame();
-                {
-                    let window = im::Window::new(im_str!("Canvas"));
-                    let size = [width as f32, height as f32];
 
-                    window
-                        .size(
-                            [size[0] + WINDOW_PAD_X, size[1] + WINDOW_PAD_Y],
-                            im::Condition::FirstUseEver,
-                        )
-                        .position([48., 48.], im::Condition::FirstUseEver)
-                        .build(&ui, || {
-                            if let Some(id) = texture_id {
-                                im::Image::new(id, size).build(&ui);
-                            }
-                        });
-
-                    let window = im::Window::new(im_str!("Scenarios"));
-
-                    window
-                        .size([432., 512.], im::Condition::FirstUseEver)
-                        .position([800., 48.], im::Condition::FirstUseEver)
-                        .build(&ui, || {
-                            for scene in scenes.iter_mut() {
-                                if im::CollapsingHeader::new(&im::ImString::new(&scene.name()))
-                                    .build(&ui)
-                                {
-                                    ui.text(im::ImString::new(&scene.description()));
-                                    ui.separator();
-                                    let redraw = scene.draw(&ui);
-                                    ui.separator();
-                                    let force = ui
-                                        .button(&im_str!("Render it!##{}", scene.name()), [0., 0.]);
-
-                                    if redraw || force {
-                                        texture_id = Some(render_scene(
-                                            texture_id,
-                                            scene.as_ref(),
-                                            width,
-                                            height,
-                                            &queue,
-                                            &device,
-                                            &mut renderer,
-                                        ));
-                                    }
-                                }
-                            }
-                        });
-                }
+                draw_ui(
+                    &ui,
+                    &mut scenes,
+                    &mut texture_id,
+                    &queue,
+                    &device,
+                    &mut renderer,
+                );
 
                 let mut encoder: wgpu::CommandEncoder =
                     device.create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -234,6 +197,84 @@ fn main() {
 
         platform.handle_event(imgui.io_mut(), &window, &event);
     });
+}
+
+fn draw_ui(
+    ui: &im::Ui,
+    scenes: &mut [Box<dyn Scene>],
+    texture_id: &mut Option<im::TextureId>,
+    queue: &wgpu::Queue,
+    device: &wgpu::Device,
+    renderer: &mut imgui_wgpu::Renderer,
+) {
+    draw_canvas(ui, texture_id);
+    draw_scene_picker(ui, scenes, texture_id, queue, device, renderer);
+}
+
+fn draw_scene_picker(
+    ui: &im::Ui,
+    scenes: &mut [Box<dyn Scene>],
+    texture_id: &mut Option<im::TextureId>,
+    queue: &wgpu::Queue,
+    device: &wgpu::Device,
+    renderer: &mut imgui_wgpu::Renderer,
+) {
+    let window = im::Window::new(im_str!("Scenarios"));
+
+    window
+        .size([432., 512.], im::Condition::FirstUseEver)
+        .position([800., 48.], im::Condition::FirstUseEver)
+        .build(&ui, || {
+            for scene in scenes.iter_mut() {
+                draw_scene_entry(ui, scene, texture_id, queue, device, renderer);
+            }
+        });
+}
+
+fn draw_canvas(ui: &im::Ui, texture_id: &Option<im::TextureId>) {
+    let window = im::Window::new(im_str!("Canvas"));
+    let size = [CANVAS_WIDTH as f32, CANVAS_HEIGHT as f32];
+
+    window
+        .size(
+            [size[0] + WINDOW_PAD_X, size[1] + WINDOW_PAD_Y],
+            im::Condition::FirstUseEver,
+        )
+        .position([48., 48.], im::Condition::FirstUseEver)
+        .build(&ui, || {
+            if let Some(ref id) = texture_id {
+                im::Image::new(*id, size).build(&ui);
+            }
+        });
+}
+
+fn draw_scene_entry(
+    ui: &im::Ui,
+    scene: &mut Box<dyn Scene>,
+    texture_id: &mut Option<im::TextureId>,
+    queue: &wgpu::Queue,
+    device: &wgpu::Device,
+    renderer: &mut imgui_wgpu::Renderer,
+) {
+    if im::CollapsingHeader::new(&im::ImString::new(&scene.name())).build(&ui) {
+        ui.text(im::ImString::new(&scene.description()));
+        ui.separator();
+        let redraw = scene.draw(&ui);
+        ui.separator();
+        let force = ui.button(&im_str!("Render it!##{}", scene.name()), [0., 0.]);
+
+        if redraw || force {
+            *texture_id = Some(render_scene(
+                *texture_id,
+                scene.as_ref(),
+                CANVAS_WIDTH,
+                CANVAS_HEIGHT,
+                queue,
+                device,
+                renderer,
+            ));
+        }
+    }
 }
 
 fn render_scene<S>(
