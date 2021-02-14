@@ -12,8 +12,27 @@ use tracy::{
 use super::Scene;
 
 /// A rendering of the final scene from Chapter 6.
-#[derive(Debug, Default, Clone, Copy)]
-pub struct PhongSphere;
+#[derive(Debug, Clone, Copy)]
+pub struct PhongSphere {
+    color: [f32; 3],
+    ambient: f32,
+    diffuse: f32,
+    specular: f32,
+    shininess: f32,
+}
+
+impl Default for PhongSphere {
+    fn default() -> Self {
+        let mat = Material::default();
+        Self {
+            color: [1.0, 0.2, 1.0],
+            ambient: mat.ambient,
+            diffuse: mat.diffuse,
+            specular: mat.specular,
+            shininess: mat.shininess,
+        }
+    }
+}
 
 impl Scene for PhongSphere {
     fn name(&self) -> String {
@@ -34,8 +53,11 @@ impl Scene for PhongSphere {
             ShapeHandle::new(Sphere),
             MatrixN::identity(4),
             Material {
-                color: Color::new(1., 0.2, 1.),
-                ..Default::default()
+                color: Color::new(self.color[0], self.color[1], self.color[2]),
+                ambient: self.ambient,
+                diffuse: self.diffuse,
+                specular: self.specular,
+                shininess: self.shininess,
             },
         ));
 
@@ -79,7 +101,27 @@ impl Scene for PhongSphere {
         canvas
     }
 
-    fn draw(&mut self, _: &Ui) -> bool {
-        false
+    fn draw(&mut self, ui: &Ui) -> bool {
+        let mut redraw = false;
+
+        redraw |= Slider::new(&im_str!("Ambient##{}", self.name()))
+            .range(0.0..=1.0)
+            .build(ui, &mut self.ambient);
+
+        redraw |= Slider::new(&im_str!("Diffuse##{}", self.name()))
+            .range(0.0..=1.0)
+            .build(ui, &mut self.diffuse);
+
+        redraw |= Slider::new(&im_str!("Specular##{}", self.name()))
+            .range(0.0..=1.0)
+            .build(ui, &mut self.specular);
+
+        redraw |= Slider::new(&im_str!("Shininess##{}", self.name()))
+            .range(10.0..=200.0)
+            .build(ui, &mut self.shininess);
+
+        redraw |= ColorPicker::new(&im_str!("Color##{}", self.name()), &mut self.color).build(ui);
+
+        redraw
     }
 }
