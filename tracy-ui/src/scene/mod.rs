@@ -16,6 +16,7 @@ type RenderFn = fn(usize, usize) -> Canvas;
 
 pub(crate) struct Scene {
     pub name: String,
+    pub description: String,
     pub render_fn: RenderFn,
 }
 
@@ -23,18 +24,22 @@ lazy_static! {
     pub(crate) static ref SCENES: Vec<Scene> = vec![
         Scene {
             name: "Chapter 2: Drawing on a Canvas".to_string(),
+            description: "Visualization of a projectile's trajectory in 2D space.".to_string(),
             render_fn: chapter_02 as RenderFn
         },
         Scene {
             name: "Chapter 4: Matrix Transformations".to_string(),
+            description: "12-hour analog clock built using matrix transformations.".to_string(),
             render_fn: chapter_04 as RenderFn
         },
         Scene {
             name: "Chapter 5: Ray-Sphere Intersections".to_string(),
+            description: "Rendering of a sphere using flat shading.".to_string(),
             render_fn: chapter_05 as RenderFn
         },
         Scene {
             name: "Chapter 6: Light and Shading".to_string(),
+            description: "Rendering of a sphere using Phong shading.".to_string(),
             render_fn: chapter_06 as RenderFn
         },
     ];

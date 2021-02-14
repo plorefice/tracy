@@ -172,20 +172,23 @@ fn main() {
                         .position([832., 48.], im::Condition::FirstUseEver)
                         .build(&ui, || {
                             for (i, scene) in scene::SCENES.iter().enumerate() {
-                                if im::CollapsingHeader::new(&im_str!("{}", scene.name))
+                                if im::CollapsingHeader::new(&im::ImString::new(&scene.name))
                                     .default_open(i == 0)
                                     .build(&ui)
-                                    && ui.button(&im_str!("Render it!##{}", i), [0., 0.])
                                 {
-                                    render_to_texture(
-                                        Some(texture_id),
-                                        &scene::SCENES[i],
-                                        width,
-                                        height,
-                                        &queue,
-                                        &device,
-                                        &mut renderer,
-                                    );
+                                    ui.text(im::ImString::new(&scene.description));
+
+                                    if ui.button(&im_str!("Render it!##{}", i), [0., 0.]) {
+                                        render_to_texture(
+                                            Some(texture_id),
+                                            &scene::SCENES[i],
+                                            width,
+                                            height,
+                                            &queue,
+                                            &device,
+                                            &mut renderer,
+                                        );
+                                    }
                                 }
                             }
                         });
