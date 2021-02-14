@@ -189,7 +189,7 @@ fn main() {
                                         && ui.is_mouse_released(im::MouseButton::Left))
                                         || force
                                     {
-                                        texture_id = Some(render_to_texture(
+                                        texture_id = Some(render_scene(
                                             texture_id,
                                             scene.as_ref(),
                                             width,
@@ -242,8 +242,8 @@ fn main() {
     });
 }
 
-fn render_to_texture<S>(
-    id: Option<im::TextureId>,
+fn render_scene<S>(
+    texture_id: Option<im::TextureId>,
     scene: &S,
     width: usize,
     height: usize,
@@ -276,10 +276,10 @@ where
     let texture = Texture::new(&device, &renderer, texture_config);
     texture.write(&queue, &raw_data, width as u32, height as u32);
 
-    match id {
-        Some(id) => {
-            renderer.textures.replace(id, texture);
-            id
+    match texture_id {
+        Some(texture_id) => {
+            renderer.textures.replace(texture_id, texture);
+            texture_id
         }
         None => renderer.textures.insert(texture),
     }
