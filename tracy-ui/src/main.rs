@@ -1,9 +1,14 @@
+//! Visualization of scenes rendered by Tracy using the `imgui-rs` crate.
+
+#![deny(missing_debug_implementations)]
+#![warn(missing_docs)]
+
 use std::time::Instant;
 
 use futures::executor::block_on;
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
-use scene::{get_scene_list, Property, Scene};
+use scene::{get_scene_list, Scene};
 use winit::{
     dpi::LogicalSize,
     event::{Event, WindowEvent},
@@ -96,18 +101,9 @@ fn main() {
     let mut last_cursor = None;
 
     // Set up scene
-    let mut scenes = get_scene_list();
     let (width, height) = (512, 512);
-
-    let texture_id = render_to_texture(
-        None,
-        &scenes[0],
-        width,
-        height,
-        &queue,
-        &device,
-        &mut renderer,
-    );
+    let mut scenes = get_scene_list();
+    let mut texture_id = None;
 
     // Event loop
     event_loop.run(move |event, _, control_flow| {
@@ -165,7 +161,11 @@ fn main() {
                             im::Condition::FirstUseEver,
                         )
                         .position([48., 48.], im::Condition::FirstUseEver)
-                        .build(&ui, || im::Image::new(texture_id, size).build(&ui));
+                        .build(&ui, || {
+                            if let Some(id) = texture_id {
+                                im::Image::new(id, size).build(&ui);
+                            }
+                        });
 
                     let window = im::Window::new(im_str!("Scenarios"));
 
@@ -174,33 +174,24 @@ fn main() {
                         .position([832., 48.], im::Condition::FirstUseEver)
                         .build(&ui, || {
                             for (i, scene) in scenes.iter_mut().enumerate() {
-                                if im::CollapsingHeader::new(&im::ImString::new(&scene.name))
+                                if im::CollapsingHeader::new(&im::ImString::new(&scene.name()))
                                     .default_open(i == 0)
                                     .build(&ui)
                                 {
-                                    ui.text(im::ImString::new(&scene.description));
+                                    ui.text(im::ImString::new(&scene.description()));
                                     ui.separator();
-
-                                    for (name, param) in scene.state.props.iter_mut() {
-                                        match param {
-                                            Property::Range(value, range) => {
-                                                im::Slider::new(&im_str!("{}##{}", name, i))
-                                                    .range(range.clone())
-                                                    .build(&ui, value);
-                                            }
-                                        }
-                                    }
+                                    scene.draw(&ui);
 
                                     if ui.button(&im_str!("Render it!##{}", i), [0., 0.]) {
-                                        render_to_texture(
-                                            Some(texture_id),
-                                            scene,
+                                        texture_id = Some(render_to_texture(
+                                            texture_id,
+                                            scene.as_ref(),
                                             width,
                                             height,
                                             &queue,
                                             &device,
                                             &mut renderer,
-                                        );
+                                        ));
                                     }
                                 }
                             }
@@ -243,16 +234,19 @@ fn main() {
     });
 }
 
-fn render_to_texture(
+fn render_to_texture<S>(
     id: Option<im::TextureId>,
-    scene: &Scene,
+    scene: &S,
     width: usize,
     height: usize,
     queue: &wgpu::Queue,
     device: &wgpu::Device,
     renderer: &mut imgui_wgpu::Renderer,
-) -> im::TextureId {
-    let canvas = (scene.render_fn)(&scene.state, width, height);
+) -> im::TextureId
+where
+    S: Scene + ?Sized,
+{
+    let canvas = scene.render(width, height);
     let raw_data = canvas
         .iter()
         .flat_map(|c| {
