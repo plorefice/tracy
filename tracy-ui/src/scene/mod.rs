@@ -1,6 +1,6 @@
 //! Generators for each chapter's exercises.
 
-use std::{collections::HashMap, f32};
+use std::f32;
 
 use lazy_static::lazy_static;
 
@@ -14,15 +14,30 @@ use tracy::{
 
 type RenderFn = fn(usize, usize) -> Canvas;
 
+pub(crate) struct Scene {
+    pub name: String,
+    pub render_fn: RenderFn,
+}
+
 lazy_static! {
-    pub(crate) static ref SCENES: HashMap<&'static str, RenderFn> = {
-        let mut map = HashMap::new();
-        map.insert("chapter02", chapter_02 as RenderFn);
-        map.insert("chapter04", chapter_04 as RenderFn);
-        map.insert("chapter05", chapter_05 as RenderFn);
-        map.insert("chapter06", chapter_06 as RenderFn);
-        map
-    };
+    pub(crate) static ref SCENES: Vec<Scene> = vec![
+        Scene {
+            name: "Chapter 2: Drawing on a Canvas".to_string(),
+            render_fn: chapter_02 as RenderFn
+        },
+        Scene {
+            name: "Chapter 4: Matrix Transformations".to_string(),
+            render_fn: chapter_04 as RenderFn
+        },
+        Scene {
+            name: "Chapter 5: Ray-Sphere Intersections".to_string(),
+            render_fn: chapter_05 as RenderFn
+        },
+        Scene {
+            name: "Chapter 6: Light and Shading".to_string(),
+            render_fn: chapter_06 as RenderFn
+        },
+    ];
 }
 
 /// Renders the final scene from Chapter 2.

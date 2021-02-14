@@ -3,6 +3,7 @@ use std::time::Instant;
 use futures::executor::block_on;
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
+use scene::Scene;
 use winit::{
     dpi::LogicalSize,
     event::{Event, WindowEvent},
@@ -96,32 +97,15 @@ fn main() {
 
     // Set up scene
     let (width, height) = (512, 512);
-    let render_fn = scene::SCENES["chapter06"];
-    let canvas = render_fn(width, height);
-
-    // Set up canvas texture
-    let raw_data = canvas
-        .iter()
-        .flat_map(|c| {
-            let (r, g, b) = c.to_rgb888();
-            vec![r, g, b, 255]
-        })
-        .collect::<Vec<_>>();
-
-    let texture_config = TextureConfig {
-        size: wgpu::Extent3d {
-            width: width as u32,
-            height: height as u32,
-            ..Default::default()
-        },
-        label: Some("canvas"),
-        ..Default::default()
-    };
-
-    let texture = Texture::new(&device, &renderer, texture_config);
-
-    texture.write(&queue, &raw_data, width as u32, height as u32);
-    let texture_id = renderer.textures.insert(texture);
+    let texture_id = render_to_texture(
+        None,
+        &scene::SCENES[0],
+        width,
+        height,
+        &queue,
+        &device,
+        &mut renderer,
+    );
 
     // Event loop
     event_loop.run(move |event, _, control_flow| {
@@ -187,9 +171,21 @@ fn main() {
                         .size([400., 512.], im::Condition::FirstUseEver)
                         .position([832., 48.], im::Condition::FirstUseEver)
                         .build(&ui, || {
-                            for name in scene::SCENES.keys() {
-                                if im::CollapsingHeader::new(&im_str!("{}", name)).build(&ui) {
-                                    ui.button(im_str!("Render"), [0., 0.]);
+                            for (i, scene) in scene::SCENES.iter().enumerate() {
+                                if im::CollapsingHeader::new(&im_str!("{}", scene.name))
+                                    .default_open(i == 0)
+                                    .build(&ui)
+                                    && ui.button(&im_str!("Render it!##{}", i), [0., 0.])
+                                {
+                                    render_to_texture(
+                                        Some(texture_id),
+                                        &scene::SCENES[i],
+                                        width,
+                                        height,
+                                        &queue,
+                                        &device,
+                                        &mut renderer,
+                                    );
                                 }
                             }
                         });
@@ -229,4 +225,44 @@ fn main() {
 
         platform.handle_event(imgui.io_mut(), &window, &event);
     });
+}
+
+fn render_to_texture(
+    id: Option<im::TextureId>,
+    scene: &Scene,
+    width: usize,
+    height: usize,
+    queue: &wgpu::Queue,
+    device: &wgpu::Device,
+    renderer: &mut imgui_wgpu::Renderer,
+) -> im::TextureId {
+    let canvas = (scene.render_fn)(width, height);
+    let raw_data = canvas
+        .iter()
+        .flat_map(|c| {
+            let (r, g, b) = c.to_rgb888();
+            vec![b, g, r, 255]
+        })
+        .collect::<Vec<_>>();
+
+    let texture_config = TextureConfig {
+        size: wgpu::Extent3d {
+            width: width as u32,
+            height: height as u32,
+            ..Default::default()
+        },
+        label: Some("canvas"),
+        ..Default::default()
+    };
+
+    let texture = Texture::new(&device, &renderer, texture_config);
+    texture.write(&queue, &raw_data, width as u32, height as u32);
+
+    match id {
+        Some(id) => {
+            renderer.textures.replace(id, texture);
+            id
+        }
+        None => renderer.textures.insert(texture),
+    }
 }
