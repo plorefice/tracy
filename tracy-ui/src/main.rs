@@ -104,7 +104,6 @@ fn main() {
     let (width, height) = (512, 512);
     let mut scenes = get_scene_list();
     let mut texture_id = None;
-    let mut state_changed = false;
 
     // Event loop
     event_loop.run(move |event, _, control_flow| {
@@ -171,24 +170,21 @@ fn main() {
                     let window = im::Window::new(im_str!("Scenarios"));
 
                     window
-                        .size([400., 512.], im::Condition::FirstUseEver)
-                        .position([832., 48.], im::Condition::FirstUseEver)
+                        .size([432., 512.], im::Condition::FirstUseEver)
+                        .position([800., 48.], im::Condition::FirstUseEver)
                         .build(&ui, || {
-                            for (i, scene) in scenes.iter_mut().enumerate() {
+                            for scene in scenes.iter_mut() {
                                 if im::CollapsingHeader::new(&im::ImString::new(&scene.name()))
-                                    .default_open(i == 0)
                                     .build(&ui)
                                 {
                                     ui.text(im::ImString::new(&scene.description()));
                                     ui.separator();
-                                    state_changed |= scene.draw(&ui);
+                                    let redraw = scene.draw(&ui);
                                     ui.separator();
-                                    let force = ui.button(&im_str!("Render it!##{}", i), [0., 0.]);
+                                    let force = ui
+                                        .button(&im_str!("Render it!##{}", scene.name()), [0., 0.]);
 
-                                    if (state_changed
-                                        && ui.is_mouse_released(im::MouseButton::Left))
-                                        || force
-                                    {
+                                    if redraw || force {
                                         texture_id = Some(render_scene(
                                             texture_id,
                                             scene.as_ref(),
@@ -198,8 +194,6 @@ fn main() {
                                             &device,
                                             &mut renderer,
                                         ));
-
-                                        state_changed = false;
                                     }
                                 }
                             }
