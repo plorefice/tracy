@@ -1,9 +1,8 @@
 use std::time::Instant;
 
 use futures::executor::block_on;
-use imgui::*;
+use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
-use wgpu::Extent3d;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
@@ -52,7 +51,7 @@ fn main() {
     let mut swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
     // Set up dear imgui
-    let mut imgui = imgui::Context::create();
+    let mut imgui = im::Context::create();
     let mut platform = imgui_winit_support::WinitPlatform::init(&mut imgui);
     platform.attach_window(
         imgui.io_mut(),
@@ -65,8 +64,8 @@ fn main() {
     let font_size = (13.0 * hidpi_factor) as f32;
     imgui.io_mut().font_global_scale = (1.0 / hidpi_factor) as f32;
 
-    imgui.fonts().add_font(&[FontSource::DefaultFontData {
-        config: Some(imgui::FontConfig {
+    imgui.fonts().add_font(&[im::FontSource::DefaultFontData {
+        config: Some(im::FontConfig {
             oversample_h: 1,
             pixel_snap_h: true,
             size_pixels: font_size,
@@ -106,7 +105,7 @@ fn main() {
         .collect::<Vec<_>>();
 
     let texture_config = TextureConfig {
-        size: Extent3d {
+        size: wgpu::Extent3d {
             width: width as u32,
             height: height as u32,
             ..Default::default()
@@ -167,15 +166,15 @@ fn main() {
 
                 let ui = imgui.frame();
                 {
-                    let window = imgui::Window::new(im_str!("Canvas"));
+                    let window = im::Window::new(im_str!("Canvas"));
                     let size = [width as f32, height as f32];
 
                     window
                         .size(
                             [size[0] + WINDOW_PAD_X, size[1] + WINDOW_PAD_Y],
-                            Condition::FirstUseEver,
+                            im::Condition::FirstUseEver,
                         )
-                        .build(&ui, || imgui::Image::new(texture_id, size).build(&ui));
+                        .build(&ui, || im::Image::new(texture_id, size).build(&ui));
                 }
 
                 let mut encoder: wgpu::CommandEncoder =
