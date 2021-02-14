@@ -1,8 +1,6 @@
 //! Generators for each chapter's exercises.
 
-use std::f32;
-
-use lazy_static::lazy_static;
+use std::{collections::HashMap, f32, ops::RangeInclusive};
 
 use tracy::{
     canvas::{Canvas, Color},
@@ -12,55 +10,81 @@ use tracy::{
     shape::{ShapeHandle, Sphere},
 };
 
-type RenderFn = fn(usize, usize) -> Canvas;
+type RenderFn = fn(&SceneState, usize, usize) -> Canvas;
 
-pub(crate) struct Scene {
+pub struct Scene {
     pub name: String,
     pub description: String,
     pub render_fn: RenderFn,
+    pub state: SceneState,
 }
 
-lazy_static! {
-    pub(crate) static ref SCENES: Vec<Scene> = vec![
+#[derive(Default)]
+pub struct SceneState {
+    pub props: HashMap<String, Property>,
+}
+
+pub enum Property {
+    Range(f32, RangeInclusive<f32>),
+}
+
+pub fn get_scene_list() -> Vec<Scene> {
+    vec![
         Scene {
             name: "Chapter 2: Drawing on a Canvas".to_string(),
             description: "Visualization of a projectile's trajectory in 2D space.".to_string(),
-            render_fn: chapter_02 as RenderFn
+            render_fn: chapter_02 as RenderFn,
+            state: SceneState {
+                props: {
+                    let mut props = HashMap::new();
+                    props.insert("Velocity".to_string(), Property::Range(11.25, 0.1..=20.0));
+                    props
+                },
+            },
         },
         Scene {
             name: "Chapter 4: Matrix Transformations".to_string(),
             description: "12-hour analog clock built using matrix transformations.".to_string(),
-            render_fn: chapter_04 as RenderFn
+            render_fn: chapter_04 as RenderFn,
+            state: Default::default(),
         },
         Scene {
             name: "Chapter 5: Ray-Sphere Intersections".to_string(),
             description: "Rendering of a sphere using flat shading.".to_string(),
-            render_fn: chapter_05 as RenderFn
+            render_fn: chapter_05 as RenderFn,
+            state: Default::default(),
         },
         Scene {
             name: "Chapter 6: Light and Shading".to_string(),
             description: "Rendering of a sphere using Phong shading.".to_string(),
-            render_fn: chapter_06 as RenderFn
+            render_fn: chapter_06 as RenderFn,
+            state: Default::default(),
         },
-    ];
+    ]
 }
 
 /// Renders the final scene from Chapter 2.
-fn chapter_02(width: usize, height: usize) -> Canvas {
+fn chapter_02(state: &SceneState, width: usize, height: usize) -> Canvas {
     let mut canvas = Canvas::new(width, height);
 
+    let vel = match state.props["Velocity"] {
+        Property::Range(val, _) => val,
+    };
+
     let mut pos = Point::from_point(0., 1., 0.);
-    let mut vel = Vector::from_vector(1., 1.8, 0.).normalize() * 11.25;
+    let mut vel = Vector::from_vector(1., 1.8, 0.).normalize() * vel;
 
     let gravity = Vector::from_vector(0., -0.1, 0.);
     let wind = Vector::from_vector(-0.01, 0., 0.);
 
     while pos.y > 0. {
-        canvas.put(
-            pos.x.round() as usize,
-            height - pos.y.round() as usize,
-            Color::new(1., 1., 1.),
-        );
+        if pos.y < height as f32 {
+            canvas.put(
+                pos.x.round() as usize,
+                height - pos.y.round() as usize,
+                Color::new(1., 1., 1.),
+            );
+        }
 
         pos += vel;
         vel += gravity + wind;
@@ -70,7 +94,7 @@ fn chapter_02(width: usize, height: usize) -> Canvas {
 }
 
 /// Renders the final scene from Chapter 4.
-fn chapter_04(width: usize, height: usize) -> Canvas {
+fn chapter_04(_: &SceneState, width: usize, height: usize) -> Canvas {
     let mut canvas = Canvas::new(width, height);
 
     let (wf, hf) = (width as f32, height as f32);
@@ -89,7 +113,7 @@ fn chapter_04(width: usize, height: usize) -> Canvas {
 }
 
 /// Render the final scene from Chapter 5.
-fn chapter_05(width: usize, height: usize) -> Canvas {
+fn chapter_05(_: &SceneState, width: usize, height: usize) -> Canvas {
     let mut canvas = Canvas::new(width, height);
     let mut world = World::new();
 
@@ -124,7 +148,7 @@ fn chapter_05(width: usize, height: usize) -> Canvas {
 }
 
 /// Render the final scene from Chapter 6.
-fn chapter_06(width: usize, height: usize) -> Canvas {
+fn chapter_06(_: &SceneState, width: usize, height: usize) -> Canvas {
     let mut canvas = Canvas::new(width, height);
     let mut world = World::new();
 

@@ -3,7 +3,7 @@ use std::time::Instant;
 use futures::executor::block_on;
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
-use scene::Scene;
+use scene::{get_scene_list, Property, Scene};
 use winit::{
     dpi::LogicalSize,
     event::{Event, WindowEvent},
@@ -96,10 +96,12 @@ fn main() {
     let mut last_cursor = None;
 
     // Set up scene
+    let mut scenes = get_scene_list();
     let (width, height) = (512, 512);
+
     let texture_id = render_to_texture(
         None,
-        &scene::SCENES[0],
+        &scenes[0],
         width,
         height,
         &queue,
@@ -171,17 +173,28 @@ fn main() {
                         .size([400., 512.], im::Condition::FirstUseEver)
                         .position([832., 48.], im::Condition::FirstUseEver)
                         .build(&ui, || {
-                            for (i, scene) in scene::SCENES.iter().enumerate() {
+                            for (i, scene) in scenes.iter_mut().enumerate() {
                                 if im::CollapsingHeader::new(&im::ImString::new(&scene.name))
                                     .default_open(i == 0)
                                     .build(&ui)
                                 {
                                     ui.text(im::ImString::new(&scene.description));
+                                    ui.separator();
+
+                                    for (name, param) in scene.state.props.iter_mut() {
+                                        match param {
+                                            Property::Range(value, range) => {
+                                                im::Slider::new(&im_str!("{}##{}", name, i))
+                                                    .range(range.clone())
+                                                    .build(&ui, value);
+                                            }
+                                        }
+                                    }
 
                                     if ui.button(&im_str!("Render it!##{}", i), [0., 0.]) {
                                         render_to_texture(
                                             Some(texture_id),
-                                            &scene::SCENES[i],
+                                            scene,
                                             width,
                                             height,
                                             &queue,
@@ -239,7 +252,7 @@ fn render_to_texture(
     device: &wgpu::Device,
     renderer: &mut imgui_wgpu::Renderer,
 ) -> im::TextureId {
-    let canvas = (scene.render_fn)(width, height);
+    let canvas = (scene.render_fn)(&scene.state, width, height);
     let raw_data = canvas
         .iter()
         .flat_map(|c| {
