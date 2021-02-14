@@ -13,13 +13,13 @@ use super::Scene;
 /// A rendering of the final scene from Chapter 5.
 #[derive(Debug, Clone, Copy)]
 pub struct FlatSphere {
-    color: Color,
+    color: [f32; 3],
 }
 
 impl Default for FlatSphere {
     fn default() -> Self {
         Self {
-            color: Color::new(1., 0., 0.),
+            color: [1., 0., 0.],
         }
     }
 }
@@ -58,7 +58,7 @@ impl Scene for FlatSphere {
 
                 for (_, xs) in world.interferences_with_ray(&ray) {
                     if xs.hit().is_some() {
-                        canvas.put(x, y, self.color);
+                        canvas.put(x, y, Color::from(self.color));
                     }
                 }
             }
@@ -67,7 +67,7 @@ impl Scene for FlatSphere {
         canvas
     }
 
-    fn draw(&mut self, _: &Ui) -> bool {
-        false
+    fn draw(&mut self, ui: &Ui) -> bool {
+        ColorPicker::new(&im_str!("Color##{}", self.name()), &mut self.color).build(ui)
     }
 }
