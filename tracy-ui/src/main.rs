@@ -2,12 +2,18 @@ use std::time::Instant;
 
 use futures::executor::block_on;
 use imgui::*;
-use imgui_wgpu::{Renderer, RendererConfig};
+use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
+use wgpu::Extent3d;
 use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::Window,
 };
+
+mod scene;
+
+const WINDOW_PAD_X: f32 = 16.;
+const WINDOW_PAD_Y: f32 = 36.;
 
 fn main() {
     // Set up window and GPU
@@ -85,6 +91,35 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut last_cursor = None;
 
+    // Set up scene
+    let (width, height) = (512, 512);
+    let render_fn = scene::SCENES["chapter06"];
+    let canvas = render_fn(width, height);
+
+    // Set up canvas texture
+    let raw_data = canvas
+        .iter()
+        .flat_map(|c| {
+            let (r, g, b) = c.to_rgb888();
+            vec![r, g, b, 255]
+        })
+        .collect::<Vec<_>>();
+
+    let texture_config = TextureConfig {
+        size: Extent3d {
+            width: width as u32,
+            height: height as u32,
+            ..Default::default()
+        },
+        label: Some("canvas"),
+        ..Default::default()
+    };
+
+    let texture = Texture::new(&device, &renderer, texture_config);
+
+    texture.write(&queue, &raw_data, width as u32, height as u32);
+    let texture_id = renderer.textures.insert(texture);
+
     // Event loop
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
@@ -132,21 +167,15 @@ fn main() {
 
                 let ui = imgui.frame();
                 {
-                    let window = imgui::Window::new(im_str!("Hello world"));
+                    let window = imgui::Window::new(im_str!("Canvas"));
+                    let size = [width as f32, height as f32];
 
                     window
-                        .size([300.0, 100.0], Condition::FirstUseEver)
-                        .build(&ui, || {
-                            ui.text(im_str!("Hello world!"));
-                            ui.text(im_str!("This...is...imgui-rs on WGPU!"));
-                            ui.separator();
-                            let mouse_pos = ui.io().mouse_pos;
-                            ui.text(im_str!(
-                                "Mouse Position: ({:.1},{:.1})",
-                                mouse_pos[0],
-                                mouse_pos[1]
-                            ));
-                        });
+                        .size(
+                            [size[0] + WINDOW_PAD_X, size[1] + WINDOW_PAD_Y],
+                            Condition::FirstUseEver,
+                        )
+                        .build(&ui, || imgui::Image::new(texture_id, size).build(&ui));
                 }
 
                 let mut encoder: wgpu::CommandEncoder =

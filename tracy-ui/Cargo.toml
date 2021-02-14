@@ -9,6 +9,7 @@ futures = "0.3.12"
 imgui = "0.7.0"
 imgui-wgpu = "0.14.0"
 imgui-winit-support = "0.7.0"
+lazy_static = "1.4.0"
 tracy = {path = "../tracy"}
 wgpu = "0.7"
 winit = "0.24.0"

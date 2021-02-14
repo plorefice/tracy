@@ -4,7 +4,7 @@ use std::{collections::HashMap, f32};
 
 use lazy_static::lazy_static;
 
-use crate::{
+use tracy::{
     canvas::{Canvas, Color},
     math::{MatrixN, Point, Vector},
     query::{Object, Ray, World},
