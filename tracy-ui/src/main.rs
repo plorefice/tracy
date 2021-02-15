@@ -3,9 +3,10 @@
 #![deny(missing_debug_implementations)]
 #![warn(missing_docs)]
 
-use std::time::Instant;
+use std::{path::Path, time::Instant};
 
 use futures::executor::block_on;
+use image::{ImageBuffer, Rgb};
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use scene::{get_scene_list, Scene};
@@ -262,6 +263,8 @@ fn draw_scene_entry(
         let redraw = scene.draw(&ui);
         ui.separator();
         let force = ui.button(&im_str!("Render it!##{}", scene.name()), [0., 0.]);
+        ui.same_line(0.);
+        let save = ui.button(&im_str!("Save as PNG##{}", scene.name()), [0., 0.]);
 
         if redraw || force {
             *texture_id = Some(render_scene(
@@ -273,6 +276,15 @@ fn draw_scene_entry(
                 device,
                 renderer,
             ));
+        }
+
+        if save {
+            save_scene(
+                scene.as_ref(),
+                CANVAS_WIDTH,
+                CANVAS_HEIGHT,
+                &format!("{}.png", scene.name()),
+            );
         }
     }
 }
@@ -318,4 +330,24 @@ where
         }
         None => renderer.textures.insert(texture),
     }
+}
+
+fn save_scene<S, P>(scene: &S, width: usize, height: usize, path: P)
+where
+    S: Scene + ?Sized,
+    P: AsRef<Path>,
+{
+    let buf = scene
+        .render(width, height)
+        .iter()
+        .flat_map(|p| {
+            let (r, g, b) = p.to_rgb888();
+            vec![r, g, b]
+        })
+        .collect::<Vec<u8>>();
+
+    ImageBuffer::<Rgb<u8>, _>::from_vec(width as u32, height as u32, buf)
+        .unwrap()
+        .save(path)
+        .unwrap();
 }
