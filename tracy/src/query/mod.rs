@@ -38,11 +38,7 @@ impl Default for World {
         Self {
             objects: vec![
                 Object::new_with_material(ShapeHandle::new(Sphere), MatrixN::identity(4), mat),
-                Object::new_with_material(
-                    ShapeHandle::new(Sphere),
-                    MatrixN::from_scale(0.5, 0.5, 0.5),
-                    mat,
-                ),
+                Object::new(ShapeHandle::new(Sphere), MatrixN::from_scale(0.5, 0.5, 0.5)),
             ],
             lights: vec![PointLight {
                 position: Point::from_point(-10., 10., -10.),
