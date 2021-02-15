@@ -1,5 +1,3 @@
-#![allow(clippy::many_single_char_names)]
-
 use tracy::math::{Coords, Point, Vector};
 
 const EPSILON: f32 = 1e-4;
@@ -146,7 +144,7 @@ fn dot_product_of_two_tuples() {
 fn cross_product_of_two_vectors() {
     let a = Vector::from_vector(1., 2., 3.);
     let b = Vector::from_vector(2., 3., 4.);
-    
+
     assert!(a
         .cross(&b)
         .abs_diff_eq(&Vector::from_vector(-1., 2., -1.), EPSILON));
