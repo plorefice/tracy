@@ -56,10 +56,8 @@ impl Scene for FlatSphere {
                 let target = Point::from_point(wall_x, wall_y, wall_z);
                 let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
 
-                for (_, xs) in world.interferences_with_ray(&ray) {
-                    if xs.hit().is_some() {
-                        canvas.put(x, y, Color::from(self.color));
-                    }
+                if world.interferences_with_ray(&ray).hit().is_some() {
+                    canvas.put(x, y, Color::from(self.color));
                 }
             }
         }
