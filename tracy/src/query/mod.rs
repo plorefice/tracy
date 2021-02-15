@@ -8,14 +8,49 @@ pub use ray::*;
 
 use std::slice::Iter;
 
+use crate::{
+    canvas::Color,
+    math::{MatrixN, Point},
+    rendering::{Material, PointLight},
+    shape::{ShapeHandle, Sphere},
+};
+
 /// A handle to an object in a world.
 #[derive(Debug, Clone, Copy)]
 pub struct ObjectHandle(u32);
 
 /// A container of collidable objects.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct World {
     objects: Vec<Object>,
+    lights: Vec<PointLight>,
+}
+
+impl Default for World {
+    fn default() -> Self {
+        let mat = Material {
+            color: Color::new(0.8, 1.0, 0.6),
+            diffuse: 0.7,
+            specular: 0.2,
+            ..Default::default()
+        };
+
+        Self {
+            objects: vec![
+                Object::new_with_material(ShapeHandle::new(Sphere), MatrixN::identity(4), mat),
+                Object::new_with_material(
+                    ShapeHandle::new(Sphere),
+                    MatrixN::from_scale(0.5, 0.5, 0.5),
+                    mat,
+                ),
+            ],
+            lights: vec![PointLight {
+                position: Point::from_point(-10., 10., -10.),
+                color: Color::new(1., 1., 1.),
+                intensity: 1.,
+            }],
+        }
+    }
 }
 
 impl World {
@@ -23,6 +58,7 @@ impl World {
     pub fn new() -> Self {
         Self {
             objects: Vec::new(),
+            lights: Vec::new(),
         }
     }
 
