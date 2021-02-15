@@ -1,5 +1,7 @@
 use crate::{math::MatrixN, rendering::Material, shape::ShapeHandle};
 
+use super::{Ray, RayCast, RayIntersections};
+
 /// An object that can be positioned in a scene.
 #[derive(Debug, Clone)]
 pub struct Object {
@@ -46,5 +48,10 @@ impl Object {
     /// Changes the transform of this object.
     pub fn set_transform(&mut self, transform: MatrixN) {
         self.transform = transform;
+    }
+
+    /// Computes the intersections between this object and a ray.
+    pub fn interferences_with_ray(&self, ray: &Ray) -> Option<RayIntersections> {
+        self.shape().toi_and_normal_with_ray(self.transform(), ray)
     }
 }

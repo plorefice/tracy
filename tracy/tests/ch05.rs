@@ -1,241 +1,285 @@
-use std::{convert::Infallible, f32};
-
-use cucumber_rust::{async_trait, given, then, when, WorldInit};
+use itertools::Itertools;
 use tracy::{
     math::{MatrixN, Point, Vector},
-    query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
+    query::{Object, Ray, RayIntersection, RayIntersections},
     shape::{ShapeHandle, Sphere},
 };
 
-const EPSILON: f32 = 1e-4;
+mod utils;
 
-#[derive(WorldInit)]
-pub struct TestRunner {
-    origin: Point,
-    direction: Vector,
-    sphere: Option<Object>,
-    r1: Ray,
-    r2: Ray,
-    is: Vec<f32>,
-    xs: Vec<f32>,
-    hit: Option<f32>,
-    m: MatrixN,
+#[test]
+fn creating_and_querying_a_ray() {
+    let origin = Point::from_point(1., 2., 3.);
+    let direction = Vector::from_vector(4., 5., 6.);
+    let r = Ray::new(origin, direction);
+
+    assert_abs_diff!(r.origin, origin);
+    assert_abs_diff!(r.dir, direction);
 }
 
-#[async_trait(?Send)]
-impl cucumber_rust::World for TestRunner {
-    type Error = Infallible;
-
-    async fn new() -> Result<Self, Infallible> {
-        Ok(Self {
-            origin: Point::default(),
-            direction: Vector::default(),
-            sphere: None,
-            r1: Ray {
-                origin: Point::default(),
-                dir: Vector::default(),
-            },
-            r2: Ray {
-                origin: Point::default(),
-                dir: Vector::default(),
-            },
-            is: Vec::new(),
-            xs: Vec::new(),
-            hit: None,
-            m: MatrixN::identity(4),
-        })
-    }
-}
-
-#[given(regex = r"origin ← point\((.*), (.*), (.*)\)")]
-async fn given_an_origin(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.origin = Point::from_point(x, y, z);
-}
-
-#[given(regex = r"direction ← vector\((.*), (.*), (.*)\)")]
-async fn given_a_direction(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.direction = Vector::from_vector(x, y, z);
-}
-
-#[given(regex = r"r ← ray\(point\((.*), (.*), (.*)\), vector\((.*), (.*), (.*)\)\)")]
-async fn given_a_ray(tr: &mut TestRunner, px: f32, py: f32, pz: f32, vx: f32, vy: f32, vz: f32) {
-    tr.r1 = Ray::new(
-        Point::from_point(px, py, pz),
-        Vector::from_vector(vx, vy, vz),
+#[test]
+fn computing_a_point_from_a_distance() {
+    let r = Ray::new(
+        Point::from_point(2., 3., 4.),
+        Vector::from_vector(1., 0., 0.),
     );
+
+    assert_abs_diff!(r.point_at(0.), Point::from_point(2., 3., 4.));
+    assert_abs_diff!(r.point_at(1.), Point::from_point(3., 3., 4.));
+    assert_abs_diff!(r.point_at(-1.), Point::from_point(1., 3., 4.));
+    assert_abs_diff!(r.point_at(2.5), Point::from_point(4.5, 3., 4.));
 }
 
-#[given("s ← sphere()")]
-async fn given_a_sphere(tr: &mut TestRunner) {
-    tr.sphere = Some(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+#[test]
+fn translating_a_ray() {
+    let r = Ray::new(
+        Point::from_point(1., 2., 3.),
+        Vector::from_vector(0., 1., 0.),
+    );
+    let m = MatrixN::from_translation(3., 4., 5.);
+    let r2 = r.transform_by(&m);
+
+    assert_abs_diff!(r2.origin, Point::from_point(4., 6., 8.));
+    assert_abs_diff!(r2.dir, Vector::from_vector(0., 1., 0.));
 }
 
-#[given(regex = r"(i[0-9]?) ← intersection\((.*), s\)")]
-async fn given_ray_intersection(tr: &mut TestRunner, _id: String, toi: f32) {
-    tr.is.push(toi);
+#[test]
+fn scaling_a_ray() {
+    let r = Ray::new(
+        Point::from_point(1., 2., 3.),
+        Vector::from_vector(0., 1., 0.),
+    );
+    let m = MatrixN::from_scale(2., 3., 4.);
+    let r2 = r.transform_by(&m);
+
+    assert_abs_diff!(r2.origin, Point::from_point(2., 6., 12.));
+    assert_abs_diff!(r2.dir, Vector::from_vector(0., 3., 0.));
 }
 
-#[given(regex = r"xs ← intersections\((.*)\)")]
-async fn given_a_bundle_of_intersections(tr: &mut TestRunner, ids: String) {
-    let ids = ids
-        .split(", ")
-        .map(|id| id.trim_start_matches('i').parse::<usize>().unwrap() - 1)
-        .collect::<Vec<_>>();
+#[test]
+fn a_ray_intersects_a_sphere_at_two_points() {
+    let r = Ray::new(
+        Point::from_point(0., 0., -5.),
+        Vector::from_vector(0., 0., 1.),
+    );
 
-    for id in ids {
-        tr.xs.push(tr.is[id]);
-    }
+    let xs = tois_with_default_sphere(&r);
+
+    assert_eq!(xs.len(), 2);
+    assert_f32!(xs[0], 4.);
+    assert_f32!(xs[1], 6.);
 }
 
-#[given(regex = r"[mt] ← translation\((.*), (.*), (.*)\)")]
-async fn given_a_translation(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.m = MatrixN::from_translation(x, y, z);
+#[test]
+fn a_ray_intersects_a_sphere_at_a_tangent() {
+    let r = Ray::new(
+        Point::from_point(0., 1., -5.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    let xs = tois_with_default_sphere(&r);
+
+    assert_eq!(xs.len(), 2);
+    assert_f32!(xs[0], 5.);
+    assert_f32!(xs[1], 5.);
 }
 
-#[given(regex = r"m ← scaling\((.*), (.*), (.*)\)")]
-async fn given_a_scaling(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.m = MatrixN::from_scale(x, y, z);
+#[test]
+fn a_ray_misses_a_sphere() {
+    let r = Ray::new(
+        Point::from_point(0., 2., -5.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    let xs = tois_with_default_sphere(&r);
+
+    assert_eq!(xs.len(), 0);
 }
 
-#[when("r ← ray(origin, direction)")]
-async fn build_ray(tr: &mut TestRunner) {
-    tr.r1 = Ray::new(tr.origin, tr.direction);
+#[test]
+fn a_ray_originates_inside_a_sphere() {
+    let r = Ray::new(
+        Point::from_point(0., 0., 0.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    let xs = tois_with_default_sphere(&r);
+
+    assert_eq!(xs.len(), 2);
+    assert_f32!(xs[0], -1.);
+    assert_f32!(xs[1], 1.);
 }
 
-#[when("xs ← intersect(s, r)")]
-async fn sphere_intersects_ray(tr: &mut TestRunner) {
-    let co = tr.sphere.as_ref().unwrap();
-    tr.xs = co.shape().toi_with_ray(co.transform(), &tr.r1);
+#[test]
+fn a_sphere_is_behind_a_ray() {
+    let r = Ray::new(
+        Point::from_point(0., 0., 5.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    let xs = tois_with_default_sphere(&r);
+
+    assert_eq!(xs.len(), 2);
+    assert_f32!(xs[0], -6.);
+    assert_f32!(xs[1], -4.);
 }
 
-#[when(regex = r"i ← intersection\((.*), s\)")]
-async fn ray_intersection(tr: &mut TestRunner, toi: f32) {
-    tr.is.push(toi);
+#[test]
+fn a_sphere_default_transformation() {
+    assert_abs_diff!(sphere().transform(), MatrixN::identity(4));
 }
 
-#[when(regex = r"xs ← intersections\((.*)\)")]
-async fn bundle_intersections(tr: &mut TestRunner, ids: String) {
-    given_a_bundle_of_intersections(tr, ids).await
+#[test]
+fn changing_a_sphere_transformation() {
+    let mut s = sphere();
+    let t = MatrixN::from_translation(2., 3., 4.);
+    s.set_transform(t.clone());
+
+    assert_abs_diff!(s.transform(), t);
 }
 
-#[when("i ← hit(xs)")]
-async fn ray_hit(tr: &mut TestRunner) {
-    tr.hit = RayIntersections::from(
-        tr.xs
+#[test]
+fn intersecting_a_scaled_sphere_with_a_ray() {
+    let r = Ray::new(
+        Point::from_point(0., 0., -5.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    let mut s = sphere();
+    s.set_transform(MatrixN::from_scale(2., 2., 2.));
+
+    let xs = s
+        .interferences_with_ray(&r)
+        .map(|xs| xs.map(|x| x.toi).collect::<Vec<_>>())
+        .unwrap_or_default();
+
+    assert_eq!(xs.len(), 2);
+    assert_f32!(xs[0], 3.);
+    assert_f32!(xs[1], 7.);
+}
+
+#[test]
+fn intersecting_a_translated_sphere_with_a_ray() {
+    let r = Ray::new(
+        Point::from_point(0., 0., -5.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    let mut s = sphere();
+    s.set_transform(MatrixN::from_translation(5., 0., 0.));
+
+    assert!(s.interferences_with_ray(&r).is_none());
+}
+
+#[test]
+fn an_intersection_encapsulates_t_and_object() {
+    let i = RayIntersection {
+        toi: 3.5,
+        normal: Vector::default(),
+    };
+
+    assert_f32!(i.toi, 3.5);
+}
+
+#[test]
+fn aggregating_intersections() {
+    let i1 = RayIntersection {
+        toi: 1.,
+        normal: Vector::default(),
+    };
+
+    let i2 = RayIntersection {
+        toi: 2.,
+        normal: Vector::default(),
+    };
+
+    let mut xs = RayIntersections::from(vec![i1, i2].into_iter());
+
+    assert_f32!(xs.next().unwrap().toi, 1.);
+    assert_f32!(xs.next().unwrap().toi, 2.);
+}
+
+#[test]
+fn intersect_sets_the_object_on_the_intersection() {
+    let r = Ray::new(
+        Point::from_point(0., 0., -5.),
+        Vector::from_vector(0., 0., 1.),
+    );
+
+    assert_eq!(sphere().interferences_with_ray(&r).unwrap().count(), 2);
+}
+
+#[test]
+fn the_hit_when_all_intersections_have_positive_t() {
+    let i1 = RayIntersection {
+        toi: 1.,
+        normal: Vector::default(),
+    };
+    let i2 = RayIntersection {
+        toi: 2.,
+        normal: Vector::default(),
+    };
+
+    let i = RayIntersections::from(vec![i2, i1.clone()].into_iter()).hit();
+
+    assert_f32!(i.unwrap().toi, i1.toi);
+}
+
+#[test]
+fn the_hit_when_some_intersections_have_negative_t() {
+    let i1 = RayIntersection {
+        toi: -1.,
+        normal: Vector::default(),
+    };
+    let i2 = RayIntersection {
+        toi: 1.,
+        normal: Vector::default(),
+    };
+
+    let i = RayIntersections::from(vec![i2.clone(), i1].into_iter()).hit();
+
+    assert_f32!(i.unwrap().toi, i2.toi);
+}
+
+#[test]
+fn the_hit_when_all_intersections_have_negative_t() {
+    let i1 = RayIntersection {
+        toi: -2.,
+        normal: Vector::default(),
+    };
+    let i2 = RayIntersection {
+        toi: -1.,
+        normal: Vector::default(),
+    };
+
+    assert!(RayIntersections::from(vec![i2, i1].into_iter())
+        .hit()
+        .is_none());
+}
+
+#[test]
+fn the_hit_is_always_the_lowest_nonnegative_intersection() {
+    let xs = RayIntersections::from(
+        [5., 7., -3., 2.]
             .iter()
-            .map(|&toi| RayIntersection::new(toi, Vector::default()))
-            .collect::<Vec<_>>()
+            .map(|&toi| RayIntersection {
+                toi,
+                normal: Vector::default(),
+            })
+            .collect_vec()
             .into_iter(),
-    )
-    .hit()
-    .map(|x| x.toi);
+    );
+
+    assert_f32!(xs.hit().unwrap().toi, 2.);
 }
 
-#[when("r2 ← transform(r, m)")]
-async fn transform_ray(tr: &mut TestRunner) {
-    tr.r2 = tr.r1.transform_by(&tr.m);
+fn sphere() -> Object {
+    Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4))
 }
 
-#[when("set_transform(s, t)")]
-async fn set_transform(tr: &mut TestRunner) {
-    let co = tr.sphere.as_mut().unwrap();
-    co.set_transform(tr.m.clone());
-}
-
-#[when(regex = r"set_transform\(s, scaling\((.*), (.*), (.*)\)\)")]
-async fn set_scaling(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    let co = tr.sphere.as_mut().unwrap();
-    co.set_transform(MatrixN::from_scale(x, y, z));
-}
-
-#[when(regex = r"set_transform\(s, translation\((.*), (.*), (.*)\)\)")]
-async fn set_translation(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    let co = tr.sphere.as_mut().unwrap();
-    co.set_transform(MatrixN::from_translation(x, y, z));
-}
-
-#[then("r.origin = origin")]
-async fn check_ray_origin(tr: &mut TestRunner) {
-    assert!(tr.r1.origin.abs_diff_eq(&tr.origin, EPSILON));
-}
-
-#[then(regex = r"r2\.origin = point\((.*), (.*), (.*)\)")]
-async fn check_r2_origin(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!(tr
-        .r2
-        .origin
-        .abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[then("r.direction = direction")]
-async fn check_ray_direction(tr: &mut TestRunner) {
-    assert!(tr.r1.dir.abs_diff_eq(&tr.direction, EPSILON));
-}
-
-#[then(regex = r"r2\.direction = vector\((.*), (.*), (.*)\)")]
-async fn check_r2_direction(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!(tr
-        .r2
-        .dir
-        .abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
-}
-
-#[then(regex = r"position\(r, (.*)\) = point\((.*), (.*), (.*)\)")]
-async fn check_ray_position(tr: &mut TestRunner, t: f32, x: f32, y: f32, z: f32) {
-    assert!(tr
-        .r1
-        .point_at(t)
-        .abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[then(regex = r"xs\.count = (.*)")]
-async fn xs_count(tr: &mut TestRunner, n: usize) {
-    assert_eq!(tr.xs.len(), n);
-}
-
-#[then(regex = r"xs\[(.*)\](?:\.t)? = (.*)")]
-async fn xs_index_toi(tr: &mut TestRunner, i: usize, t: f32) {
-    assert!((tr.xs[i] - t).abs() < EPSILON);
-}
-
-#[then(regex = r"xs\[(.*)\]\.object = s")]
-async fn xs_index_object(_tr: &mut TestRunner, _i: usize) {
-    // TODO: right now, `ShapeHandle` cannot be compared for equality
-}
-
-#[then(regex = r"i\.t = (.*)")]
-async fn intersection_toi(tr: &mut TestRunner, toi: f32) {
-    assert!((tr.is[0] - toi).abs() < EPSILON);
-}
-
-#[then("i.object = s")]
-async fn intersection_object_is(_: &mut TestRunner) {}
-
-#[then(regex = r"i = i(.*)")]
-async fn check_hit(tr: &mut TestRunner, id: String) {
-    let id = id.parse::<usize>().unwrap() - 1;
-    assert!((tr.hit.as_ref().unwrap() - tr.is[id]).abs() < EPSILON);
-}
-
-#[then("i is nothing")]
-async fn check_not_hit(tr: &mut TestRunner) {
-    assert!(tr.hit.is_none());
-}
-
-#[then("s.transform = identity_matrix")]
-async fn sphere_default_transform(_: &mut TestRunner) {
-    let co = Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4));
-    assert!(co.transform().abs_diff_eq(&MatrixN::identity(4), EPSILON));
-}
-
-#[then("s.transform = t")]
-async fn sphere_transform(tr: &mut TestRunner) {
-    let co = tr.sphere.as_mut().unwrap();
-    assert!(co.transform().abs_diff_eq(&tr.m, EPSILON));
-}
-
-#[tokio::main]
-async fn main() {
-    let runner = TestRunner::init(&["./features/ch05"]);
-    runner.run_and_exit().await;
+fn tois_with_default_sphere(ray: &Ray) -> Vec<f32> {
+    sphere()
+        .interferences_with_ray(ray)
+        .map(|xs| xs.map(|x| x.toi).collect())
+        .unwrap_or_default()
 }
