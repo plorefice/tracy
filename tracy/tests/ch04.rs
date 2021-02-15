@@ -1,199 +1,169 @@
-use std::{convert::Infallible, f32};
+use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
-use cucumber_rust::{async_trait, given, then, when, World, WorldInit};
 use tracy::math::{MatrixN, Point, Vector};
 
-const EPSILON: f32 = 1e-4;
+mod utils;
 
-#[derive(WorldInit)]
-pub struct TestRunner {
-    p: Point,
-    p2: Point,
-    p3: Point,
-    p4: Point,
-    v: Vector,
+#[test]
+fn multiplying_by_a_translation_matrix() {
+    let t = MatrixN::from_translation(5., -3., 2.);
+    let p = Point::from_point(-3., 4., 5.);
 
-    inv: MatrixN,
-    transform: MatrixN,
-    hq: MatrixN,
-    fq: MatrixN,
-    a: MatrixN,
-    b: MatrixN,
-    c: MatrixN,
+    assert_abs_diff!(t * p, Point::from_point(2., 1., 7.));
 }
 
-#[async_trait(?Send)]
-impl World for TestRunner {
-    type Error = Infallible;
+#[test]
+fn multiplying_by_the_inverse_of_a_translation_matrix() {
+    let t = MatrixN::from_translation(5., -3., 2.);
+    let inv = t.inverse().unwrap();
+    let p = Point::from_point(-3., 4., 5.);
 
-    async fn new() -> Result<Self, Infallible> {
-        Ok(Self {
-            p: Default::default(),
-            p2: Default::default(),
-            p3: Default::default(),
-            p4: Default::default(),
-            v: Default::default(),
+    assert_abs_diff!(inv * p, Point::from_point(-8., 7., 3.));
+}
 
-            inv: MatrixN::zeros(0),
-            transform: MatrixN::zeros(0),
-            hq: MatrixN::zeros(0),
-            fq: MatrixN::zeros(0),
-            a: MatrixN::zeros(0),
-            b: MatrixN::zeros(0),
-            c: MatrixN::zeros(0),
-        })
+#[test]
+fn translation_does_not_affect_vectors() {
+    let t = MatrixN::from_translation(5., -3., 2.);
+    let v = Vector::from_vector(-3., 4., 5.);
+
+    assert_abs_diff!(t * v, v);
+}
+
+#[test]
+fn a_scaling_matrix_applied_to_a_point() {
+    let t = MatrixN::from_scale(2., 3., 4.);
+    let p = Point::from_point(-4., 6., 8.);
+
+    assert_abs_diff!(t * p, Point::from_point(-8., 18., 32.));
+}
+
+#[test]
+fn a_scaling_matrix_applied_to_a_vector() {
+    let t = MatrixN::from_scale(2., 3., 4.);
+    let v = Vector::from_vector(-4., 6., 8.);
+
+    assert_abs_diff!(t * v, Vector::from_vector(-8., 18., 32.));
+}
+
+#[test]
+fn multiplying_by_the_inverse_of_a_scaling_matrix() {
+    let t = MatrixN::from_scale(2., 3., 4.);
+    let inv = t.inverse().unwrap();
+    let v = Vector::from_vector(-4., 6., 8.);
+
+    assert_abs_diff!(inv * v, Vector::from_vector(-2., 2., 2.));
+}
+
+#[test]
+fn reflection_is_scaling_by_a_negative_value() {
+    let t = MatrixN::from_scale(-1., 1., 1.);
+    let p = Point::from_point(2., 3., 4.);
+
+    assert_abs_diff!(t * p, Point::from_point(-2., 3., 4.));
+}
+
+#[test]
+fn rotating_a_point_around_the_x_axis() {
+    let p = Point::from_point(0., 1., 0.);
+    let hq = MatrixN::from_rotation_x(PI / 4.);
+    let fq = MatrixN::from_rotation_x(PI / 2.);
+
+    assert_abs_diff!(hq * p, Point::from_point(0., FRAC_1_SQRT_2, FRAC_1_SQRT_2));
+    assert_abs_diff!(fq * p, Point::from_point(0., 0., 1.));
+}
+
+#[test]
+fn the_inverse_of_an_x_rotation_rotates_in_the_opposite_direction() {
+    let p = Point::from_point(0., 1., 0.);
+    let hq = MatrixN::from_rotation_x(PI / 4.);
+    let inv = hq.inverse().unwrap();
+
+    assert_abs_diff!(
+        inv * p,
+        Point::from_point(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
+    );
+}
+
+#[test]
+fn rotating_a_point_around_the_y_axis() {
+    let p = Point::from_point(0., 0., 1.);
+    let hq = MatrixN::from_rotation_y(PI / 4.);
+    let fq = MatrixN::from_rotation_y(PI / 2.);
+
+    assert_abs_diff!(hq * p, Point::from_point(FRAC_1_SQRT_2, 0., FRAC_1_SQRT_2));
+    assert_abs_diff!(fq * p, Point::from_point(1., 0., 0.));
+}
+
+#[test]
+fn rotating_a_point_around_the_z_axis() {
+    let p = Point::from_point(0., 1., 0.);
+    let hq = MatrixN::from_rotation_z(PI / 4.);
+    let fq = MatrixN::from_rotation_z(PI / 2.);
+
+    assert_abs_diff!(hq * p, Point::from_point(-FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.));
+    assert_abs_diff!(fq * p, Point::from_point(-1., 0., 0.));
+}
+
+#[test]
+fn shearing_transformations() {
+    let p = Point::from_point(2., 3., 4.);
+
+    for (t, res) in vec![
+        (
+            MatrixN::from_shear(1., 0., 0., 0., 0., 0.),
+            Point::from_point(5., 3., 4.),
+        ),
+        (
+            MatrixN::from_shear(0., 1., 0., 0., 0., 0.),
+            Point::from_point(6., 3., 4.),
+        ),
+        (
+            MatrixN::from_shear(0., 0., 1., 0., 0., 0.),
+            Point::from_point(2., 5., 4.),
+        ),
+        (
+            MatrixN::from_shear(0., 0., 0., 1., 0., 0.),
+            Point::from_point(2., 7., 4.),
+        ),
+        (
+            MatrixN::from_shear(0., 0., 0., 0., 1., 0.),
+            Point::from_point(2., 3., 6.),
+        ),
+        (
+            MatrixN::from_shear(0., 0., 0., 0., 0., 1.),
+            Point::from_point(2., 3., 7.),
+        ),
+    ]
+    .into_iter()
+    {
+        assert_abs_diff!(t * p, res);
     }
 }
 
-#[given(regex = r"(transform|C)? ← translation\((.*), (.*), (.*)\)")]
-async fn given_a_translation(tr: &mut TestRunner, which: String, x: f32, y: f32, z: f32) {
-    match which.as_str() {
-        "transform" => tr.transform = MatrixN::from_translation(x, y, z),
-        "C" => tr.c = MatrixN::from_translation(x, y, z),
-        _ => unreachable!("unexpected variable name"),
-    }
+#[test]
+fn individual_transformations_are_applied_in_sequence() {
+    let p = Point::from_point(1., 0., 1.);
+    let a = MatrixN::from_rotation_x(PI / 2.);
+    let b = MatrixN::from_scale(5., 5., 5.);
+    let c = MatrixN::from_translation(10., 5., 7.);
+
+    let p2 = a * p;
+    assert_abs_diff!(p2, Point::from_point(1., -1., 0.));
+
+    let p3 = b * p2;
+    assert_abs_diff!(p3, Point::from_point(5., -5., 0.));
+
+    let p4 = c * p3;
+    assert_abs_diff!(p4, Point::from_point(15., 0., 7.));
 }
 
-#[given(regex = r"(transform|B)? ← scaling\((.*), (.*), (.*)\)")]
-async fn given_a_scaling(tr: &mut TestRunner, which: String, x: f32, y: f32, z: f32) {
-    match which.as_str() {
-        "transform" => tr.transform = MatrixN::from_scale(x, y, z),
-        "B" => tr.b = MatrixN::from_scale(x, y, z),
-        _ => unreachable!("unexpected variable name"),
-    }
-}
+#[test]
+fn chained_transformations_must_be_applied_in_reverse_order() {
+    let p = Point::from_point(1., 0., 1.);
+    let a = MatrixN::from_rotation_x(PI / 2.);
+    let b = MatrixN::from_scale(5., 5., 5.);
+    let c = MatrixN::from_translation(10., 5., 7.);
+    let transform = c * b * a;
 
-#[given("A ← rotation_x(π / 2)")]
-async fn given_a_rotation(tr: &mut TestRunner) {
-    tr.a = MatrixN::from_rotation_x(f32::consts::PI / 2.);
-}
-
-#[given(regex = r"half_quarter ← rotation_([xyz])\(π / 4\)")]
-async fn given_a_half_quarter_rotation(tr: &mut TestRunner, axis: String) {
-    tr.hq = match axis.as_str() {
-        "x" => MatrixN::from_rotation_x(f32::consts::PI / 4.),
-        "y" => MatrixN::from_rotation_y(f32::consts::PI / 4.),
-        "z" => MatrixN::from_rotation_z(f32::consts::PI / 4.),
-        _ => unreachable!("invalid rotation axis"),
-    };
-}
-
-#[given(regex = r"full_quarter ← rotation_([xyz])\(π / 2\)")]
-async fn given_a_full_quarter_rotation(tr: &mut TestRunner, axis: String) {
-    tr.fq = match axis.as_str() {
-        "x" => MatrixN::from_rotation_x(f32::consts::PI / 2.),
-        "y" => MatrixN::from_rotation_y(f32::consts::PI / 2.),
-        "z" => MatrixN::from_rotation_z(f32::consts::PI / 2.),
-        _ => unreachable!("invalid rotation axis"),
-    };
-}
-
-#[given(regex = r"transform ← shearing\((.*), (.*), (.*), (.*), (.*), (.*)\)")]
-async fn given_a_shearing(
-    tr: &mut TestRunner,
-    xy: f32,
-    xz: f32,
-    yx: f32,
-    yz: f32,
-    zx: f32,
-    zy: f32,
-) {
-    tr.transform = MatrixN::from_shear(xy, xz, yx, yz, zx, zy);
-}
-
-#[given("inv ← inverse(transform)")]
-async fn given_the_inverse_of_a_transform(tr: &mut TestRunner) {
-    tr.inv = tr.transform.inverse().unwrap();
-}
-
-#[given("inv ← inverse(half_quarter)")]
-async fn given_the_inverse_of_half_quarter(tr: &mut TestRunner) {
-    tr.inv = tr.hq.inverse().unwrap();
-}
-
-#[given(regex = r"p ← point\((.*), (.*), (.*)\)")]
-async fn given_a_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.p = Point::from_point(x, y, z);
-}
-
-#[given(regex = r"v ← vector\((.*), (.*), (.*)\)")]
-async fn given_a_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    tr.v = Vector::from_vector(x, y, z);
-}
-
-#[when(regex = r"(p[234]) ← ([ABC]) \* (p[234]?)")]
-async fn point_by_matrix(tr: &mut TestRunner, dst: String, mat: String, src: String) {
-    let (src, dst) = match (src.as_str(), dst.as_str()) {
-        ("p", "p2") => (&tr.p, &mut tr.p2),
-        ("p2", "p3") => (&tr.p2, &mut tr.p3),
-        ("p3", "p4") => (&tr.p3, &mut tr.p4),
-        _ => unreachable!("unexpected src/dst pair"),
-    };
-
-    let mat = match mat.as_str() {
-        "A" => &tr.a,
-        "B" => &tr.b,
-        "C" => &tr.c,
-        _ => unreachable!("unexpected matrix name"),
-    };
-
-    *dst = mat * *src;
-}
-
-#[when("T ← C * B * A")]
-async fn transform_chain(tr: &mut TestRunner) {
-    tr.transform = &tr.c * &tr.b * &tr.a;
-}
-
-#[then(regex = r"(?:transform|T) \* p = point\((.*), (.*), (.*)\)")]
-async fn transform_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.transform * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[then(regex = r"transform \* v = vector\((.*), (.*), (.*)\)")]
-async fn transform_by_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.transform * tr.v).abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
-}
-
-#[then("transform * v = v")]
-async fn transform_by_vector_is_self(tr: &mut TestRunner) {
-    assert!((&tr.transform * tr.v).abs_diff_eq(&tr.v, EPSILON));
-}
-
-#[then(regex = r"inv \* p = point\((.*), (.*), (.*)\)")]
-async fn inverse_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.inv * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[then(regex = r"inv \* v = vector\((.*), (.*), (.*)\)")]
-async fn inverse_by_vector(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.inv * tr.v).abs_diff_eq(&Vector::from_vector(x, y, z), EPSILON));
-}
-
-#[then(regex = r"half_quarter \* p = point\((.*), (.*), (.*)\)")]
-async fn half_quarter_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.hq * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[then(regex = r"full_quarter \* p = point\((.*), (.*), (.*)\)")]
-async fn full_quarter_by_point(tr: &mut TestRunner, x: f32, y: f32, z: f32) {
-    assert!((&tr.fq * tr.p).abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[then(regex = r"(p[234]) = point\((.*), (.*), (.*)\)")]
-async fn point_equals(tr: &mut TestRunner, which: String, x: f32, y: f32, z: f32) {
-    let p = match which.as_str() {
-        "p2" => &tr.p2,
-        "p3" => &tr.p3,
-        "p4" => &tr.p4,
-        _ => unreachable!("unexpected point name"),
-    };
-
-    assert!(p.abs_diff_eq(&Point::from_point(x, y, z), EPSILON));
-}
-
-#[tokio::main]
-async fn main() {
-    let runner = TestRunner::init(&["./features/ch04"]);
-    runner.run_and_exit().await;
+    assert_abs_diff!(transform * p, Point::from_point(15., 0., 7.));
 }
