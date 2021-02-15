@@ -31,3 +31,7 @@ name = "ch05"
 [[test]]
 harness = false
 name = "ch06"
+
+[[test]]
+harness = false
+name = "ch07"
