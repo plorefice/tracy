@@ -1,40 +1,40 @@
-use tracy::canvas::{Canvas, Color};
+mod utils;
 
-const EPSILON: f32 = 1e-4;
+use tracy::canvas::{Canvas, Color};
 
 #[test]
 fn colors_are_rgb_tuples() {
     let c = Color::new(-0.5, 0.4, 1.7);
-    assert!((c.r + 0.5).abs() < EPSILON);
-    assert!((c.g - 0.4).abs() < EPSILON);
-    assert!((c.b - 1.7).abs() < EPSILON);
+    assert_f32!(c.r, -0.5);
+    assert_f32!(c.g, 0.4);
+    assert_f32!(c.b, 1.7);
 }
 
 #[test]
 fn adding_colors() {
     let c1 = Color::new(0.9, 0.6, 0.75);
     let c2 = Color::new(0.7, 0.1, 0.25);
-    assert!((c1 + c2).abs_diff_eq(&Color::new(1.6, 0.7, 1.0), EPSILON));
+    assert_abs_diff!(c1 + c2, Color::new(1.6, 0.7, 1.0));
 }
 
 #[test]
 fn subtracting_colors() {
     let c1 = Color::new(0.9, 0.6, 0.75);
     let c2 = Color::new(0.7, 0.1, 0.25);
-    assert!((c1 - c2).abs_diff_eq(&Color::new(0.2, 0.5, 0.5), EPSILON));
+    assert_abs_diff!(c1 - c2, Color::new(0.2, 0.5, 0.5));
 }
 
 #[test]
 fn multiplying_a_color_by_a_scalar() {
     let c = Color::new(0.2, 0.3, 0.4);
-    assert!((c * 2.0).abs_diff_eq(&Color::new(0.4, 0.6, 0.8), EPSILON));
+    assert_abs_diff!(c * 2., Color::new(0.4, 0.6, 0.8));
 }
 
 #[test]
 fn multiplying_colors() {
     let c1 = Color::new(1.0, 0.2, 0.4);
     let c2 = Color::new(0.9, 1.0, 0.1);
-    assert!((c1 * c2).abs_diff_eq(&Color::new(0.9, 0.2, 0.04), EPSILON));
+    assert_abs_diff!(c1 * c2, Color::new(0.9, 0.2, 0.04));
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn creating_a_canvas() {
     let c = Canvas::new(10, 20);
     assert_eq!(c.width(), 10);
     assert_eq!(c.height(), 20);
-    assert!(c.iter().all(|p| p.abs_diff_eq(&Color::BLACK, EPSILON)));
+    c.iter().for_each(|p| assert_abs_diff!(p, Color::BLACK));
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn writing_pixels_to_a_canvas() {
     let mut c = Canvas::new(10, 20);
     let red = Color::new(1., 0., 0.);
     c.put(2, 3, red);
-    assert!(c.get(2, 3).unwrap().abs_diff_eq(&red, EPSILON));
+    assert_abs_diff!(c.get(2, 3).unwrap(), red);
 }
 
 #[test]
