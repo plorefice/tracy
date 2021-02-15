@@ -78,6 +78,16 @@ impl World {
         self.objects.get_mut(handle.0 as usize)
     }
 
+    /// Returns an iterator over this world's objects.
+    pub fn objects(&self) -> Iter<Object> {
+        self.objects.iter()
+    }
+
+    /// Returns an iterator over this world's lights.
+    pub fn lights(&self) -> Iter<PointLight> {
+        self.lights.iter()
+    }
+
     /// Computes the intersections between all the object in this world and a ray.
     pub fn interferences_with_ray<'a>(&'a self, ray: &'a Ray) -> InterferencesWithRay<'a> {
         InterferencesWithRay {
