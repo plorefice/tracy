@@ -19,8 +19,8 @@ use winit::{
 
 mod scene;
 
-const CANVAS_WIDTH: usize = 512;
-const CANVAS_HEIGHT: usize = 512;
+const CANVAS_WIDTH: u32 = 512;
+const CANVAS_HEIGHT: u32 = 512;
 
 const WINDOW_PAD_X: f32 = 16.;
 const WINDOW_PAD_Y: f32 = 36.;
@@ -122,8 +122,8 @@ fn main() {
                 let sc_desc = wgpu::SwapChainDescriptor {
                     usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
                     format: wgpu::TextureFormat::Bgra8UnormSrgb,
-                    width: size.width as u32,
-                    height: size.height as u32,
+                    width: size.width,
+                    height: size.height,
                     present_mode: wgpu::PresentMode::Mailbox,
                 };
 
@@ -292,8 +292,8 @@ fn draw_scene_entry(
 fn render_scene<S>(
     texture_id: Option<im::TextureId>,
     scene: &S,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
     queue: &wgpu::Queue,
     device: &wgpu::Device,
     renderer: &mut imgui_wgpu::Renderer,
@@ -312,8 +312,8 @@ where
 
     let texture_config = TextureConfig {
         size: wgpu::Extent3d {
-            width: width as u32,
-            height: height as u32,
+            width,
+            height,
             ..Default::default()
         },
         label: Some("canvas"),
@@ -321,7 +321,7 @@ where
     };
 
     let texture = Texture::new(&device, &renderer, texture_config);
-    texture.write(&queue, &raw_data, width as u32, height as u32);
+    texture.write(&queue, &raw_data, width, height);
 
     match texture_id {
         Some(texture_id) => {
@@ -332,7 +332,7 @@ where
     }
 }
 
-fn save_scene<S, P>(scene: &S, width: usize, height: usize, path: P)
+fn save_scene<S, P>(scene: &S, width: u32, height: u32, path: P)
 where
     S: Scene + ?Sized,
     P: AsRef<Path>,
@@ -346,7 +346,7 @@ where
         })
         .collect::<Vec<u8>>();
 
-    ImageBuffer::<Rgb<u8>, _>::from_vec(width as u32, height as u32, buf)
+    ImageBuffer::<Rgb<u8>, _>::from_vec(width, height, buf)
         .unwrap()
         .save(path)
         .unwrap();

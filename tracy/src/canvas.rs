@@ -107,27 +107,27 @@ impl Mul for Color {
 #[derive(Debug, Default, Clone)]
 pub struct Canvas {
     grid: Vec<Color>,
-    width: usize,
-    height: usize,
+    width: u32,
+    height: u32,
 }
 
 impl Canvas {
     /// Creates a new canvas with the specified size and all pixels initialized to black.
-    pub fn new(width: usize, height: usize) -> Self {
+    pub fn new(width: u32, height: u32) -> Self {
         Self {
-            grid: vec![Default::default(); width * height],
+            grid: vec![Default::default(); (width * height) as usize],
             width,
             height,
         }
     }
 
     /// Returns the width of the canvas.
-    pub fn width(&self) -> usize {
+    pub fn width(&self) -> u32 {
         self.width
     }
 
     /// Returns the height of the canvas.
-    pub fn height(&self) -> usize {
+    pub fn height(&self) -> u32 {
         self.height
     }
 
@@ -150,22 +150,22 @@ impl Canvas {
     /// # Panics
     ///
     /// Panics if the specified position does not lie within the canvas.
-    pub fn put(&mut self, x: usize, y: usize, c: Color) {
+    pub fn put(&mut self, x: u32, y: u32, c: Color) {
         if x < self.width() && y < self.height() {
-            self.grid[y * self.width + x] = c;
+            self.grid[(y * self.width + x) as usize] = c;
         }
     }
 
     /// Returns the color of the pixel at position `(x,y)`, or `None` is the position is not within
     /// the canvas.
-    pub fn get(&self, x: usize, y: usize) -> Option<&Color> {
-        self.grid.get(y * self.width + x)
+    pub fn get(&self, x: u32, y: u32) -> Option<&Color> {
+        self.grid.get((y * self.width + x) as usize)
     }
 
     /// Converts the canvas' contents to PPM format.
     pub fn convert_to_ppm(&self) -> String {
         let mut ppm = format!("P3\n{} {}\n{}\n", self.width(), self.height(), 255);
-        ppm.reserve(self.width() * self.height() * 12);
+        ppm.reserve((self.width() * self.height() * 12) as usize);
 
         for y in 0..self.height() {
             let mut line_len = 0;

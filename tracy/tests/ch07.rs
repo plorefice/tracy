@@ -318,8 +318,10 @@ fn constructing_a_ray_through_a_corner_of_the_canvas() {
 
 #[test]
 fn constructing_a_ray_when_the_camera_is_transformed() {
-    let mut c = Camera::new(201, 101, PI / 2.0);
-    c.set_view_transform(
+    let c = Camera::new_with_transform(
+        201,
+        101,
+        PI / 2.0,
         MatrixN::from_rotation_y(PI / 4.0) * MatrixN::from_translation(0.0, -2.0, 5.0),
     );
 
@@ -329,5 +331,28 @@ fn constructing_a_ray_when_the_camera_is_transformed() {
     assert_abs_diff!(
         r.dir,
         Vector::from_vector(FRAC_1_SQRT_2, 0.0, -FRAC_1_SQRT_2)
+    );
+}
+
+#[test]
+fn rendering_a_world_with_a_camera() {
+    let w = World::default();
+
+    let c = Camera::new_with_transform(
+        11,
+        11,
+        PI / 2.0,
+        MatrixN::look_at(
+            Point::from_point(0.0, 0.0, -5.0),
+            Point::from_point(0.0, 0.0, 0.0),
+            Vector::from_vector(0.0, 1.0, 0.0),
+        ),
+    );
+
+    let canvas = c.render(&w);
+
+    assert_abs_diff!(
+        canvas.get(5, 5).unwrap(),
+        Color::new(0.38066, 0.47583, 0.2855)
     );
 }

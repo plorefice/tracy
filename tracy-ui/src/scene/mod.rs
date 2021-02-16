@@ -12,7 +12,7 @@ mod ch06;
 pub trait Scene {
     fn name(&self) -> String;
     fn description(&self) -> String;
-    fn render(&self, width: usize, height: usize) -> Canvas;
+    fn render(&self, width: u32, height: u32) -> Canvas;
     fn draw(&mut self, ui: &Ui) -> bool;
 }
 

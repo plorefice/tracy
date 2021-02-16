@@ -33,7 +33,7 @@ impl Scene for FlatSphere {
         "Rendering of a sphere using flat shading.".to_string()
     }
 
-    fn render(&self, width: usize, height: usize) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Canvas {
         let mut canvas = Canvas::new(width, height);
         let mut world = World::new();
 

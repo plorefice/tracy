@@ -21,7 +21,7 @@ impl Scene for Clock {
         "12-hour analog clock built using matrix transformations.".to_string()
     }
 
-    fn render(&self, width: usize, height: usize) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Canvas {
         let mut canvas = Canvas::new(width, height);
 
         let (wf, hf) = (width as f32, height as f32);
@@ -33,7 +33,7 @@ impl Scene for Clock {
             let rotate = MatrixN::from_rotation_z(f32::consts::PI / 6. * i as f32);
             let pos = &move_to_center * rotate * Point::from_point(0., radius, 0.);
 
-            canvas.put(pos.x as usize, pos.y as usize, Color::new(1., 1., 1.));
+            canvas.put(pos.x as u32, pos.y as u32, Color::new(1., 1., 1.));
         }
 
         canvas

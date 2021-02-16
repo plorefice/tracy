@@ -1,6 +1,7 @@
 use crate::{
+    canvas::Canvas,
     math::{MatrixN, Point},
-    query::Ray,
+    query::{Ray, World},
 };
 
 /// A perspective 3D camera.
@@ -21,10 +22,15 @@ impl Camera {
     ///
     /// The view transformation will be multiplicative identity.
     pub fn new(hsize: u32, vsize: u32, fov: f32) -> Self {
+        Self::new_with_transform(hsize, vsize, fov, MatrixN::identity(4))
+    }
+
+    /// Creates a new perspective camera with a view transform matrix.
+    pub fn new_with_transform(hsize: u32, vsize: u32, fov: f32, transform: MatrixN) -> Self {
         let mut camera = Camera {
             size: (hsize, vsize),
             fov,
-            transform: MatrixN::identity(4),
+            transform,
             pixel_size: 0.0,
             half_width: 0.0,
             half_height: 0.0,
@@ -83,6 +89,21 @@ impl Camera {
         let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)
+    }
+
+    /// Renders `world` to a canvas through this camera.
+    pub fn render(&self, world: &World) -> Canvas {
+        let mut canvas = Canvas::new(self.horizontal_size(), self.vertical_size());
+
+        for y in 0..self.vertical_size() {
+            for x in 0..self.horizontal_size() {
+                let ray = self.ray_to(x, y);
+                let color = world.color_at(&ray).unwrap_or_default();
+                canvas.put(x, y, color);
+            }
+        }
+
+        canvas
     }
 
     fn update(&mut self) {

@@ -27,7 +27,7 @@ impl Scene for Trajectory {
         "Visualization of a projectile's trajectory in 2D space.".to_string()
     }
 
-    fn render(&self, width: usize, height: usize) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Canvas {
         let mut canvas = Canvas::new(width, height);
 
         let mut pos = Point::from_point(0., 1., 0.);
@@ -39,8 +39,8 @@ impl Scene for Trajectory {
         while pos.y > 0. {
             if pos.y < height as f32 {
                 canvas.put(
-                    pos.x.round() as usize,
-                    height - pos.y.round() as usize,
+                    pos.x.round() as u32,
+                    height - pos.y.round() as u32,
                     Color::new(1., 1., 1.),
                 );
             }
