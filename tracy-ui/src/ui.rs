@@ -16,15 +16,18 @@ use crate::scene::{self, Scene};
 const CANVAS_WIDTH: u32 = 512;
 const CANVAS_HEIGHT: u32 = 512;
 
-#[derive(Debug, Default)]
 pub struct TracyUi {
+    scenes: Vec<Box<dyn Scene>>,
     texture_id: Option<im::TextureId>,
 }
 
 impl TracyUi {
     /// Creates a new user interface instance.
     pub fn new() -> Self {
-        Self { texture_id: None }
+        Self {
+            scenes: scene::get_scene_list(),
+            texture_id: None,
+        }
     }
 
     /// Loops forever or until the user closes the window.
@@ -108,9 +111,8 @@ impl TracyUi {
         let mut last_cursor = None;
 
         // Set up a default scene
-        let mut scenes = scene::get_scene_list();
         self.texture_id = Some(self.render_scene(
-            scenes.last().unwrap().as_ref(),
+            self.scenes.len() - 1,
             CANVAS_WIDTH,
             CANVAS_HEIGHT,
             &queue,
@@ -165,7 +167,7 @@ impl TracyUi {
 
                     let ui = imgui.frame();
 
-                    self.draw_ui(&ui, &mut scenes, &queue, &device, &mut renderer);
+                    self.draw_ui(&ui, &queue, &device, &mut renderer);
 
                     let mut encoder: wgpu::CommandEncoder = device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -206,19 +208,17 @@ impl TracyUi {
     fn draw_ui(
         &mut self,
         ui: &im::Ui,
-        scenes: &mut [Box<dyn Scene>],
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
     ) {
         self.draw_canvas(ui);
-        self.draw_scene_picker(ui, scenes, queue, device, renderer);
+        self.draw_scene_picker(ui, queue, device, renderer);
     }
 
     fn draw_scene_picker(
         &mut self,
         ui: &im::Ui,
-        scenes: &mut [Box<dyn Scene>],
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
@@ -229,8 +229,8 @@ impl TracyUi {
             .size([432., 512.], im::Condition::FirstUseEver)
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                for scene in scenes.iter_mut() {
-                    self.draw_scene_entry(ui, scene, queue, device, renderer);
+                for scene_id in 0..self.scenes.len() {
+                    self.draw_scene_entry(ui, scene_id, queue, device, renderer);
                 }
             });
     }
@@ -254,23 +254,26 @@ impl TracyUi {
     fn draw_scene_entry(
         &mut self,
         ui: &im::Ui,
-        scene: &mut Box<dyn Scene>,
+        scene_id: usize,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
     ) {
-        if im::CollapsingHeader::new(&im::ImString::new(&scene.name())).build(&ui) {
+        let scene = self.scenes.get_mut(scene_id).unwrap();
+        let name = scene.name();
+
+        if im::CollapsingHeader::new(&im::ImString::new(&name)).build(&ui) {
             ui.text(im::ImString::new(&scene.description()));
             ui.separator();
             let redraw = scene.draw(&ui);
             ui.separator();
-            let force = ui.button(&im_str!("Render it!##{}", scene.name()), [0., 0.]);
+            let force = ui.button(&im_str!("Render it!##{}", name), [0., 0.]);
             ui.same_line(0.);
-            let save = ui.button(&im_str!("Save as PNG##{}", scene.name()), [0., 0.]);
+            let save = ui.button(&im_str!("Save as PNG##{}", name), [0., 0.]);
 
             if redraw || force {
                 self.texture_id = Some(self.render_scene(
-                    scene.as_ref(),
+                    scene_id,
                     CANVAS_WIDTH,
                     CANVAS_HEIGHT,
                     queue,
@@ -280,29 +283,26 @@ impl TracyUi {
             }
 
             if save {
-                Self::save_scene(
-                    scene.as_ref(),
+                self.save_scene(
+                    scene_id,
                     CANVAS_WIDTH,
                     CANVAS_HEIGHT,
-                    &format!("{}.png", scene.name()),
+                    &format!("{}.png", name),
                 );
             }
         }
     }
 
-    fn render_scene<S>(
+    fn render_scene(
         &self,
-        scene: &S,
+        scene_id: usize,
         width: u32,
         height: u32,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
-    ) -> im::TextureId
-    where
-        S: Scene + ?Sized,
-    {
-        let canvas = scene.render(width, height);
+    ) -> im::TextureId {
+        let canvas = self.scenes.get(scene_id).unwrap().render(width, height);
         let raw_data = canvas
             .iter()
             .flat_map(|c| {
@@ -333,11 +333,12 @@ impl TracyUi {
         }
     }
 
-    fn save_scene<S, P>(scene: &S, width: u32, height: u32, path: P)
+    fn save_scene<P>(&self, scene_id: usize, width: u32, height: u32, path: P)
     where
-        S: Scene + ?Sized,
         P: AsRef<Path>,
     {
+        let scene = self.scenes.get(scene_id).unwrap();
+
         let buf = scene
             .render(width, height)
             .iter()
