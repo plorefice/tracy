@@ -7,6 +7,7 @@ mod ch02;
 mod ch04;
 mod ch05;
 mod ch06;
+mod ch07;
 
 /// Traits shared by all the renderable scenes.
 pub trait Scene {
@@ -23,5 +24,6 @@ pub fn get_scene_list() -> Vec<Box<dyn Scene>> {
         Box::new(ch04::Clock::default()),
         Box::new(ch05::FlatSphere::default()),
         Box::new(ch06::PhongSphere::default()),
+        Box::new(ch07::ThreeSpheres::default()),
     ]
 }
