@@ -5,7 +5,7 @@ use tracy::{
     canvas::{Canvas, Color},
     math::{MatrixN, Point},
     query::{Object, Ray, World},
-    rendering::{self, Material, PointLight},
+    rendering::{Material, PointLight},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -61,11 +61,11 @@ impl Scene for PhongSphere {
             },
         ));
 
-        let light = PointLight {
+        world.set_light(PointLight {
             position: Point::from_point(-10., 10., -10.),
             color: Color::new(1., 1., 1.),
             intensity: 1.,
-        };
+        });
 
         let ray_origin = Point::from_point(0., 0., -5.);
 
@@ -82,17 +82,7 @@ impl Scene for PhongSphere {
                 let target = Point::from_point(wall_x, wall_y, wall_z);
                 let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
 
-                if let Some(interference) = world.interferences_with_ray(&ray).hit() {
-                    let color = rendering::phong_lighting(
-                        world.get(interference.handle).unwrap().material(),
-                        &light,
-                        &interference.point,
-                        &interference.eye,
-                        &interference.normal,
-                    );
-
-                    canvas.put(x, y, color);
-                }
+                canvas.put(x, y, world.color_at(&ray).unwrap_or_default());
             }
         }
 
