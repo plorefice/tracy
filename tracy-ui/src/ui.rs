@@ -113,7 +113,7 @@ impl TracyUi {
         let mut last_cursor = None;
 
         // Set up a default scene
-        self.texture_id = Some(self.render_current_scene(&queue, &device, &mut renderer));
+        self.render_current_scene(&queue, &device, &mut renderer);
 
         // Event loop
         event_loop.run(move |event, _, control_flow| {
@@ -270,7 +270,7 @@ impl TracyUi {
 
             if redraw || force {
                 self.current_scene_id = id;
-                self.texture_id = Some(self.render_current_scene(queue, device, renderer));
+                self.render_current_scene(queue, device, renderer);
             }
 
             if save {
@@ -280,11 +280,11 @@ impl TracyUi {
     }
 
     fn render_current_scene(
-        &self,
+        &mut self,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
-    ) -> im::TextureId {
+    ) {
         let scene = self.scenes.get(self.current_scene_id).unwrap();
         let width = self.canvas_size[0] as u32;
         let height = self.canvas_size[1] as u32;
@@ -312,12 +312,10 @@ impl TracyUi {
         let texture = Texture::new(&device, &renderer, texture_config);
         texture.write(&queue, &raw_data, width, height);
 
-        match self.texture_id {
-            Some(texture_id) => {
-                renderer.textures.replace(texture_id, texture);
-                texture_id
-            }
-            None => renderer.textures.insert(texture),
+        if let Some(id) = self.texture_id {
+            renderer.textures.replace(id, texture);
+        } else {
+            self.texture_id = Some(renderer.textures.insert(texture));
         }
     }
 
