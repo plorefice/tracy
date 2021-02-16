@@ -35,6 +35,11 @@ impl Object {
         &self.material
     }
 
+    /// Returns a mutable reference to this object's material.
+    pub fn material_mut(&mut self) -> &mut Material {
+        &mut self.material
+    }
+
     /// Sets this object's material.
     pub fn set_material(&mut self, material: Material) {
         self.material = material;

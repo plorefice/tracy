@@ -14,7 +14,7 @@ fn creating_a_world() {
     let w = World::new();
 
     assert_eq!(w.objects().count(), 0);
-    assert_eq!(w.lights().count(), 0);
+    assert!(w.light().is_none());
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn the_default_world() {
     let w = World::default();
     let mut objs = w.objects();
 
-    assert_eq!(w.lights().next().unwrap(), &light);
+    assert_eq!(w.light(), Some(&light));
 
     let obj = objs.next().unwrap();
     assert_eq!(obj.material(), s1.material());
@@ -129,4 +129,97 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
     assert_abs_diff!(interference.eye, Vector::from_vector(0.0, 0.0, -1.0));
     assert_abs_diff!(interference.normal, Vector::from_vector(0.0, 0.0, -1.0));
     assert!(interference.inside);
+}
+
+#[test]
+fn shading_an_intersection() {
+    let w = World::default();
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 4.).abs() < 1e-4)
+        .unwrap();
+
+    assert_abs_diff!(
+        w.shade_hit(&interference).unwrap(),
+        Color::new(0.38066, 0.47583, 0.2855)
+    );
+}
+
+#[test]
+fn shading_an_intersection_from_the_inside() {
+    let mut w = World::default();
+
+    w.set_light(PointLight {
+        position: Point::from_point(0.0, 0.25, 0.0),
+        color: Color::new(1.0, 1.0, 1.0),
+        intensity: 1.0,
+    });
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, 0.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 0.5).abs() < 1e-4)
+        .unwrap();
+
+    assert_abs_diff!(
+        w.shade_hit(&interference).unwrap(),
+        Color::new(0.90498, 0.90498, 0.90498)
+    );
+}
+
+#[test]
+fn the_color_when_a_ray_misses() {
+    let w = World::default();
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 1.0, 0.0),
+    );
+
+    assert!(w.color_at(&r).is_none());
+}
+
+#[test]
+fn the_color_when_a_ray_hits() {
+    let w = World::default();
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    assert_abs_diff!(
+        w.color_at(&r).unwrap(),
+        Color::new(0.38066, 0.47583, 0.2855)
+    );
+}
+
+#[test]
+fn the_color_with_an_intersection_behind_the_ray() {
+    let mut w = World::default();
+
+    let expected = {
+        let mut objs = w.objects_mut();
+        let outer = objs.next().unwrap();
+        let inner = objs.next().unwrap();
+
+        outer.material_mut().ambient = 1.0;
+        inner.material_mut().ambient = 1.0;
+
+        inner.material().color
+    };
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, 0.75),
+        Vector::from_vector(0.0, 0.0, -1.0),
+    );
+
+    assert_abs_diff!(w.color_at(&r).unwrap(), expected);
 }

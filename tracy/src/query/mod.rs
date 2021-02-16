@@ -7,12 +7,15 @@ use itertools::Itertools;
 pub use object::*;
 pub use ray::*;
 
-use std::{slice::Iter, vec::IntoIter};
+use std::{
+    slice::{Iter, IterMut},
+    vec::IntoIter,
+};
 
 use crate::{
     canvas::Color,
     math::{MatrixN, Point},
-    rendering::{Material, PointLight},
+    rendering::{self, Material, PointLight},
     shape::{ShapeHandle, Sphere},
 };
 
@@ -23,8 +26,8 @@ pub struct ObjectHandle(u32);
 /// A container of collidable objects.
 #[derive(Debug)]
 pub struct World {
+    light: Option<PointLight>,
     objects: Vec<Object>,
-    lights: Vec<PointLight>,
 }
 
 impl Default for World {
@@ -37,15 +40,15 @@ impl Default for World {
         };
 
         Self {
+            light: Some(PointLight {
+                position: Point::from_point(-10., 10., -10.),
+                color: Color::new(1., 1., 1.),
+                intensity: 1.,
+            }),
             objects: vec![
                 Object::new_with_material(ShapeHandle::new(Sphere), MatrixN::identity(4), mat),
                 Object::new(ShapeHandle::new(Sphere), MatrixN::from_scale(0.5, 0.5, 0.5)),
             ],
-            lights: vec![PointLight {
-                position: Point::from_point(-10., 10., -10.),
-                color: Color::new(1., 1., 1.),
-                intensity: 1.,
-            }],
         }
     }
 }
@@ -54,8 +57,8 @@ impl World {
     /// Creates an empty world.
     pub fn new() -> Self {
         Self {
+            light: None,
             objects: Vec::new(),
-            lights: Vec::new(),
         }
     }
 
@@ -80,9 +83,19 @@ impl World {
         self.objects.iter()
     }
 
-    /// Returns an iterator over this world's lights.
-    pub fn lights(&self) -> Iter<PointLight> {
-        self.lights.iter()
+    /// Returns a mutable iterator over this world's objects.
+    pub fn objects_mut(&mut self) -> IterMut<Object> {
+        self.objects.iter_mut()
+    }
+
+    /// Returns a reference to this world's light.
+    pub fn light(&self) -> Option<&PointLight> {
+        self.light.as_ref()
+    }
+
+    /// Updates this world's light.
+    pub fn set_light(&mut self, light: PointLight) {
+        self.light = Some(light);
     }
 
     /// Computes the intersections between all the object in this world and a ray.
@@ -103,6 +116,24 @@ impl World {
                 .flat_map(|(obj, intersections)| intersections.map(move |i| (obj, i)))
                 .sorted_unstable_by(|(_, x1), (_, x2)| x1.toi.partial_cmp(&x2.toi).unwrap()),
         }
+    }
+
+    /// Computes the color at the specified interference point.
+    pub fn shade_hit(&self, interference: &Interference) -> Option<Color> {
+        let obj = self.get(interference.handle)?;
+
+        Some(rendering::phong_lighting(
+            obj.material(),
+            self.light()?,
+            &interference.point,
+            &interference.eye,
+            &interference.normal,
+        ))
+    }
+
+    /// Computes the color at the intersection between an object and a ray.
+    pub fn color_at(&self, ray: &Ray) -> Option<Color> {
+        self.shade_hit(&self.interferences_with_ray(ray).hit()?)
     }
 
     fn handles(&self) -> impl Iterator<Item = ObjectHandle> {
@@ -136,8 +167,8 @@ pub struct InterferencesWithRay<'a> {
 
 impl<'a> InterferencesWithRay<'a> {
     /// Returns the first intersection to have hit an object in the world.
-    pub fn hit(mut self) -> Option<(ObjectHandle, RayIntersection)> {
-        self.inner.next()
+    pub fn hit(mut self) -> Option<Interference> {
+        self.find(|i| i.toi >= 0.)
     }
 }
 
