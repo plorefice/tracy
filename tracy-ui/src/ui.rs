@@ -4,6 +4,7 @@ use futures::executor::block_on;
 use image::{ImageBuffer, Rgb};
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
+use imgui_winit_support::WinitPlatform;
 use winit::{
     dpi::LogicalSize,
     event::{Event, WindowEvent},
@@ -14,26 +15,36 @@ use winit::{
 use crate::scene::{self, Scene};
 
 pub struct TracyUi {
-    scenes: Vec<Box<dyn Scene>>,
-    current_scene_id: usize,
+    event_loop: EventLoop<()>,
+    scene_mgr: SceneManager,
+    ctx: UiContext,
+    gfx: GfxBackend,
+}
 
-    canvas_size: [f32; 2],
+struct UiContext {
+    imgui: im::Context,
+    window: Window,
+    platform: WinitPlatform,
+}
+
+struct GfxBackend {
+    queue: wgpu::Queue,
+    device: wgpu::Device,
+    surface: wgpu::Surface,
+    renderer: imgui_wgpu::Renderer,
+    swap_chain: wgpu::SwapChain,
     texture_id: Option<im::TextureId>,
+}
+
+struct SceneManager {
+    scenes: Vec<Box<dyn Scene>>,
+    canvas_size: [f32; 2],
+    current_scene_id: usize,
 }
 
 impl TracyUi {
     /// Creates a new user interface instance.
     pub fn new() -> Self {
-        Self {
-            scenes: scene::get_scene_list(),
-            current_scene_id: 0,
-            canvas_size: [512.0, 512.0],
-            texture_id: None,
-        }
-    }
-
-    /// Loops forever or until the user closes the window.
-    pub fn run(mut self) {
         // Set up window and GPU
         let event_loop = EventLoop::new();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
@@ -70,11 +81,11 @@ impl TracyUi {
             present_mode: wgpu::PresentMode::Mailbox,
         };
 
-        let mut swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
 
         // Set up dear imgui
         let mut imgui = im::Context::create();
-        let mut platform = imgui_winit_support::WinitPlatform::init(&mut imgui);
+        let mut platform = WinitPlatform::init(&mut imgui);
         platform.attach_window(
             imgui.io_mut(),
             &window,
@@ -96,6 +107,51 @@ impl TracyUi {
         }]);
 
         // Set up dear imgui wgpu renderer
+        let renderer_config = RendererConfig {
+            texture_format: sc_desc.format,
+            ..Default::default()
+        };
+
+        let renderer = Renderer::new(&mut imgui, &device, &queue, renderer_config);
+
+        Self {
+            event_loop,
+
+            scene_mgr: SceneManager {
+                scenes: scene::get_scene_list(),
+                canvas_size: [512.0, 512.0],
+                current_scene_id: 0,
+            },
+
+            ctx: UiContext {
+                platform,
+                window,
+                imgui,
+            },
+
+            gfx: GfxBackend {
+                queue,
+                device,
+                surface,
+                renderer,
+                swap_chain,
+                texture_id: None,
+            },
+        }
+    }
+
+    /// Loops forever or until the user closes the window.
+    pub fn run(self) {
+        let TracyUi {
+            event_loop,
+            mut scene_mgr,
+            mut ctx,
+            mut gfx,
+        } = self;
+
+        let mut last_frame = Instant::now();
+        let mut last_cursor = None;
+
         let clear_color = wgpu::Color {
             r: 0.1,
             g: 0.2,
@@ -103,17 +159,8 @@ impl TracyUi {
             a: 1.0,
         };
 
-        let renderer_config = RendererConfig {
-            texture_format: sc_desc.format,
-            ..Default::default()
-        };
-
-        let mut renderer = Renderer::new(&mut imgui, &device, &queue, renderer_config);
-        let mut last_frame = Instant::now();
-        let mut last_cursor = None;
-
         // Set up a default scene
-        self.render_current_scene(&queue, &device, &mut renderer);
+        scene_mgr.render_current_scene(&mut gfx);
 
         // Event loop
         event_loop.run(move |event, _, control_flow| {
@@ -124,7 +171,7 @@ impl TracyUi {
                     event: WindowEvent::Resized(_),
                     ..
                 } => {
-                    let size = window.inner_size();
+                    let size = ctx.window.inner_size();
 
                     let sc_desc = wgpu::SwapChainDescriptor {
                         usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
@@ -134,7 +181,7 @@ impl TracyUi {
                         present_mode: wgpu::PresentMode::Mailbox,
                     };
 
-                    swap_chain = device.create_swap_chain(&surface, &sc_desc);
+                    gfx.swap_chain = gfx.device.create_swap_chain(&gfx.surface, &sc_desc);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -142,13 +189,13 @@ impl TracyUi {
                 } => {
                     *control_flow = ControlFlow::Exit;
                 }
-                Event::MainEventsCleared => window.request_redraw(),
+                Event::MainEventsCleared => ctx.window.request_redraw(),
                 Event::RedrawEventsCleared => {
                     let now = Instant::now();
-                    imgui.io_mut().update_delta_time(now - last_frame);
+                    ctx.imgui.io_mut().update_delta_time(now - last_frame);
                     last_frame = now;
 
-                    let frame = match swap_chain.get_current_frame() {
+                    let frame = match gfx.swap_chain.get_current_frame() {
                         Ok(frame) => frame,
                         Err(e) => {
                             eprintln!("dropped frame: {:?}", e);
@@ -156,20 +203,21 @@ impl TracyUi {
                         }
                     };
 
-                    platform
-                        .prepare_frame(imgui.io_mut(), &window)
+                    ctx.platform
+                        .prepare_frame(ctx.imgui.io_mut(), &ctx.window)
                         .expect("Failed to prepare frame");
 
-                    let ui = imgui.frame();
+                    let ui = ctx.imgui.frame();
 
-                    self.draw_ui(&ui, &queue, &device, &mut renderer);
+                    scene_mgr.draw_ui(&ui, &mut gfx);
 
-                    let mut encoder: wgpu::CommandEncoder = device
+                    let mut encoder: wgpu::CommandEncoder = gfx
+                        .device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
 
                     if last_cursor != Some(ui.mouse_cursor()) {
                         last_cursor = Some(ui.mouse_cursor());
-                        platform.prepare_render(&ui, &window);
+                        ctx.platform.prepare_render(&ui, &ctx.window);
                     }
 
                     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -185,39 +233,30 @@ impl TracyUi {
                         depth_stencil_attachment: None,
                     });
 
-                    renderer
-                        .render(ui.render(), &queue, &device, &mut rpass)
+                    gfx.renderer
+                        .render(ui.render(), &gfx.queue, &gfx.device, &mut rpass)
                         .expect("Rendering failed");
 
                     drop(rpass);
 
-                    queue.submit(Some(encoder.finish()));
+                    gfx.queue.submit(Some(encoder.finish()));
                 }
                 _ => (),
             }
 
-            platform.handle_event(imgui.io_mut(), &window, &event);
+            ctx.platform
+                .handle_event(ctx.imgui.io_mut(), &ctx.window, &event);
         });
     }
+}
 
-    fn draw_ui(
-        &mut self,
-        ui: &im::Ui,
-        queue: &wgpu::Queue,
-        device: &wgpu::Device,
-        renderer: &mut imgui_wgpu::Renderer,
-    ) {
-        self.draw_canvas(ui);
-        self.draw_scene_picker(ui, queue, device, renderer);
+impl SceneManager {
+    fn draw_ui(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
+        self.draw_canvas(ui, gfx);
+        self.draw_scene_picker(ui, gfx);
     }
 
-    fn draw_scene_picker(
-        &mut self,
-        ui: &im::Ui,
-        queue: &wgpu::Queue,
-        device: &wgpu::Device,
-        renderer: &mut imgui_wgpu::Renderer,
-    ) {
+    fn draw_scene_picker(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
         let window = im::Window::new(im_str!("Scenarios"));
 
         window
@@ -225,16 +264,16 @@ impl TracyUi {
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 for scene_id in 0..self.scenes.len() {
-                    self.draw_scene_entry(ui, scene_id, queue, device, renderer);
+                    self.draw_scene_entry(ui, scene_id, gfx);
                 }
             });
     }
 
-    fn draw_canvas(&mut self, ui: &im::Ui) {
+    fn draw_canvas(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
         im::Window::new(im_str!("Canvas"))
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                if let Some(ref id) = self.texture_id {
+                if let Some(ref id) = gfx.texture_id {
                     // Adapt image to window size (or default to 512x512)
                     let mut size = ui.content_region_avail();
                     if size[0] == 0.0 || size[1] == 0.0 {
@@ -248,14 +287,7 @@ impl TracyUi {
             });
     }
 
-    fn draw_scene_entry(
-        &mut self,
-        ui: &im::Ui,
-        id: usize,
-        queue: &wgpu::Queue,
-        device: &wgpu::Device,
-        renderer: &mut imgui_wgpu::Renderer,
-    ) {
+    fn draw_scene_entry(&mut self, ui: &im::Ui, id: usize, gfx: &mut GfxBackend) {
         let scene = self.scenes.get_mut(id).unwrap();
         let name = scene.name();
 
@@ -270,7 +302,7 @@ impl TracyUi {
 
             if redraw || force {
                 self.current_scene_id = id;
-                self.render_current_scene(queue, device, renderer);
+                self.render_current_scene(gfx);
             }
 
             if save {
@@ -279,12 +311,7 @@ impl TracyUi {
         }
     }
 
-    fn render_current_scene(
-        &mut self,
-        queue: &wgpu::Queue,
-        device: &wgpu::Device,
-        renderer: &mut imgui_wgpu::Renderer,
-    ) {
+    fn render_current_scene(&mut self, gfx: &mut GfxBackend) {
         let scene = self.scenes.get(self.current_scene_id).unwrap();
         let width = self.canvas_size[0] as u32;
         let height = self.canvas_size[1] as u32;
@@ -309,13 +336,13 @@ impl TracyUi {
             ..Default::default()
         };
 
-        let texture = Texture::new(&device, &renderer, texture_config);
-        texture.write(&queue, &raw_data, width, height);
+        let texture = Texture::new(&gfx.device, &gfx.renderer, texture_config);
+        texture.write(&gfx.queue, &raw_data, width, height);
 
-        if let Some(id) = self.texture_id {
-            renderer.textures.replace(id, texture);
+        if let Some(id) = gfx.texture_id {
+            gfx.renderer.textures.replace(id, texture);
         } else {
-            self.texture_id = Some(renderer.textures.insert(texture));
+            gfx.texture_id = Some(gfx.renderer.textures.insert(texture));
         }
     }
 
