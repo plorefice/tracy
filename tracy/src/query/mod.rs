@@ -123,6 +123,8 @@ pub struct Interference {
     pub eye: Point,
     /// The normal vector to the intesection point.
     pub normal: Point,
+    /// Whether this intersection occurred on the object's inside.
+    pub inside: bool,
 }
 
 /// Iterator over all the objects in the world that intersect a specific ray.
@@ -143,12 +145,18 @@ impl Iterator for InterferencesWithRay<'_> {
     type Item = Interference;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next().map(|(handle, i)| Interference {
-            handle,
-            toi: i.toi,
-            point: self.ray.point_at(i.toi),
-            eye: -self.ray.dir,
-            normal: i.normal,
+        self.inner.next().map(|(handle, i)| {
+            let eye = -self.ray.dir;
+            let inside = i.normal.dot(&eye) < 0.;
+
+            Interference {
+                handle,
+                toi: i.toi,
+                point: self.ray.point_at(i.toi),
+                eye,
+                normal: if inside { -i.normal } else { i.normal },
+                inside,
+            }
         })
     }
 }

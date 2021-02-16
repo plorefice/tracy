@@ -89,3 +89,44 @@ fn precomputing_the_state_of_an_intersection() {
     assert_abs_diff!(interference.eye, Vector::from_vector(0.0, 0.0, -1.0));
     assert_abs_diff!(interference.normal, Vector::from_vector(0.0, 0.0, -1.0));
 }
+
+#[test]
+fn the_hit_when_an_intersection_occurs_on_the_outside() {
+    let mut w = World::new();
+
+    w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 4.).abs() < 1e-4)
+        .unwrap();
+
+    assert!(!interference.inside);
+}
+
+#[test]
+fn the_hit_when_an_intersection_occurs_on_the_inside() {
+    let mut w = World::new();
+
+    w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, 0.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 1.).abs() < 1e-4)
+        .unwrap();
+
+    assert_abs_diff!(interference.point, Point::from_point(0.0, 0.0, 1.0));
+    assert_abs_diff!(interference.eye, Vector::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.normal, Vector::from_vector(0.0, 0.0, -1.0));
+    assert!(interference.inside);
+}
