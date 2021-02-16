@@ -13,12 +13,11 @@ use winit::{
 
 use crate::scene::{self, Scene};
 
-const CANVAS_WIDTH: u32 = 512;
-const CANVAS_HEIGHT: u32 = 512;
-
 pub struct TracyUi {
     scenes: Vec<Box<dyn Scene>>,
     current_scene_id: usize,
+
+    canvas_size: [f32; 2],
     texture_id: Option<im::TextureId>,
 }
 
@@ -28,6 +27,7 @@ impl TracyUi {
         Self {
             scenes: scene::get_scene_list(),
             current_scene_id: 0,
+            canvas_size: [512.0, 512.0],
             texture_id: None,
         }
     }
@@ -113,13 +113,7 @@ impl TracyUi {
         let mut last_cursor = None;
 
         // Set up a default scene
-        self.texture_id = Some(self.render_current_scene(
-            CANVAS_WIDTH,
-            CANVAS_HEIGHT,
-            &queue,
-            &device,
-            &mut renderer,
-        ));
+        self.texture_id = Some(self.render_current_scene(&queue, &device, &mut renderer));
 
         // Event loop
         event_loop.run(move |event, _, control_flow| {
@@ -236,7 +230,7 @@ impl TracyUi {
             });
     }
 
-    fn draw_canvas(&self, ui: &im::Ui) {
+    fn draw_canvas(&mut self, ui: &im::Ui) {
         im::Window::new(im_str!("Canvas"))
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
@@ -244,7 +238,9 @@ impl TracyUi {
                     // Adapt image to window size (or default to 512x512)
                     let mut size = ui.content_region_avail();
                     if size[0] == 0.0 || size[1] == 0.0 {
-                        size = [CANVAS_WIDTH as f32, CANVAS_HEIGHT as f32];
+                        size = self.canvas_size;
+                    } else {
+                        self.canvas_size = size;
                     }
 
                     im::Image::new(*id, size).build(&ui);
@@ -274,30 +270,25 @@ impl TracyUi {
 
             if redraw || force {
                 self.current_scene_id = id;
-                self.texture_id = Some(self.render_current_scene(
-                    CANVAS_WIDTH,
-                    CANVAS_HEIGHT,
-                    queue,
-                    device,
-                    renderer,
-                ));
+                self.texture_id = Some(self.render_current_scene(queue, device, renderer));
             }
 
             if save {
-                self.save_current_scene(CANVAS_WIDTH, CANVAS_HEIGHT, &format!("{}.png", name));
+                self.save_current_scene(&format!("{}.png", name));
             }
         }
     }
 
     fn render_current_scene(
         &self,
-        width: u32,
-        height: u32,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
     ) -> im::TextureId {
         let scene = self.scenes.get(self.current_scene_id).unwrap();
+        let width = self.canvas_size[0] as u32;
+        let height = self.canvas_size[1] as u32;
+
         let canvas = scene.render(width, height);
 
         let raw_data = canvas
@@ -330,11 +321,13 @@ impl TracyUi {
         }
     }
 
-    fn save_current_scene<P>(&self, width: u32, height: u32, path: P)
+    fn save_current_scene<P>(&self, path: P)
     where
         P: AsRef<Path>,
     {
         let scene = self.scenes.get(self.current_scene_id).unwrap();
+        let width = self.canvas_size[0] as u32;
+        let height = self.canvas_size[1] as u32;
 
         let buf = scene
             .render(width, height)
