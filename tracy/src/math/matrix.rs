@@ -5,7 +5,7 @@ use std::{
     slice,
 };
 
-use super::Coords;
+use super::{Coords, Point, Vector};
 
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone, PartialEq)]
@@ -118,6 +118,24 @@ impl MatrixN {
         out[(2, 0)] = zx;
         out[(2, 1)] = zy;
         out
+    }
+
+    /// Creates a view transform matrix looking at `center` from `eye`.
+    pub fn look_at(eye: Point, center: Point, up: Vector) -> MatrixN {
+        let fwd = (center - eye).normalize();
+        let up = up.normalize();
+        let left = fwd.cross(&up);
+        let up = left.cross(&fwd);
+
+        let orientation = MatrixN::from_column_slice(
+            4,
+            [
+                left.x, up.x, -fwd.x, 0.0, left.y, up.y, -fwd.y, 0.0, left.z, up.z, -fwd.z, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+            ],
+        );
+
+        orientation * MatrixN::from_translation(-eye.x, -eye.y, -eye.z)
     }
 
     /// Returns the order of this matrix, ie. the number of its rows/columns.
