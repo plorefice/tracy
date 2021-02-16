@@ -17,7 +17,7 @@ use crate::{
 };
 
 /// A handle to an object in a world.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ObjectHandle(u32);
 
 /// A container of collidable objects.
@@ -86,38 +86,69 @@ impl World {
     }
 
     /// Computes the intersections between all the object in this world and a ray.
+    ///
+    /// The intersections returned by this method are sorted by time of impact in ascending order.
     pub fn interferences_with_ray<'a>(&'a self, ray: &'a Ray) -> InterferencesWithRay {
         InterferencesWithRay {
+            ray,
             inner: self
-                .objects()
-                .filter_map(move |obj| {
-                    obj.shape()
-                        .toi_and_normal_with_ray(obj.transform(), ray)
-                        .map(|xs| (obj, xs))
+                .handles()
+                .filter_map(move |hnd| {
+                    self.get(hnd).and_then(|obj| {
+                        obj.shape()
+                            .toi_and_normal_with_ray(obj.transform(), ray)
+                            .map(|xs| (hnd, xs))
+                    })
                 })
                 .flat_map(|(obj, intersections)| intersections.map(move |i| (obj, i)))
                 .sorted_unstable_by(|(_, x1), (_, x2)| x1.toi.partial_cmp(&x2.toi).unwrap()),
         }
     }
+
+    fn handles(&self) -> impl Iterator<Item = ObjectHandle> {
+        (0..self.objects.len()).map(|i| ObjectHandle(i as u32))
+    }
+}
+
+/// An intersection between a world object and a ray.
+#[derive(Debug)]
+pub struct Interference {
+    /// A handle to the object that was hit by the ray.
+    pub handle: ObjectHandle,
+    /// The time of impact of the ray with the object.
+    pub toi: f32,
+    /// The coordinates of the intersection.
+    pub point: Point,
+    /// The vector from the intersection point towards the camera.
+    pub eye: Point,
+    /// The normal vector to the intesection point.
+    pub normal: Point,
 }
 
 /// Iterator over all the objects in the world that intersect a specific ray.
 #[derive(Debug, Clone)]
 pub struct InterferencesWithRay<'a> {
-    inner: IntoIter<(&'a Object, RayIntersection)>,
+    ray: &'a Ray,
+    inner: IntoIter<(ObjectHandle, RayIntersection)>,
 }
 
 impl<'a> InterferencesWithRay<'a> {
     /// Returns the first intersection to have hit an object in the world.
-    pub fn hit(mut self) -> Option<(&'a Object, RayIntersection)> {
+    pub fn hit(mut self) -> Option<(ObjectHandle, RayIntersection)> {
         self.inner.next()
     }
 }
 
-impl<'a> Iterator for InterferencesWithRay<'a> {
-    type Item = (&'a Object, RayIntersection);
+impl Iterator for InterferencesWithRay<'_> {
+    type Item = Interference;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.inner.next()
+        self.inner.next().map(|(handle, i)| Interference {
+            handle,
+            toi: i.toi,
+            point: self.ray.point_at(i.toi),
+            eye: -self.ray.dir,
+            normal: i.normal,
+        })
     }
 }

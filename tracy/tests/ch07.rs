@@ -1,8 +1,9 @@
 use tracy::{
     canvas::Color,
     math::{MatrixN, Point, Vector},
-    query::{Ray, World},
+    query::{Object, Ray, World},
     rendering::{Material, PointLight},
+    shape::{ShapeHandle, Sphere},
 };
 pub use utils::*;
 
@@ -61,8 +62,30 @@ fn intersect_a_world_with_a_ray() {
     let xs = w.interferences_with_ray(&r).collect::<Vec<_>>();
 
     assert_eq!(xs.len(), 4);
-    assert_f32!(xs[0].1.toi, 4.0);
-    assert_f32!(xs[1].1.toi, 4.5);
-    assert_f32!(xs[2].1.toi, 5.5);
-    assert_f32!(xs[3].1.toi, 6.0);
+    assert_f32!(xs[0].toi, 4.0);
+    assert_f32!(xs[1].toi, 4.5);
+    assert_f32!(xs[2].toi, 5.5);
+    assert_f32!(xs[3].toi, 6.0);
+}
+
+#[test]
+fn precomputing_the_state_of_an_intersection() {
+    let mut w = World::new();
+    let s = w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 4.).abs() < 1e-4)
+        .unwrap();
+
+    assert_eq!(interference.handle, s);
+    assert_f32!(interference.toi, 4.);
+    assert_abs_diff!(interference.point, Point::from_point(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.eye, Vector::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.normal, Vector::from_vector(0.0, 0.0, -1.0));
 }

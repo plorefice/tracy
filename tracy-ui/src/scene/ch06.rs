@@ -82,9 +82,9 @@ impl Scene for PhongSphere {
                 let target = Point::from_point(wall_x, wall_y, wall_z);
                 let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
 
-                if let Some((obj, hit)) = world.interferences_with_ray(&ray).hit() {
+                if let Some((hnd, hit)) = world.interferences_with_ray(&ray).hit() {
                     let color = rendering::phong_lighting(
-                        obj.material(),
+                        world.get(hnd).unwrap().material(),
                         &light,
                         &ray.point_at(hit.toi),
                         &(-ray.dir),
