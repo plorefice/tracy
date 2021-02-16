@@ -9,5 +9,5 @@ mod scene;
 mod ui;
 
 fn main() {
-    TracyUi::run();
+    TracyUi::new().run();
 }

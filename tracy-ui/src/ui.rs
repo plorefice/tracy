@@ -16,10 +16,19 @@ use crate::scene::{self, Scene};
 const CANVAS_WIDTH: u32 = 512;
 const CANVAS_HEIGHT: u32 = 512;
 
-pub struct TracyUi;
+#[derive(Debug, Default)]
+pub struct TracyUi {
+    texture_id: Option<im::TextureId>,
+}
 
 impl TracyUi {
-    pub fn run() {
+    /// Creates a new user interface instance.
+    pub fn new() -> Self {
+        Self { texture_id: None }
+    }
+
+    /// Loops forever or until the user closes the window.
+    pub fn run(mut self) {
         // Set up window and GPU
         let event_loop = EventLoop::new();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
@@ -100,8 +109,7 @@ impl TracyUi {
 
         // Set up a default scene
         let mut scenes = scene::get_scene_list();
-        let mut texture_id = Some(Self::render_scene(
-            None,
+        self.texture_id = Some(self.render_scene(
             scenes.last().unwrap().as_ref(),
             CANVAS_WIDTH,
             CANVAS_HEIGHT,
@@ -157,14 +165,7 @@ impl TracyUi {
 
                     let ui = imgui.frame();
 
-                    Self::draw_ui(
-                        &ui,
-                        &mut scenes,
-                        &mut texture_id,
-                        &queue,
-                        &device,
-                        &mut renderer,
-                    );
+                    self.draw_ui(&ui, &mut scenes, &queue, &device, &mut renderer);
 
                     let mut encoder: wgpu::CommandEncoder = device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -203,21 +204,21 @@ impl TracyUi {
     }
 
     fn draw_ui(
+        &mut self,
         ui: &im::Ui,
         scenes: &mut [Box<dyn Scene>],
-        texture_id: &mut Option<im::TextureId>,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
     ) {
-        Self::draw_canvas(ui, texture_id);
-        Self::draw_scene_picker(ui, scenes, texture_id, queue, device, renderer);
+        self.draw_canvas(ui);
+        self.draw_scene_picker(ui, scenes, queue, device, renderer);
     }
 
     fn draw_scene_picker(
+        &mut self,
         ui: &im::Ui,
         scenes: &mut [Box<dyn Scene>],
-        texture_id: &mut Option<im::TextureId>,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
@@ -229,16 +230,16 @@ impl TracyUi {
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 for scene in scenes.iter_mut() {
-                    Self::draw_scene_entry(ui, scene, texture_id, queue, device, renderer);
+                    self.draw_scene_entry(ui, scene, queue, device, renderer);
                 }
             });
     }
 
-    fn draw_canvas(ui: &im::Ui, texture_id: &Option<im::TextureId>) {
+    fn draw_canvas(&self, ui: &im::Ui) {
         im::Window::new(im_str!("Canvas"))
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                if let Some(ref id) = texture_id {
+                if let Some(ref id) = self.texture_id {
                     // Adapt image to window size (or default to 512x512)
                     let mut size = ui.content_region_avail();
                     if size[0] == 0.0 || size[1] == 0.0 {
@@ -251,9 +252,9 @@ impl TracyUi {
     }
 
     fn draw_scene_entry(
+        &mut self,
         ui: &im::Ui,
         scene: &mut Box<dyn Scene>,
-        texture_id: &mut Option<im::TextureId>,
         queue: &wgpu::Queue,
         device: &wgpu::Device,
         renderer: &mut imgui_wgpu::Renderer,
@@ -268,8 +269,7 @@ impl TracyUi {
             let save = ui.button(&im_str!("Save as PNG##{}", scene.name()), [0., 0.]);
 
             if redraw || force {
-                *texture_id = Some(Self::render_scene(
-                    *texture_id,
+                self.texture_id = Some(self.render_scene(
                     scene.as_ref(),
                     CANVAS_WIDTH,
                     CANVAS_HEIGHT,
@@ -291,7 +291,7 @@ impl TracyUi {
     }
 
     fn render_scene<S>(
-        texture_id: Option<im::TextureId>,
+        &self,
         scene: &S,
         width: u32,
         height: u32,
@@ -324,7 +324,7 @@ impl TracyUi {
         let texture = Texture::new(&device, &renderer, texture_config);
         texture.write(&queue, &raw_data, width, height);
 
-        match texture_id {
+        match self.texture_id {
             Some(texture_id) => {
                 renderer.textures.replace(texture_id, texture);
                 texture_id
