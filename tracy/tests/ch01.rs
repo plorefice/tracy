@@ -1,6 +1,7 @@
-mod utils;
-
 use tracy::math::{Coords, Point, Vector};
+pub use utils::*;
+
+mod utils;
 
 #[test]
 fn a_tuple_with_w_equal_to_one_is_a_point() {

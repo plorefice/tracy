@@ -1,6 +1,7 @@
-mod utils;
-
 use tracy::canvas::{Canvas, Color};
+pub use utils::*;
+
+mod utils;
 
 #[test]
 fn colors_are_rgb_tuples() {

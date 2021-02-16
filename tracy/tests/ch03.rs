@@ -1,6 +1,7 @@
-mod utils;
-
 use tracy::math::{Coords, MatrixN};
+pub use utils::*;
+
+mod utils;
 
 #[test]
 fn constructing_and_inspecting_a_4x4_matrix() {

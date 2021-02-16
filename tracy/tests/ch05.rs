@@ -1,9 +1,9 @@
 use itertools::Itertools;
 use tracy::{
     math::{MatrixN, Point, Vector},
-    query::{Object, Ray, RayIntersection, RayIntersections},
-    shape::{ShapeHandle, Sphere},
+    query::{Ray, RayIntersection, RayIntersections},
 };
+pub use utils::*;
 
 mod utils;
 
@@ -271,10 +271,6 @@ fn the_hit_is_always_the_lowest_nonnegative_intersection() {
     );
 
     assert_f32!(xs.hit().unwrap().toi, 2.);
-}
-
-fn sphere() -> Object {
-    Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4))
 }
 
 fn tois_with_default_sphere(ray: &Ray) -> Vec<f32> {

@@ -1,6 +1,7 @@
 use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
 use tracy::math::{MatrixN, Point, Vector};
+pub use utils::*;
 
 mod utils;
 
