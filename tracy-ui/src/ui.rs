@@ -44,18 +44,15 @@ struct SceneManager {
 
 impl TracyUi {
     /// Creates a new user interface instance.
-    pub fn new() -> Self {
+    pub fn new<S: AsRef<str>>(title: S, width: u32, height: u32) -> Self {
         // Set up window and GPU
         let event_loop = EventLoop::new();
         let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
 
         let (window, size, surface) = {
             let window = Window::new(&event_loop).unwrap();
-            window.set_title("Tracy UI");
-            window.set_inner_size(LogicalSize {
-                width: 1280,
-                height: 640,
-            });
+            window.set_title(title.as_ref());
+            window.set_inner_size(LogicalSize { width, height });
 
             let size = window.inner_size();
             let surface = unsafe { instance.create_surface(&window) };
@@ -114,21 +111,19 @@ impl TracyUi {
 
         let renderer = Renderer::new(&mut imgui, &device, &queue, renderer_config);
 
+        // Build UI structure
         Self {
             event_loop,
-
             scene_mgr: SceneManager {
                 scenes: scene::get_scene_list(),
                 canvas_size: [512.0, 512.0],
                 current_scene_id: 0,
             },
-
             ctx: UiContext {
                 platform,
                 window,
                 imgui,
             },
-
             gfx: GfxBackend {
                 queue,
                 device,

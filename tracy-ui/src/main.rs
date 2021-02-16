@@ -9,5 +9,5 @@ mod scene;
 mod ui;
 
 fn main() {
-    TracyUi::new().run();
+    TracyUi::new("Tracy - a ray tracing renderer", 1280, 640).run();
 }
