@@ -1,8 +1,10 @@
+use std::f32::consts::{FRAC_1_SQRT_2, PI};
+
 use tracy::{
     canvas::Color,
     math::{MatrixN, Point, Vector},
     query::{Object, Ray, World},
-    rendering::{Material, PointLight},
+    rendering::{Camera, Material, PointLight},
     shape::{ShapeHandle, Sphere},
 };
 pub use utils::*;
@@ -271,5 +273,61 @@ fn an_arbitrary_view_transformation() {
                 -0.35857, 0.59761, -0.71714, 0.00000, 0.00000, 0.00000, 0.00000, 1.00000,
             ]
         )
+    );
+}
+
+#[test]
+fn constructing_a_camera() {
+    let c = Camera::new(160, 120, PI / 2.0);
+
+    assert_eq!(c.horizontal_size(), 160);
+    assert_eq!(c.vertical_size(), 120);
+    assert_f32!(c.fov(), PI / 2.);
+    assert_abs_diff!(c.view_transform(), MatrixN::identity(4));
+}
+
+#[test]
+fn the_pixel_size_for_a_horizontal_canvas() {
+    let c = Camera::new(200, 125, PI / 2.0);
+    assert_f32!(c.pixel_size(), 0.01);
+}
+
+#[test]
+fn the_pixel_size_for_a_vertical_canvas() {
+    let c = Camera::new(125, 200, PI / 2.0);
+    assert_f32!(c.pixel_size(), 0.01);
+}
+
+#[test]
+fn constructing_a_ray_through_the_center_of_the_canvas() {
+    let c = Camera::new(201, 101, PI / 2.0);
+    let r = c.ray_to(100, 50);
+
+    assert_abs_diff!(r.origin, Point::from_point(0.0, 0.0, 0.0));
+    assert_abs_diff!(r.dir, Vector::from_vector(0.0, 0.0, -1.0));
+}
+
+#[test]
+fn constructing_a_ray_through_a_corner_of_the_canvas() {
+    let c = Camera::new(201, 101, PI / 2.0);
+    let r = c.ray_to(0, 0);
+
+    assert_abs_diff!(r.origin, Point::from_point(0.0, 0.0, 0.0));
+    assert_abs_diff!(r.dir, Vector::from_vector(0.66519, 0.33259, -0.66851));
+}
+
+#[test]
+fn constructing_a_ray_when_the_camera_is_transformed() {
+    let mut c = Camera::new(201, 101, PI / 2.0);
+    c.set_view_transform(
+        MatrixN::from_rotation_y(PI / 4.0) * MatrixN::from_translation(0.0, -2.0, 5.0),
+    );
+
+    let r = c.ray_to(100, 50);
+
+    assert_abs_diff!(r.origin, Point::from_point(0.0, 2.0, -5.0));
+    assert_abs_diff!(
+        r.dir,
+        Vector::from_vector(FRAC_1_SQRT_2, 0.0, -FRAC_1_SQRT_2)
     );
 }
