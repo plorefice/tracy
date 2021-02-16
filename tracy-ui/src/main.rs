@@ -22,9 +22,6 @@ mod scene;
 const CANVAS_WIDTH: u32 = 512;
 const CANVAS_HEIGHT: u32 = 512;
 
-const WINDOW_PAD_X: f32 = 16.;
-const WINDOW_PAD_Y: f32 = 36.;
-
 fn main() {
     // Set up window and GPU
     let event_loop = EventLoop::new();
@@ -104,9 +101,17 @@ fn main() {
     let mut last_frame = Instant::now();
     let mut last_cursor = None;
 
-    // Set up scene
+    // Set up a default scene
     let mut scenes = get_scene_list();
-    let mut texture_id = None;
+    let mut texture_id = Some(render_scene(
+        None,
+        scenes.last().unwrap().as_ref(),
+        CANVAS_WIDTH,
+        CANVAS_HEIGHT,
+        &queue,
+        &device,
+        &mut renderer,
+    ));
 
     // Event loop
     event_loop.run(move |event, _, control_flow| {
@@ -237,10 +242,6 @@ fn draw_canvas(ui: &im::Ui, texture_id: &Option<im::TextureId>) {
     let size = [CANVAS_WIDTH as f32, CANVAS_HEIGHT as f32];
 
     window
-        .size(
-            [size[0] + WINDOW_PAD_X, size[1] + WINDOW_PAD_Y],
-            im::Condition::FirstUseEver,
-        )
         .position([48., 48.], im::Condition::FirstUseEver)
         .build(&ui, || {
             if let Some(ref id) = texture_id {
