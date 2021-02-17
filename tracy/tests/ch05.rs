@@ -150,8 +150,8 @@ fn intersecting_a_scaled_sphere_with_a_ray() {
 
     let xs = s
         .interferences_with_ray(&r)
-        .map(|xs| xs.map(|x| x.toi).collect::<Vec<_>>())
-        .unwrap_or_default();
+        .map(|x| x.toi)
+        .collect::<Vec<_>>();
 
     assert_eq!(xs.len(), 2);
     assert_f32!(xs[0], 3.);
@@ -168,7 +168,7 @@ fn intersecting_a_translated_sphere_with_a_ray() {
     let mut s = sphere();
     s.set_transform(MatrixN::from_translation(5., 0., 0.));
 
-    assert!(s.interferences_with_ray(&r).is_none());
+    assert_eq!(s.interferences_with_ray(&r).count(), 0);
 }
 
 #[test]
@@ -206,7 +206,7 @@ fn intersect_sets_the_object_on_the_intersection() {
         Vector::from_vector(0., 0., 1.),
     );
 
-    assert_eq!(sphere().interferences_with_ray(&r).unwrap().count(), 2);
+    assert_eq!(sphere().interferences_with_ray(&r).count(), 2);
 }
 
 #[test]
@@ -276,6 +276,6 @@ fn the_hit_is_always_the_lowest_nonnegative_intersection() {
 fn tois_with_default_sphere(ray: &Ray) -> Vec<f32> {
     sphere()
         .interferences_with_ray(ray)
-        .map(|xs| xs.map(|x| x.toi).collect())
-        .unwrap_or_default()
+        .map(|x| x.toi)
+        .collect()
 }

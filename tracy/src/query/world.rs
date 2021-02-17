@@ -1,9 +1,9 @@
-use itertools::Itertools;
-
 use std::{
     slice::{Iter, IterMut},
     vec::IntoIter,
 };
+
+use itertools::Itertools;
 
 use crate::{
     canvas::Color,
@@ -102,12 +102,13 @@ impl World {
             ray,
             inner: self
                 .handles()
-                .filter_map(move |hnd| {
-                    self.get(hnd).and_then(|obj| {
+                .map(move |hnd| {
+                    let obj = self.get(hnd).unwrap();
+                    (
+                        hnd,
                         obj.shape()
-                            .intersections_in_world_space(obj.transform(), ray)
-                            .map(|xs| (hnd, xs))
-                    })
+                            .intersections_in_world_space(obj.transform(), ray),
+                    )
                 })
                 .flat_map(|(obj, intersections)| intersections.map(move |i| (obj, i)))
                 .sorted_unstable_by(|(_, x1), (_, x2)| x1.toi.partial_cmp(&x2.toi).unwrap()),

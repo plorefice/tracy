@@ -56,7 +56,7 @@ impl Object {
     }
 
     /// Computes the intersections between this object and a ray.
-    pub fn interferences_with_ray(&self, ray: &Ray) -> Option<RayIntersections> {
+    pub fn interferences_with_ray(&self, ray: &Ray) -> RayIntersections {
         self.shape()
             .intersections_in_world_space(self.transform(), ray)
     }

@@ -12,17 +12,17 @@ pub struct Plane;
 impl Shape for Plane {}
 
 impl RayCast for Plane {
-    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections> {
+    fn intersections_in_local_space(&self, ray: &Ray) -> RayIntersections {
         if ray.dir.y.abs() < EPSILON {
-            return None;
+            return RayIntersections::from(Vec::new().into_iter());
         }
 
-        Some(RayIntersections::from(
+        RayIntersections::from(
             vec![RayIntersection {
                 toi: -ray.origin.y / ray.dir.y,
                 normal: Vector::from_vector(0.0, 1.0, 0.0),
             }]
             .into_iter(),
-        ))
+        )
     }
 }

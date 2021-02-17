@@ -7,24 +7,24 @@ use crate::math::{MatrixN, Point, Vector};
 /// Trait of objects which can be tested for intersection with a ray.
 pub trait RayCast {
     /// Computes all the intersection points between `self` and `ray` in local-space coordinates.
-    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections>;
+    fn intersections_in_local_space(&self, ray: &Ray) -> RayIntersections;
 
     /// Computes all the intersection points between `self` and `ray`, using transform `m`.
     ///
     /// The ray is given in world-space coordinates.
-    fn intersections_in_world_space(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
-        let inv = m.inverse()?;
+    fn intersections_in_world_space(&self, m: &MatrixN, ray: &Ray) -> RayIntersections {
+        let inv = m.inverse().unwrap();
         let local_ray = ray.transform_by(&inv);
 
-        Some(RayIntersections::from(
-            self.intersections_in_local_space(&local_ray)?
+        RayIntersections::from(
+            self.intersections_in_local_space(&local_ray)
                 .map(|x| RayIntersection {
                     normal: (inv.transpose() * x.normal).to_vector().normalize(),
                     ..x
                 })
                 .collect::<Vec<_>>()
                 .into_iter(),
-        ))
+        )
     }
 }
 

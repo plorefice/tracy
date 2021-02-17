@@ -14,7 +14,7 @@ pub struct Sphere;
 impl Shape for Sphere {}
 
 impl RayCast for Sphere {
-    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections> {
+    fn intersections_in_local_space(&self, ray: &Ray) -> RayIntersections {
         let distance = ray.origin - Point::from_point(0., 0., 0.);
 
         let a = ray.dir.dot(&ray.dir);
@@ -24,18 +24,18 @@ impl RayCast for Sphere {
         let discriminant = b * b - 4. * a * c;
 
         if discriminant < 0. {
-            None
-        } else {
-            Some(RayIntersections::from(
-                [
-                    (-b - discriminant.sqrt()) / (2. * a),
-                    (-b + discriminant.sqrt()) / (2. * a),
-                ]
-                .iter()
-                .map(|&toi| RayIntersection::new(toi, ray.origin + ray.dir * toi))
-                .collect::<Vec<_>>()
-                .into_iter(),
-            ))
+            return RayIntersections::from(Vec::new().into_iter());
         }
+
+        RayIntersections::from(
+            [
+                (-b - discriminant.sqrt()) / (2. * a),
+                (-b + discriminant.sqrt()) / (2. * a),
+            ]
+            .iter()
+            .map(|&toi| RayIntersection::new(toi, ray.origin + ray.dir * toi))
+            .collect::<Vec<_>>()
+            .into_iter(),
+        )
     }
 }

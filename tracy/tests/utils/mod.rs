@@ -15,16 +15,16 @@ pub struct TestShape {
 impl Shape for TestShape {}
 
 impl RayCast for TestShape {
-    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections> {
+    fn intersections_in_local_space(&self, ray: &Ray) -> RayIntersections {
         *self.saved_ray.lock().unwrap() = Some(*ray);
 
-        Some(RayIntersections::from(
+        RayIntersections::from(
             vec![RayIntersection {
                 toi: 0.,
                 normal: ray.origin + ray.dir,
             }]
             .into_iter(),
-        ))
+        )
     }
 }
 

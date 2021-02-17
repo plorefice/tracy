@@ -87,7 +87,7 @@ fn computing_the_normal_on_a_translated_shape() {
     );
 
     assert_abs_diff!(
-        s.interferences_with_ray(&r).unwrap().next().unwrap().normal,
+        s.interferences_with_ray(&r).next().unwrap().normal,
         Vector::from_vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
     );
 }
@@ -103,7 +103,7 @@ fn computing_the_normal_on_a_transformed_shape() {
     );
 
     assert_abs_diff!(
-        s.interferences_with_ray(&r).unwrap().next().unwrap().normal,
+        s.interferences_with_ray(&r).next().unwrap().normal,
         Vector::from_vector(0.0, 0.97014, -0.2425)
     );
 }
@@ -123,7 +123,7 @@ fn the_normal_of_a_plane_is_constant_everywhere() {
         let r = Ray::new(origin, pt - origin);
 
         assert_abs_diff!(
-            p.interferences_with_ray(&r).unwrap().next().unwrap().normal,
+            p.interferences_with_ray(&r).next().unwrap().normal,
             Vector::from_vector(0.0, 1.0, 0.0)
         );
     }
@@ -136,7 +136,7 @@ fn intersect_with_a_ray_parallel_to_the_plane() {
         Point::from_point(0.0, 10.0, 0.0),
         Vector::from_vector(0.0, 0.0, 1.0),
     );
-    assert!(p.interferences_with_ray(&r).is_none());
+    assert_eq!(p.interferences_with_ray(&r).count(), 0);
 }
 
 #[test]
@@ -146,7 +146,7 @@ fn intersect_with_a_coplanar_ray() {
         Point::from_point(0.0, 0.0, 0.0),
         Vector::from_vector(0.0, 0.0, 1.0),
     );
-    assert!(p.interferences_with_ray(&r).is_none());
+    assert_eq!(p.interferences_with_ray(&r).count(), 0);
 }
 
 #[test]
@@ -157,7 +157,7 @@ fn a_ray_intersecting_a_plane_from_above() {
         Vector::from_vector(0.0, -1.0, 0.0),
     );
 
-    let xs = p.interferences_with_ray(&r).unwrap().collect::<Vec<_>>();
+    let xs = p.interferences_with_ray(&r).collect::<Vec<_>>();
 
     assert_eq!(xs.len(), 1);
     assert_f32!(xs[0].toi, 1.0);
@@ -171,7 +171,7 @@ fn a_ray_intersecting_a_plane_from_below() {
         Vector::from_vector(0.0, 1.0, 0.0),
     );
 
-    let xs = p.interferences_with_ray(&r).unwrap().collect::<Vec<_>>();
+    let xs = p.interferences_with_ray(&r).collect::<Vec<_>>();
 
     assert_eq!(xs.len(), 1);
     assert_f32!(xs[0].toi, 1.0);

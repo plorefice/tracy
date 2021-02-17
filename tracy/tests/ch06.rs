@@ -3,7 +3,7 @@ use std::f32::consts::FRAC_1_SQRT_2;
 use tracy::{
     canvas::Color,
     math::{MatrixN, Point, Vector, EPSILON},
-    query::{Ray, RayIntersections},
+    query::Ray,
     rendering::{self, Material, PointLight},
 };
 pub use utils::*;
@@ -14,7 +14,7 @@ mod utils;
 fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
     let n = sphere()
         .interferences_with_ray(&Ray::new(Point::default(), Vector::from_vector(1., 0., 0.)))
-        .and_then(RayIntersections::hit)
+        .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
@@ -25,7 +25,7 @@ fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
 fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
     let n = sphere()
         .interferences_with_ray(&Ray::new(Point::default(), Vector::from_vector(0., 1., 0.)))
-        .and_then(RayIntersections::hit)
+        .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
@@ -36,7 +36,7 @@ fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
 fn the_normal_on_a_sphere_at_a_point_on_the_z_axis() {
     let n = sphere()
         .interferences_with_ray(&Ray::new(Point::default(), Vector::from_vector(0., 0., 1.)))
-        .and_then(RayIntersections::hit)
+        .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
@@ -48,7 +48,7 @@ fn the_normal_on_a_sphere_at_a_nonaxial_point() {
     let v = 1. / f32::sqrt(3.);
     let n = sphere()
         .interferences_with_ray(&Ray::new(Point::default(), Vector::from_vector(v, v, v)))
-        .and_then(RayIntersections::hit)
+        .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
@@ -60,7 +60,7 @@ fn the_normal_is_a_normalized_vector() {
     let v = 1. / f32::sqrt(3.);
     let n = sphere()
         .interferences_with_ray(&Ray::new(Point::default(), Vector::from_vector(v, v, v)))
-        .and_then(RayIntersections::hit)
+        .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
@@ -77,7 +77,7 @@ fn computing_the_normal_on_a_translated_sphere() {
         Vector::from_vector(0., 1.70711, -FRAC_1_SQRT_2),
     );
 
-    let mut xs = s.interferences_with_ray(&r).unwrap();
+    let mut xs = s.interferences_with_ray(&r);
 
     assert!(xs.any(|x| x.normal.abs_diff_eq(
         &Vector::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
@@ -95,7 +95,7 @@ fn computing_the_normal_on_a_transformed_sphere() {
         Vector::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
     );
 
-    let mut xs = s.interferences_with_ray(&r).unwrap();
+    let mut xs = s.interferences_with_ray(&r);
 
     assert!(xs.any(|x| x
         .normal
