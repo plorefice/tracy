@@ -1,4 +1,4 @@
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_4};
+use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use imgui::*;
 use tracy::{
@@ -12,8 +12,16 @@ use tracy::{
 use super::Scene;
 
 /// A rendering of the final scene from Chapter 7.
-#[derive(Debug, Default, Clone, Copy)]
-pub struct ThreeSpheres;
+#[derive(Debug, Clone, Copy)]
+pub struct ThreeSpheres {
+    fov: f32,
+}
+
+impl Default for ThreeSpheres {
+    fn default() -> Self {
+        Self { fov: 60.0 }
+    }
+}
 
 impl Scene for ThreeSpheres {
     fn name(&self) -> String {
@@ -105,7 +113,7 @@ impl Scene for ThreeSpheres {
         let camera = Camera::new_with_transform(
             width,
             height,
-            FRAC_PI_3,
+            self.fov.to_radians(),
             MatrixN::look_at(
                 Point::from_point(0.0, 1.5, -5.0),
                 Point::from_point(0.0, 1.0, 0.0),
@@ -116,7 +124,9 @@ impl Scene for ThreeSpheres {
         camera.render(&world)
     }
 
-    fn draw(&mut self, _: &Ui) -> bool {
-        false
+    fn draw(&mut self, ui: &Ui) -> bool {
+        Slider::new(&im_str!("FOV##{}", self.name()))
+            .range(30.0..=180.0)
+            .build(ui, &mut self.fov)
     }
 }
