@@ -6,7 +6,7 @@ use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use imgui_winit_support::WinitPlatform;
 use winit::{
-    dpi::LogicalSize,
+    dpi::{LogicalPosition, LogicalSize},
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     window::Window,
@@ -53,6 +53,7 @@ impl TracyUi {
             let window = Window::new(&event_loop).unwrap();
             window.set_title(title.as_ref());
             window.set_inner_size(LogicalSize { width, height });
+            window.set_outer_position(LogicalPosition::new(0, 0));
 
             let size = window.inner_size();
             let surface = unsafe { instance.create_surface(&window) };
