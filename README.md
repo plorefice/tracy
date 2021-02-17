@@ -28,3 +28,9 @@
 
   ![Chapter 6: Light and Shading](images/chapter06.png)
 </details>
+
+<details>
+  <summary><strong>Chapter 7: Making a Scene</strong></summary>
+
+  ![Chapter 7: Making a Scene](images/chapter07.png)
+</details>
