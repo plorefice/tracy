@@ -11,12 +11,7 @@ use super::Shape;
 #[derive(Debug)]
 pub struct Sphere;
 
-impl Shape for Sphere {
-    #[inline]
-    fn as_ray_cast(&self) -> Option<&dyn RayCast> {
-        Some(self)
-    }
-}
+impl Shape for Sphere {}
 
 impl RayCast for Sphere {
     fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {

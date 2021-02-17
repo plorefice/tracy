@@ -1,6 +1,6 @@
 use crate::{math::MatrixN, rendering::Material, shape::ShapeHandle};
 
-use super::{Ray, RayCast, RayIntersections};
+use super::{Ray, RayIntersections};
 
 /// An object that can be positioned in a scene.
 #[derive(Debug, Clone)]

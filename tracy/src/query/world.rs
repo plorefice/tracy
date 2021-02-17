@@ -12,7 +12,7 @@ use crate::{
     shape::{ShapeHandle, Sphere},
 };
 
-use super::{Object, Ray, RayCast, RayIntersection};
+use super::{Object, Ray, RayIntersection};
 
 /// A handle to an object in a world.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
