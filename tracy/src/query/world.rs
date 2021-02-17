@@ -123,7 +123,7 @@ impl World {
             &interference.point,
             &interference.eye,
             &interference.normal,
-            false,
+            self.is_in_shadow(&interference.point),
         ))
     }
 
