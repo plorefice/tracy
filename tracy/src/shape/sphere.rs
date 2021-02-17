@@ -1,7 +1,7 @@
 //! The unit sphere shape.
 
 use crate::{
-    math::{MatrixN, Point},
+    math::Point,
     query::{Ray, RayCast, RayIntersection, RayIntersections},
 };
 
@@ -14,8 +14,7 @@ pub struct Sphere;
 impl Shape for Sphere {}
 
 impl RayCast for Sphere {
-    fn toi_and_normal_with_local_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
-        let inv = m.inverse()?;
+    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections> {
         let distance = ray.origin - Point::from_point(0., 0., 0.);
 
         let a = ray.dir.dot(&ray.dir);
@@ -33,10 +32,7 @@ impl RayCast for Sphere {
                     (-b + discriminant.sqrt()) / (2. * a),
                 ]
                 .iter()
-                .map(|&toi| {
-                    let normal = inv.transpose() * (ray.origin + ray.dir * toi);
-                    RayIntersection::new(toi, normal.to_vector().normalize())
-                })
+                .map(|&toi| RayIntersection::new(toi, ray.origin + ray.dir * toi))
                 .collect::<Vec<_>>()
                 .into_iter(),
             ))

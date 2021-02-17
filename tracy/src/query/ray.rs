@@ -6,33 +6,25 @@ use crate::math::{MatrixN, Point, Vector};
 
 /// Trait of objects which can be tested for intersection with a ray.
 pub trait RayCast {
-    /// Computes all the intersection points between `self` and `ray`, using transform `m`.
-    ///
-    /// The ray is given in object-space coordinates.
-    fn toi_and_normal_with_local_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections>;
+    /// Computes all the intersection points between `self` and `ray` in local-space coordinates.
+    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections>;
 
     /// Computes all the intersection points between `self` and `ray`, using transform `m`.
     ///
     /// The ray is given in world-space coordinates.
-    fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
-        let local_ray = ray.transform_by(&m.inverse()?);
-        self.toi_and_normal_with_local_ray(m, &local_ray)
-    }
+    fn intersections_in_world_space(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
+        let inv = m.inverse()?;
+        let local_ray = ray.transform_by(&inv);
 
-    /// Computes all the TOIs between `self` and `ray` using transform `m`.
-    ///
-    /// The ray is given in world-space coordinates.
-    fn toi_with_ray(&self, m: &MatrixN, ray: &Ray) -> Vec<f32> {
-        self.toi_and_normal_with_ray(m, ray)
-            .map(|xs| xs.map(|x| x.toi).collect())
-            .unwrap_or_default()
-    }
-
-    /// Returns true if this ray hits `self`.
-    ///
-    /// The ray is given in world-space coordinates.
-    fn intersects_ray(&self, m: &MatrixN, ray: &Ray) -> bool {
-        self.toi_and_normal_with_ray(m, ray).is_some()
+        Some(RayIntersections::from(
+            self.intersections_in_local_space(&local_ray)?
+                .map(|x| RayIntersection {
+                    normal: (inv.transpose() * x.normal).to_vector().normalize(),
+                    ..x
+                })
+                .collect::<Vec<_>>()
+                .into_iter(),
+        ))
     }
 }
 

@@ -105,7 +105,7 @@ impl World {
                 .filter_map(move |hnd| {
                     self.get(hnd).and_then(|obj| {
                         obj.shape()
-                            .toi_and_normal_with_ray(obj.transform(), ray)
+                            .intersections_in_world_space(obj.transform(), ray)
                             .map(|xs| (hnd, xs))
                     })
                 })

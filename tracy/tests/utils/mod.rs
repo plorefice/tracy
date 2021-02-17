@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use tracy::{
     math::MatrixN,
-    query::{Object, Ray, RayCast, RayIntersections},
+    query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
     shape::{Shape, Sphere},
 };
 
@@ -15,9 +15,16 @@ pub struct TestShape {
 impl Shape for TestShape {}
 
 impl RayCast for TestShape {
-    fn toi_and_normal_with_local_ray(&self, _: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
+    fn intersections_in_local_space(&self, ray: &Ray) -> Option<RayIntersections> {
         *self.saved_ray.lock().unwrap() = Some(*ray);
-        None
+
+        Some(RayIntersections::from(
+            vec![RayIntersection {
+                toi: 0.,
+                normal: ray.origin + ray.dir,
+            }]
+            .into_iter(),
+        ))
     }
 }
 
