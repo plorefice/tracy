@@ -132,6 +132,21 @@ impl World {
         self.shade_hit(&self.interferences_with_ray(ray).hit()?)
     }
 
+    /// Checks whether the given point lies in shadow of the light source.
+    pub fn is_in_shadow(&self, point: &Point) -> bool {
+        if let Some(light) = self.light() {
+            let v = light.position - point;
+            let distance = v.length();
+            let direction = v.normalize();
+
+            let r = Ray::new(*point, direction);
+            if let Some(hit) = self.interferences_with_ray(&r).hit() {
+                return hit.toi < distance;
+            }
+        }
+        false
+    }
+
     fn handles(&self) -> impl Iterator<Item = ObjectHandle> {
         (0..self.objects.len()).map(|i| ObjectHandle(i as u32))
     }
