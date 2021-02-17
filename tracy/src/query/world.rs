@@ -123,7 +123,7 @@ impl World {
             &interference.point,
             &interference.eye,
             &interference.normal,
-            self.is_in_shadow(&interference.point),
+            self.is_in_shadow(&interference.over_point),
         ))
     }
 
@@ -161,6 +161,8 @@ pub struct Interference {
     pub toi: f32,
     /// The coordinates of the intersection.
     pub point: Point,
+    /// The point slightly above the intersection point along its normal.
+    pub over_point: Point,
     /// The vector from the intersection point towards the camera.
     pub eye: Point,
     /// The normal vector to the intesection point.
@@ -190,13 +192,16 @@ impl Iterator for InterferencesWithRay<'_> {
         self.inner.next().map(|(handle, i)| {
             let eye = -self.ray.dir;
             let inside = i.normal.dot(&eye) < 0.;
+            let normal = if inside { -i.normal } else { i.normal };
+            let point = self.ray.point_at(i.toi);
 
             Interference {
                 handle,
                 toi: i.toi,
-                point: self.ray.point_at(i.toi),
+                point,
+                over_point: point + normal * 1e-4,
                 eye,
-                normal: if inside { -i.normal } else { i.normal },
+                normal,
                 inside,
             }
         })

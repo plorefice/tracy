@@ -91,3 +91,26 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
     let c = w.shade_hit(&interference).unwrap();
     assert_abs_diff!(c, Color::new(0.1, 0.1, 0.1));
 }
+
+#[test]
+fn the_hit_should_offset_the_point() {
+    let mut w = World::new();
+
+    w.add(Object::new(
+        ShapeHandle::new(Sphere),
+        MatrixN::from_translation(0.0, 0.0, 1.0),
+    ));
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 5.0).abs() < EPSILON)
+        .unwrap();
+
+    assert!(interference.over_point.z < -1e-4 / 2.0);
+    assert!(interference.point.z > interference.over_point.z);
+}
