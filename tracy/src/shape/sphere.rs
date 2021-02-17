@@ -8,7 +8,7 @@ use crate::{
 use super::Shape;
 
 /// The unit sphere.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sphere;
 
 impl Shape for Sphere {}

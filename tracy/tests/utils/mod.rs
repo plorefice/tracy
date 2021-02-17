@@ -3,7 +3,7 @@ use std::sync::Mutex;
 use tracy::{
     math::MatrixN,
     query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
-    shape::{Shape, Sphere},
+    shape::{Plane, Shape, Sphere},
 };
 
 /// A fake shape to test the [`Shape`] abstractions.
@@ -52,6 +52,11 @@ macro_rules! assert_not_abs_diff {
 /// Creates a default unit sphere centered in the origin.
 pub fn sphere() -> Object {
     Object::new(Sphere, MatrixN::identity(4))
+}
+
+/// Creates a default plane.
+pub fn plane() -> Object {
+    Object::new(Plane, MatrixN::identity(4))
 }
 
 /// Creates a test shape centered in the origin.

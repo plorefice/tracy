@@ -107,3 +107,72 @@ fn computing_the_normal_on_a_transformed_shape() {
         Vector::from_vector(0.0, 0.97014, -0.2425)
     );
 }
+
+#[test]
+fn the_normal_of_a_plane_is_constant_everywhere() {
+    let p = plane();
+
+    let origin = Point::from_point(0.0, 10.0, 0.0);
+    for pt in vec![
+        Point::from_point(0.0, 0.0, 0.0),
+        Point::from_point(10.0, 0.0, -10.0),
+        Point::from_point(-5.0, 0.0, 150.0),
+    ]
+    .into_iter()
+    {
+        let r = Ray::new(origin, pt - origin);
+
+        assert_abs_diff!(
+            p.interferences_with_ray(&r).unwrap().next().unwrap().normal,
+            Vector::from_vector(0.0, 1.0, 0.0)
+        );
+    }
+}
+
+#[test]
+fn intersect_with_a_ray_parallel_to_the_plane() {
+    let p = plane();
+    let r = Ray::new(
+        Point::from_point(0.0, 10.0, 0.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+    assert!(p.interferences_with_ray(&r).is_none());
+}
+
+#[test]
+fn intersect_with_a_coplanar_ray() {
+    let p = plane();
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, 0.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+    assert!(p.interferences_with_ray(&r).is_none());
+}
+
+#[test]
+fn a_ray_intersecting_a_plane_from_above() {
+    let p = plane();
+    let r = Ray::new(
+        Point::from_point(0.0, 1.0, 0.0),
+        Vector::from_vector(0.0, -1.0, 0.0),
+    );
+
+    let xs = p.interferences_with_ray(&r).unwrap().collect::<Vec<_>>();
+
+    assert_eq!(xs.len(), 1);
+    assert_f32!(xs[0].toi, 1.0);
+}
+
+#[test]
+fn a_ray_intersecting_a_plane_from_below() {
+    let p = plane();
+    let r = Ray::new(
+        Point::from_point(0.0, -1.0, 0.0),
+        Vector::from_vector(0.0, 1.0, 0.0),
+    );
+
+    let xs = p.interferences_with_ray(&r).unwrap().collect::<Vec<_>>();
+
+    assert_eq!(xs.len(), 1);
+    assert_f32!(xs[0].toi, 1.0);
+}
