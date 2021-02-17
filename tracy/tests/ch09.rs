@@ -55,3 +55,21 @@ fn intersecting_a_scaled_shape_with_a_ray() {
     assert_abs_diff!(saved_ray.origin, Point::from_point(0.0, 0.0, -2.5));
     assert_abs_diff!(saved_ray.dir, Vector::from_vector(0.0, 0.0, 0.5));
 }
+
+#[test]
+fn intersecting_a_translated_shape_with_a_ray() {
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let mut s = test_shape();
+    s.set_transform(MatrixN::from_translation(5.0, 0.0, 0.0));
+    s.interferences_with_ray(&r);
+
+    let test_shape = s.shape().as_any().downcast_ref::<TestShape>().unwrap();
+    let saved_ray = test_shape.saved_ray.lock().unwrap().unwrap();
+
+    assert_abs_diff!(saved_ray.origin, Point::from_point(-5.0, 0.0, -5.0));
+    assert_abs_diff!(saved_ray.dir, Vector::from_vector(0.0, 0.0, 1.0));
+}
