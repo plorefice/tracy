@@ -14,9 +14,8 @@ pub struct Sphere;
 impl Shape for Sphere {}
 
 impl RayCast for Sphere {
-    fn toi_and_normal_with_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
+    fn toi_and_normal_with_local_ray(&self, m: &MatrixN, ray: &Ray) -> Option<RayIntersections> {
         let inv = m.inverse()?;
-        let ray = ray.transform_by(&inv);
         let distance = ray.origin - Point::from_point(0., 0., 0.);
 
         let a = ray.dir.dot(&ray.dir);
