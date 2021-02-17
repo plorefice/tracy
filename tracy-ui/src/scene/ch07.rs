@@ -6,7 +6,7 @@ use tracy::{
     math::{MatrixN, Point, Vector},
     query::{Object, World},
     rendering::{Camera, Material, PointLight},
-    shape::{ShapeHandle, Sphere},
+    shape::Sphere,
 };
 
 use super::Scene;
@@ -43,14 +43,14 @@ impl Scene for ThreeSpheres {
 
         // Floor
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::from_scale(10.0, 0.01, 10.0),
             floor_mat,
         ));
 
         // Left wall
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::from_translation(0.0, 0.0, 5.0)
                 * MatrixN::from_rotation_y(-FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
@@ -60,7 +60,7 @@ impl Scene for ThreeSpheres {
 
         // Right wall
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::from_translation(0.0, 0.0, 5.0)
                 * MatrixN::from_rotation_y(FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
@@ -70,7 +70,7 @@ impl Scene for ThreeSpheres {
 
         // Middle sphere
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::from_translation(-0.5, 1.0, 0.5),
             Material {
                 color: Color::new(0.1, 1.0, 0.5),
@@ -82,7 +82,7 @@ impl Scene for ThreeSpheres {
 
         // Right sphere
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::from_translation(1.5, 0.5, -0.5) * MatrixN::from_scale(0.5, 0.5, 0.5),
             Material {
                 color: Color::new(0.5, 1.0, 0.1),
@@ -94,7 +94,7 @@ impl Scene for ThreeSpheres {
 
         // Left sphere
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::from_translation(-1.5, 0.33, -0.75) * MatrixN::from_scale(0.33, 0.33, 0.33),
             Material {
                 color: Color::new(1.0, 0.8, 0.1),

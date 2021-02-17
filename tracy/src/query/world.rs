@@ -9,7 +9,7 @@ use crate::{
     canvas::Color,
     math::{MatrixN, Point},
     rendering::{self, Material, PointLight},
-    shape::{ShapeHandle, Sphere},
+    shape::Sphere,
 };
 
 use super::{Object, Ray, RayIntersection};
@@ -42,8 +42,8 @@ impl Default for World {
                 casts_shadows: true,
             }),
             objects: vec![
-                Object::new_with_material(ShapeHandle::new(Sphere), MatrixN::identity(4), mat),
-                Object::new(ShapeHandle::new(Sphere), MatrixN::from_scale(0.5, 0.5, 0.5)),
+                Object::new_with_material(Sphere, MatrixN::identity(4), mat),
+                Object::new(Sphere, MatrixN::from_scale(0.5, 0.5, 0.5)),
             ],
         }
     }

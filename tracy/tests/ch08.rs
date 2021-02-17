@@ -6,7 +6,7 @@ use tracy::{
     math::{MatrixN, Point, Vector},
     query::{Object, Ray, World},
     rendering::{self, PointLight},
-    shape::{ShapeHandle, Sphere},
+    shape::Sphere,
 };
 pub use utils::*;
 
@@ -72,7 +72,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
 
     w.add(sphere());
     w.add(Object::new(
-        ShapeHandle::new(Sphere),
+        Sphere,
         MatrixN::from_translation(0.0, 0.0, 10.0),
     ));
 
@@ -95,7 +95,7 @@ fn the_hit_should_offset_the_point() {
     let mut w = World::new();
 
     w.add(Object::new(
-        ShapeHandle::new(Sphere),
+        Sphere,
         MatrixN::from_translation(0.0, 0.0, 1.0),
     ));
 

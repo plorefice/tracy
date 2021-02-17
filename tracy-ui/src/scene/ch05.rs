@@ -5,7 +5,7 @@ use tracy::{
     canvas::{Canvas, Color},
     math::{MatrixN, Point},
     query::{Object, Ray, World},
-    shape::{ShapeHandle, Sphere},
+    shape::Sphere,
 };
 
 use super::Scene;
@@ -39,7 +39,7 @@ impl Scene for FlatSphere {
 
         let canvas_size = width as f32;
 
-        world.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+        world.add(Object::new(Sphere, MatrixN::identity(4)));
 
         let ray_origin = Point::from_point(0., 0., -5.);
 

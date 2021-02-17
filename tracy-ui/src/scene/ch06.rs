@@ -6,7 +6,7 @@ use tracy::{
     math::{MatrixN, Point},
     query::{Object, Ray, World},
     rendering::{Material, PointLight},
-    shape::{ShapeHandle, Sphere},
+    shape::Sphere,
 };
 
 use super::Scene;
@@ -50,7 +50,7 @@ impl Scene for PhongSphere {
         let canvas_size = width as f32;
 
         world.add(Object::new_with_material(
-            ShapeHandle::new(Sphere),
+            Sphere,
             MatrixN::identity(4),
             Material {
                 color: Color::new(self.color[0], self.color[1], self.color[2]),

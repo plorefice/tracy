@@ -1,33 +1,33 @@
-use crate::{math::MatrixN, rendering::Material, shape::ShapeHandle};
+use crate::{math::MatrixN, rendering::Material, shape::Shape};
 
 use super::{Ray, RayIntersections};
 
 /// An object that can be positioned in a scene.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Object {
-    shape: ShapeHandle,
+    shape: Box<dyn Shape>,
     material: Material,
     transform: MatrixN,
 }
 
 impl Object {
     /// Creates a new object with the given shape and transformation.
-    pub fn new(shape: ShapeHandle, transform: MatrixN) -> Self {
+    pub fn new<S: Shape>(shape: S, transform: MatrixN) -> Self {
         Self::new_with_material(shape, transform, Default::default())
     }
 
     /// Creates a new object with the given material.
-    pub fn new_with_material(shape: ShapeHandle, transform: MatrixN, material: Material) -> Self {
+    pub fn new_with_material<S: Shape>(shape: S, transform: MatrixN, material: Material) -> Self {
         Self {
-            shape,
+            shape: Box::new(shape),
             material,
             transform,
         }
     }
 
     /// Returns the shape of this object.
-    pub fn shape(&self) -> &ShapeHandle {
-        &self.shape
+    pub fn shape(&self) -> &dyn Shape {
+        self.shape.as_ref()
     }
 
     /// Returns a reference to this object's material.
