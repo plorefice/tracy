@@ -54,7 +54,7 @@ impl Scene for ThreeSpheres {
             MatrixN::from_translation(0.0, 0.0, 5.0)
                 * MatrixN::from_rotation_y(-FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
-                * MatrixN::from_scale(10.0, 0.01, 10.0),
+                * MatrixN::from_scale(10.0, 0.5, 10.0),
             floor_mat,
         ));
 
@@ -64,7 +64,7 @@ impl Scene for ThreeSpheres {
             MatrixN::from_translation(0.0, 0.0, 5.0)
                 * MatrixN::from_rotation_y(FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
-                * MatrixN::from_scale(10.0, 0.01, 10.0),
+                * MatrixN::from_scale(10.0, 0.05, 10.0),
             floor_mat,
         ));
 
