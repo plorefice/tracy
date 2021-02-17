@@ -8,7 +8,7 @@ use crate::{
 use super::Material;
 
 /// A point light source.
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PointLight {
     /// Position of the light source in the world.
     pub position: Point,
@@ -16,6 +16,19 @@ pub struct PointLight {
     pub color: Color,
     /// Brightness of the light source.
     pub intensity: f32,
+    /// Whether or not this light should cast shadows.
+    pub casts_shadows: bool,
+}
+
+impl Default for PointLight {
+    fn default() -> Self {
+        Self {
+            position: Point::from_point(0.0, 0.0, 0.0),
+            color: Color::new(1.0, 1.0, 1.0),
+            intensity: 1.0,
+            casts_shadows: true,
+        }
+    }
 }
 
 /// Computes the illumination of a surface point according to the Phong reflection model.

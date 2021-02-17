@@ -63,8 +63,8 @@ impl Scene for PhongSphere {
 
         world.set_light(PointLight {
             position: Point::from_point(-10., 10., -10.),
-            color: Color::new(1., 1., 1.),
-            intensity: 1.,
+            casts_shadows: false,
+            ..Default::default()
         });
 
         let ray_origin = Point::from_point(0., 0., -5.);

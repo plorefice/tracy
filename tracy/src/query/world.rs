@@ -39,6 +39,7 @@ impl Default for World {
                 position: Point::from_point(-10., 10., -10.),
                 color: Color::new(1., 1., 1.),
                 intensity: 1.,
+                casts_shadows: true,
             }),
             objects: vec![
                 Object::new_with_material(ShapeHandle::new(Sphere), MatrixN::identity(4), mat),
@@ -116,14 +117,15 @@ impl World {
     /// Computes the color at the specified interference point.
     pub fn shade_hit(&self, interference: &Interference) -> Option<Color> {
         let obj = self.get(interference.handle)?;
+        let light = self.light()?;
 
         Some(rendering::phong_lighting(
             obj.material(),
-            self.light()?,
+            light,
             &interference.point,
             &interference.eye,
             &interference.normal,
-            self.is_in_shadow(&interference.over_point),
+            light.casts_shadows && self.is_in_shadow(&interference.over_point),
         ))
     }
 

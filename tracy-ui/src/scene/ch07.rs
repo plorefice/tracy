@@ -54,7 +54,7 @@ impl Scene for ThreeSpheres {
             MatrixN::from_translation(0.0, 0.0, 5.0)
                 * MatrixN::from_rotation_y(-FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
-                * MatrixN::from_scale(10.0, 0.5, 10.0),
+                * MatrixN::from_scale(10.0, 0.1, 10.0),
             floor_mat,
         ));
 
@@ -64,7 +64,7 @@ impl Scene for ThreeSpheres {
             MatrixN::from_translation(0.0, 0.0, 5.0)
                 * MatrixN::from_rotation_y(FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
-                * MatrixN::from_scale(10.0, 0.05, 10.0),
+                * MatrixN::from_scale(10.0, 0.1, 10.0),
             floor_mat,
         ));
 
@@ -106,8 +106,8 @@ impl Scene for ThreeSpheres {
 
         world.set_light(PointLight {
             position: Point::from_point(-10.0, 10.0, -10.0),
-            color: Color::new(1.0, 1.0, 1.0),
-            intensity: 1.0,
+            casts_shadows: false,
+            ..Default::default()
         });
 
         let camera = Camera::new_with_transform(

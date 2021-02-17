@@ -23,8 +23,7 @@ fn creating_a_world() {
 fn the_default_world() {
     let light = PointLight {
         position: Point::from_point(-10., 10., -10.),
-        color: Color::new(1., 1., 1.),
-        intensity: 1.,
+        ..Default::default()
     };
 
     let mut s1 = sphere();
@@ -158,8 +157,7 @@ fn shading_an_intersection_from_the_inside() {
 
     w.set_light(PointLight {
         position: Point::from_point(0.0, 0.25, 0.0),
-        color: Color::new(1.0, 1.0, 1.0),
-        intensity: 1.0,
+        ..Default::default()
     });
 
     let r = Ray::new(

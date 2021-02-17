@@ -18,8 +18,7 @@ fn lighting_with_the_surface_in_shadow() {
     let normal = Vector::from_vector(0.0, 0.0, -1.0);
     let light = PointLight {
         position: Point::from_point(0.0, 0.0, -10.0),
-        color: Color::new(1.0, 1.0, 1.0),
-        intensity: 1.0,
+        ..Default::default()
     };
 
     let result = rendering::phong_lighting(
@@ -68,8 +67,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
 
     w.set_light(PointLight {
         position: Point::from_point(0.0, 0.0, -10.0),
-        color: Color::new(1.0, 1.0, 1.0),
-        intensity: 1.0,
+        ..Default::default()
     });
 
     w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));

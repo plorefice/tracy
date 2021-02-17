@@ -128,7 +128,7 @@ fn a_point_light_has_a_position_and_intensity() {
     let light = PointLight {
         position,
         color,
-        intensity: 1.,
+        ..Default::default()
     };
 
     assert_abs_diff!(light.position, position);
@@ -202,8 +202,7 @@ fn lighting_in_several_configurations() {
     {
         let light = PointLight {
             position: pos,
-            color: Color::new(1., 1., 1.),
-            intensity: 1.,
+            ..Default::default()
         };
 
         let res = rendering::phong_lighting(
