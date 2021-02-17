@@ -70,7 +70,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
         ..Default::default()
     });
 
-    w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+    w.add(sphere());
     w.add(Object::new(
         ShapeHandle::new(Sphere),
         MatrixN::from_translation(0.0, 0.0, 10.0),

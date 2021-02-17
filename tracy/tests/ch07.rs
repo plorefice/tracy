@@ -3,9 +3,8 @@ use std::f32::consts::{FRAC_1_SQRT_2, PI};
 use tracy::{
     canvas::Color,
     math::{MatrixN, Point, Vector},
-    query::{Object, Ray, World},
+    query::{Ray, World},
     rendering::{Camera, Material, PointLight},
-    shape::{ShapeHandle, Sphere},
 };
 pub use utils::*;
 
@@ -72,7 +71,7 @@ fn intersect_a_world_with_a_ray() {
 #[test]
 fn precomputing_the_state_of_an_intersection() {
     let mut w = World::new();
-    let s = w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+    let s = w.add(sphere());
 
     let r = Ray::new(
         Point::from_point(0.0, 0.0, -5.0),
@@ -94,8 +93,7 @@ fn precomputing_the_state_of_an_intersection() {
 #[test]
 fn the_hit_when_an_intersection_occurs_on_the_outside() {
     let mut w = World::new();
-
-    w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+    w.add(sphere());
 
     let r = Ray::new(
         Point::from_point(0.0, 0.0, -5.0),
@@ -113,8 +111,7 @@ fn the_hit_when_an_intersection_occurs_on_the_outside() {
 #[test]
 fn the_hit_when_an_intersection_occurs_on_the_inside() {
     let mut w = World::new();
-
-    w.add(Object::new(ShapeHandle::new(Sphere), MatrixN::identity(4)));
+    w.add(sphere());
 
     let r = Ray::new(
         Point::from_point(0.0, 0.0, 0.0),
