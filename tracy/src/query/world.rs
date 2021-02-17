@@ -7,7 +7,7 @@ use std::{
 
 use crate::{
     canvas::Color,
-    math::{MatrixN, Point},
+    math::{MatrixN, Point, EPSILON},
     rendering::{self, Material, PointLight},
     shape::Sphere,
 };
@@ -201,7 +201,7 @@ impl Iterator for InterferencesWithRay<'_> {
                 handle,
                 toi: i.toi,
                 point,
-                over_point: point + normal * 1e-4,
+                over_point: point + normal * EPSILON,
                 eye,
                 normal,
                 inside,

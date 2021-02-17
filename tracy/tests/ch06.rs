@@ -2,7 +2,7 @@ use std::f32::consts::FRAC_1_SQRT_2;
 
 use tracy::{
     canvas::Color,
-    math::{MatrixN, Point, Vector},
+    math::{MatrixN, Point, Vector, EPSILON},
     query::{Ray, RayIntersections},
     rendering::{self, Material, PointLight},
 };
@@ -81,7 +81,7 @@ fn computing_the_normal_on_a_translated_sphere() {
 
     assert!(xs.any(|x| x.normal.abs_diff_eq(
         &Vector::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
-        1e-4
+        EPSILON
     )));
 }
 
@@ -99,7 +99,7 @@ fn computing_the_normal_on_a_transformed_sphere() {
 
     assert!(xs.any(|x| x
         .normal
-        .abs_diff_eq(&Vector::from_vector(0., 0.97014, -0.24254), 1e-4)));
+        .abs_diff_eq(&Vector::from_vector(0., 0.97014, -0.24254), EPSILON)));
 }
 
 #[test]

@@ -1,9 +1,8 @@
 //! Coordinate system.
 
-use std::{
-    f32::EPSILON,
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
-};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+
+use super::EPSILON;
 
 /// A point in 3D space.
 pub type Point = Coords;

@@ -1,9 +1,7 @@
-use std::f32::EPSILON;
-
 use rendering::Material;
 use tracy::{
     canvas::Color,
-    math::{MatrixN, Point, Vector},
+    math::{MatrixN, Point, Vector, EPSILON},
     query::{Object, Ray, World},
     rendering::{self, PointLight},
     shape::Sphere,
@@ -109,6 +107,6 @@ fn the_hit_should_offset_the_point() {
         .find(|i| (i.toi - 5.0).abs() < EPSILON)
         .unwrap();
 
-    assert!(interference.over_point.z < -1e-4 / 2.0);
+    assert!(interference.over_point.z < -EPSILON / 2.0);
     assert!(interference.point.z > interference.over_point.z);
 }

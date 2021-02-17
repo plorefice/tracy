@@ -2,7 +2,7 @@ use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
 use tracy::{
     canvas::Color,
-    math::{MatrixN, Point, Vector},
+    math::{MatrixN, Point, Vector, EPSILON},
     query::{Ray, World},
     rendering::{Camera, Material, PointLight},
 };
@@ -80,7 +80,7 @@ fn precomputing_the_state_of_an_intersection() {
 
     let interference = w
         .interferences_with_ray(&r)
-        .find(|i| (i.toi - 4.).abs() < 1e-4)
+        .find(|i| (i.toi - 4.).abs() < EPSILON)
         .unwrap();
 
     assert_eq!(interference.handle, s);
@@ -102,7 +102,7 @@ fn the_hit_when_an_intersection_occurs_on_the_outside() {
 
     let interference = w
         .interferences_with_ray(&r)
-        .find(|i| (i.toi - 4.).abs() < 1e-4)
+        .find(|i| (i.toi - 4.).abs() < EPSILON)
         .unwrap();
 
     assert!(!interference.inside);
@@ -120,7 +120,7 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
 
     let interference = w
         .interferences_with_ray(&r)
-        .find(|i| (i.toi - 1.).abs() < 1e-4)
+        .find(|i| (i.toi - 1.).abs() < EPSILON)
         .unwrap();
 
     assert_abs_diff!(interference.point, Point::from_point(0.0, 0.0, 1.0));
@@ -139,7 +139,7 @@ fn shading_an_intersection() {
 
     let interference = w
         .interferences_with_ray(&r)
-        .find(|i| (i.toi - 4.).abs() < 1e-4)
+        .find(|i| (i.toi - 4.).abs() < EPSILON)
         .unwrap();
 
     assert_abs_diff!(
@@ -164,7 +164,7 @@ fn shading_an_intersection_from_the_inside() {
 
     let interference = w
         .interferences_with_ray(&r)
-        .find(|i| (i.toi - 0.5).abs() < 1e-4)
+        .find(|i| (i.toi - 0.5).abs() < EPSILON)
         .unwrap();
 
     assert_abs_diff!(
