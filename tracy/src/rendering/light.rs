@@ -25,6 +25,7 @@ pub fn phong_lighting(
     point: &Point,
     eye: &Vector,
     normal: &Vector,
+    in_shadow: bool,
 ) -> Color {
     // combine the surface color with the light's color/intensity
     let effective_color = material.color * light.color * light.intensity;
@@ -34,6 +35,12 @@ pub fn phong_lighting(
 
     // compute the ambient contribution
     let ambient = effective_color * material.ambient;
+
+    // early exit if the point is in shadow
+    if in_shadow {
+        return ambient;
+    }
+
     let diffuse;
     let specular;
 

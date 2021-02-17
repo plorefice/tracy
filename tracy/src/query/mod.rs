@@ -128,6 +128,7 @@ impl World {
             &interference.point,
             &interference.eye,
             &interference.normal,
+            false,
         ))
     }
 

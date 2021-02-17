@@ -212,6 +212,7 @@ fn lighting_in_several_configurations() {
             &Point::from_point(0., 0., 0.),
             &eyev,
             &normalv,
+            false,
         );
 
         assert_abs_diff!(res, exp);
