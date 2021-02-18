@@ -352,9 +352,16 @@ impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
 impl Mul<Coords> for MatrixN {
     type Output = Coords;
 
-    #[allow(clippy::suspicious_arithmetic_impl)]
     fn mul(self, rhs: Coords) -> Self::Output {
         &self * rhs
+    }
+}
+
+impl Mul<&Coords> for MatrixN {
+    type Output = Coords;
+
+    fn mul(self, rhs: &Coords) -> Self::Output {
+        &self * *rhs
     }
 }
 

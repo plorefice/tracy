@@ -1,6 +1,8 @@
 use tracy::{
-    math::{Point, Vector},
+    math::{MatrixN, Point, Vector},
+    query::Object,
     rendering::{self, Color, Material, Pattern, PointLight},
+    shape::Sphere,
 };
 pub use utils::*;
 
@@ -65,16 +67,20 @@ fn a_stripe_pattern_alternates_in_x() {
 
 #[test]
 fn lighting_with_a_pattern_applied() {
-    let m = Material {
-        pattern: Pattern::Stripes {
-            ca: Color::WHITE,
-            cb: Color::BLACK,
+    let obj = Object::new_with_material(
+        Sphere,
+        MatrixN::identity(4),
+        Material {
+            pattern: Pattern::Stripes {
+                ca: Color::WHITE,
+                cb: Color::BLACK,
+            },
+            ambient: 1.0,
+            diffuse: 0.0,
+            specular: 0.0,
+            ..Default::default()
         },
-        ambient: 1.0,
-        diffuse: 0.0,
-        specular: 0.0,
-        ..Default::default()
-    };
+    );
 
     let light = PointLight {
         position: Point::from_point(0.0, 0.0, 10.0),
@@ -85,7 +91,7 @@ fn lighting_with_a_pattern_applied() {
     let normal = Vector::from_vector(0.0, 0.0, -1.0);
 
     let c1 = rendering::phong_lighting(
-        &m,
+        &obj,
         &light,
         &Point::from_point(0.9, 0.0, 0.0),
         &eye,
@@ -94,7 +100,7 @@ fn lighting_with_a_pattern_applied() {
     );
 
     let c2 = rendering::phong_lighting(
-        &m,
+        &obj,
         &light,
         &Point::from_point(1.1, 0.0, 0.0),
         &eye,
@@ -104,4 +110,93 @@ fn lighting_with_a_pattern_applied() {
 
     assert_eq!(c1, Color::WHITE);
     assert_eq!(c2, Color::BLACK);
+}
+
+#[test]
+fn stripes_with_an_object_transformation() {
+    let obj = Object::new_with_material(
+        Sphere,
+        MatrixN::from_scale(2.0, 2.0, 2.0),
+        Material {
+            pattern: Pattern::Stripes {
+                ca: Color::WHITE,
+                cb: Color::BLACK,
+            },
+            ambient: 1.0,
+            diffuse: 0.0,
+            specular: 0.0,
+            ..Default::default()
+        },
+    );
+
+    let c = rendering::phong_lighting(
+        &obj,
+        &PointLight::default(),
+        &Point::from_point(1.5, 0.0, 0.0),
+        &Vector::default(),
+        &Vector::default(),
+        false,
+    );
+
+    assert_abs_diff!(c, Color::WHITE);
+}
+
+#[test]
+fn stripes_with_a_pattern_transformation() {
+    let obj = Object::new_with_material(
+        Sphere,
+        MatrixN::identity(4),
+        Material {
+            pattern: Pattern::Stripes {
+                ca: Color::WHITE,
+                cb: Color::BLACK,
+            },
+            transform: MatrixN::from_scale(2.0, 2.0, 2.0),
+            ambient: 1.0,
+            diffuse: 0.0,
+            specular: 0.0,
+            ..Default::default()
+        },
+    );
+
+    let c = rendering::phong_lighting(
+        &obj,
+        &PointLight::default(),
+        &Point::from_point(1.5, 0.0, 0.0),
+        &Vector::default(),
+        &Vector::default(),
+        false,
+    );
+
+    assert_abs_diff!(c, Color::WHITE);
+}
+
+#[test]
+fn stripes_with_both_an_object_and_a_pattern_transformation() {
+    let obj = Object::new_with_material(
+        Sphere,
+        MatrixN::from_scale(2.0, 2.0, 2.0),
+        Material {
+            pattern: Pattern::Stripes {
+                ca: Color::WHITE,
+                cb: Color::BLACK,
+            },
+            transform: MatrixN::from_translation(0.5, 0.0, 0.0),
+            ambient: 1.0,
+            diffuse: 0.0,
+            specular: 0.0,
+            ..Default::default()
+        },
+    );
+
+    let c = rendering::phong_lighting(
+        &obj,
+        &PointLight::default(),
+        &Point::from_point(2.5, 0.0, 0.0),
+        &Vector::default(),
+        &Vector::default(),
+        false,
+    );
+
+    assert_abs_diff!(c, Color::WHITE);
 }

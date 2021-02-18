@@ -206,7 +206,7 @@ fn lighting_in_several_configurations() {
         };
 
         let res = rendering::phong_lighting(
-            &Material::default(),
+            &sphere(),
             &light,
             &Point::from_point(0., 0., 0.),
             &eyev,

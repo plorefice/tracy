@@ -120,7 +120,7 @@ impl World {
         let light = self.light()?;
 
         Some(rendering::phong_lighting(
-            obj.material(),
+            obj,
             light,
             &interference.point,
             &interference.eye,

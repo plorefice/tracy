@@ -2,10 +2,9 @@
 
 use crate::{
     math::{Point, Vector},
+    query::Object,
     rendering::Color,
 };
-
-use super::Material;
 
 /// A point light source.
 #[derive(Debug, Clone, PartialEq)]
@@ -32,16 +31,23 @@ impl Default for PointLight {
 }
 
 /// Computes the illumination of a surface point according to the Phong reflection model.
+///
+/// The `point` is given in world-space coordinates.
 pub fn phong_lighting(
-    material: &Material,
+    object: &Object,
     light: &PointLight,
     point: &Point,
     eye: &Vector,
     normal: &Vector,
     in_shadow: bool,
 ) -> Color {
+    let material = object.material();
+
+    // convert point to local-space coordinates
+    let local_point = object.transform().inverse().unwrap() * point;
+
     // combine the surface color with the light's color/intensity
-    let effective_color = material.pattern.color_at(point) * light.color * light.intensity;
+    let effective_color = material.color_at(&local_point) * light.color * light.intensity;
 
     // find the direction to the light source
     let lightv = (light.position - point).normalize();

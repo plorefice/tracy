@@ -1,4 +1,3 @@
-use rendering::Material;
 use tracy::{
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Object, Ray, World},
@@ -19,7 +18,7 @@ fn lighting_with_the_surface_in_shadow() {
     };
 
     let result = rendering::phong_lighting(
-        &Material::default(),
+        &sphere(),
         &light,
         &Point::from_point(0.0, 0.0, 0.0),
         &eye,

@@ -1,6 +1,9 @@
 //! Materials that can be applied to objects for rendering.
 
-use crate::{math::MatrixN, rendering::Color};
+use crate::{
+    math::{MatrixN, Point},
+    rendering::Color,
+};
 
 use super::Pattern;
 
@@ -31,5 +34,13 @@ impl Default for Material {
             specular: 0.9,
             shininess: 200.,
         }
+    }
+}
+
+impl Material {
+    /// Returns the color of `self` at local-space coordinates `p`.
+    pub fn color_at(&self, p: &Point) -> Color {
+        self.pattern
+            .color_at(&(self.transform.inverse().unwrap() * p))
     }
 }
