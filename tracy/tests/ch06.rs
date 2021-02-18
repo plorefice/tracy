@@ -159,7 +159,7 @@ fn a_sphere_may_be_assigned_a_material() {
         ..Default::default()
     };
 
-    s.set_material(m);
+    s.set_material(m.clone());
 
     assert_eq!(s.material(), &m);
 }

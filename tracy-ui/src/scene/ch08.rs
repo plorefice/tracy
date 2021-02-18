@@ -48,7 +48,7 @@ impl Scene for ShadowSpheres {
         world.add(Object::new_with_material(
             Sphere,
             MatrixN::from_scale(10.0, 0.01, 10.0),
-            floor_mat,
+            floor_mat.clone(),
         ));
 
         // Left wall
@@ -58,7 +58,7 @@ impl Scene for ShadowSpheres {
                 * MatrixN::from_rotation_y(-FRAC_PI_4)
                 * MatrixN::from_rotation_x(FRAC_PI_2)
                 * MatrixN::from_scale(10.0, 0.1, 10.0),
-            floor_mat,
+            floor_mat.clone(),
         ));
 
         // Right wall
