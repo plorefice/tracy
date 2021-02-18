@@ -1,6 +1,6 @@
 //! Materials that can be applied to objects for rendering.
 
-use crate::canvas::Color;
+use crate::rendering::Color;
 
 /// A material with standard properties.
 #[derive(Debug, Clone, Copy, PartialEq)]

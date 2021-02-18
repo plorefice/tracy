@@ -1,7 +1,7 @@
 use crate::{
-    canvas::Canvas,
     math::{MatrixN, Point},
     query::{Ray, World},
+    rendering::Canvas,
 };
 
 /// A perspective 3D camera.

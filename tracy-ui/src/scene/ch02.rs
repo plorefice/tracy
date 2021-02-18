@@ -1,7 +1,7 @@
 use imgui::*;
 use tracy::{
-    canvas::{Canvas, Color},
     math::{Point, Vector},
+    rendering::{Canvas, Color},
 };
 
 use super::Scene;

@@ -2,8 +2,8 @@ use std::f32::consts::PI;
 
 use imgui::*;
 use tracy::{
-    canvas::{Canvas, Color},
     math::{MatrixN, Point},
+    rendering::{Canvas, Color},
 };
 
 use super::Scene;

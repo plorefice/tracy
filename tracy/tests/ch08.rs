@@ -1,9 +1,8 @@
 use rendering::Material;
 use tracy::{
-    canvas::Color,
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Object, Ray, World},
-    rendering::{self, PointLight},
+    rendering::{self, Color, PointLight},
     shape::Sphere,
 };
 pub use utils::*;

@@ -1,7 +1,7 @@
 //! Generators for each chapter's exercises.
 
 use imgui::Ui;
-use tracy::canvas::Canvas;
+use tracy::rendering::Canvas;
 
 mod ch02;
 mod ch04;

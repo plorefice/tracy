@@ -1,8 +1,8 @@
 //! Light sources.
 
 use crate::{
-    canvas::Color,
     math::{Point, Vector},
+    rendering::Color,
 };
 
 use super::Material;

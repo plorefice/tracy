@@ -1,10 +1,9 @@
 use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
 use tracy::{
-    canvas::Color,
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Ray, World},
-    rendering::{Camera, Material, PointLight},
+    rendering::{Camera, Color, Material, PointLight},
 };
 pub use utils::*;
 

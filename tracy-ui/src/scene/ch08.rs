@@ -2,10 +2,9 @@ use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use imgui::*;
 use tracy::{
-    canvas::{Canvas, Color},
     math::{MatrixN, Point, Vector},
     query::{Object, World},
-    rendering::{Camera, Material, PointLight},
+    rendering::{Camera, Canvas, Color, Material, PointLight},
     shape::Sphere,
 };
 

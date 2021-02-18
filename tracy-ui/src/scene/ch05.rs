@@ -2,9 +2,9 @@ use std::f32;
 
 use imgui::*;
 use tracy::{
-    canvas::{Canvas, Color},
     math::{MatrixN, Point},
     query::{Object, Ray, World},
+    rendering::{Canvas, Color},
     shape::Sphere,
 };
 

@@ -1,4 +1,4 @@
-use tracy::canvas::{Canvas, Color};
+use tracy::rendering::{Canvas, Color};
 pub use utils::*;
 
 mod utils;

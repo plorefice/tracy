@@ -6,9 +6,8 @@ use std::{
 use itertools::Itertools;
 
 use crate::{
-    canvas::Color,
     math::{MatrixN, Point, EPSILON},
-    rendering::{self, Material, PointLight},
+    rendering::{self, Color, Material, PointLight},
     shape::Sphere,
 };
 
