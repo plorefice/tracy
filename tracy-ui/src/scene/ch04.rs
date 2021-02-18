@@ -33,7 +33,7 @@ impl Scene for Clock {
             let rotate = MatrixN::from_rotation_z(PI / 6. * i as f32);
             let pos = &move_to_center * rotate * Point::from_point(0., radius, 0.);
 
-            canvas.put(pos.x as u32, pos.y as u32, Color::new(1., 1., 1.));
+            canvas.put(pos.x as u32, pos.y as u32, Color::WHITE);
         }
 
         canvas

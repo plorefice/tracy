@@ -41,7 +41,7 @@ impl Scene for Trajectory {
                 canvas.put(
                     pos.x.round() as u32,
                     height - pos.y.round() as u32,
-                    Color::new(1., 1., 1.),
+                    Color::WHITE,
                 );
             }
 

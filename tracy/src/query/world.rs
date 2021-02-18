@@ -37,7 +37,7 @@ impl Default for World {
         Self {
             light: Some(PointLight {
                 position: Point::from_point(-10., 10., -10.),
-                color: Color::new(1., 1., 1.),
+                color: Color::WHITE,
                 intensity: 1.,
                 casts_shadows: true,
             }),

@@ -24,7 +24,7 @@ impl Default for PointLight {
     fn default() -> Self {
         Self {
             position: Point::from_point(0.0, 0.0, 0.0),
-            color: Color::new(1.0, 1.0, 1.0),
+            color: Color::WHITE,
             intensity: 1.0,
             casts_shadows: true,
         }

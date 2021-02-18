@@ -122,7 +122,7 @@ fn reflecting_a_vector_off_a_slanted_surface() {
 
 #[test]
 fn a_point_light_has_a_position_and_intensity() {
-    let color = Color::new(1., 1., 1.);
+    let color = Color::WHITE;
     let position = Point::from_point(0., 0., 0.);
 
     let light = PointLight {
@@ -139,7 +139,7 @@ fn a_point_light_has_a_position_and_intensity() {
 fn the_default_material() {
     let m = Material::default();
 
-    assert_abs_diff!(m.color, Color::new(1., 1., 1.));
+    assert_abs_diff!(m.color, Color::WHITE);
     assert_f32!(m.ambient, 0.1);
     assert_f32!(m.diffuse, 0.9);
     assert_f32!(m.specular, 0.9);
@@ -177,7 +177,7 @@ fn lighting_in_several_configurations() {
             Vector::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
             Vector::from_vector(0., 0., -1.),
             Point::from_point(0., 0., -10.),
-            Color::new(1., 1., 1.),
+            Color::WHITE,
         ),
         (
             Vector::from_vector(0., 0., -1.),
