@@ -217,3 +217,20 @@ fn a_gradient_linearly_interpolates_between_colors() {
         assert_eq!(pattern.color_at(&Point::from_point(*x, 0.0, 0.0)), *exp);
     }
 }
+
+#[test]
+fn a_ring_should_extend_in_both_x_and_z() {
+    let pattern = Pattern::Rings {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
+
+    for (p, exp) in &[
+        (Point::from_point(0.0, 0.0, 0.0), Color::WHITE),
+        (Point::from_point(1.0, 0.0, 0.0), Color::BLACK),
+        (Point::from_point(0.0, 0.0, 1.0), Color::BLACK),
+        (Point::from_point(0.708, 0.0, 0.708), Color::BLACK),
+    ] {
+        assert_eq!(pattern.color_at(p), *exp);
+    }
+}

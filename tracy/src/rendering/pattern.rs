@@ -27,6 +27,16 @@ pub enum Pattern {
         /// The second gradient stop.
         cb: Color,
     },
+    /// Two repeating, equally spaced color rings.
+    ///
+    /// The pattern is constant in the `y` coordinate, and alternates at each integer contentric
+    /// ring on the `xz` plane.
+    Rings {
+        /// The color assigned on even rings.
+        ca: Color,
+        /// The color assigned on odd rings.
+        cb: Color,
+    },
 }
 
 impl Pattern {
@@ -34,6 +44,7 @@ impl Pattern {
     pub fn color_at(&self, p: &Point) -> Color {
         match *self {
             Self::Solid(c) => c,
+            Self::Gradient { ca, cb } => ca + (cb - ca) * (p.x - p.x.floor()),
             Self::Stripes { ca, cb } => {
                 if (p.x.floor() as i32) % 2 == 0 {
                     ca
@@ -41,7 +52,13 @@ impl Pattern {
                     cb
                 }
             }
-            Self::Gradient { ca, cb } => ca + (cb - ca) * (p.x - p.x.floor()),
+            Self::Rings { ca, cb } => {
+                if (p.x.powi(2) + p.z.powi(2)).sqrt().floor() as i32 % 2 == 0 {
+                    ca
+                } else {
+                    cb
+                }
+            }
         }
     }
 }
