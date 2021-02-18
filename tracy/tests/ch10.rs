@@ -1,6 +1,6 @@
 use tracy::{
     math::Point,
-    rendering::{Color, Pattern, StripePattern},
+    rendering::{Color, Pattern},
 };
 pub use utils::*;
 
@@ -8,14 +8,18 @@ mod utils;
 
 #[test]
 fn creating_a_stripe_pattern() {
-    let pattern = StripePattern::new(Color::WHITE, Color::BLACK);
-    assert_eq!(pattern.colors().0, Color::WHITE);
-    assert_eq!(pattern.colors().1, Color::BLACK);
+    let _ = Pattern::StripePattern {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
 }
 
 #[test]
 fn a_stripe_pattern_is_constant_in_y() {
-    let pattern = StripePattern::new(Color::WHITE, Color::BLACK);
+    let pattern = Pattern::StripePattern {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
 
     for y in 0..=2 {
         assert_eq!(
@@ -27,7 +31,10 @@ fn a_stripe_pattern_is_constant_in_y() {
 
 #[test]
 fn a_stripe_pattern_is_constant_in_z() {
-    let pattern = StripePattern::new(Color::WHITE, Color::BLACK);
+    let pattern = Pattern::StripePattern {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
 
     for z in 0..=2 {
         assert_eq!(
@@ -39,7 +46,10 @@ fn a_stripe_pattern_is_constant_in_z() {
 
 #[test]
 fn a_stripe_pattern_alternates_in_x() {
-    let pattern = StripePattern::new(Color::WHITE, Color::BLACK);
+    let pattern = Pattern::StripePattern {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
 
     for (x, exp) in &[
         (0.0, Color::WHITE),
