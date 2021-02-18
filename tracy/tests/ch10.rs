@@ -200,3 +200,20 @@ fn stripes_with_both_an_object_and_a_pattern_transformation() {
 
     assert_abs_diff!(c, Color::WHITE);
 }
+
+#[test]
+fn a_gradient_linearly_interpolates_between_colors() {
+    let pattern = Pattern::Gradient {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
+
+    for (x, exp) in &[
+        (0.0, Color::WHITE),
+        (0.25, Color::new(0.75, 0.75, 0.75)),
+        (0.5, Color::new(0.5, 0.5, 0.5)),
+        (0.75, Color::new(0.25, 0.25, 0.25)),
+    ] {
+        assert_eq!(pattern.color_at(&Point::from_point(*x, 0.0, 0.0)), *exp);
+    }
+}

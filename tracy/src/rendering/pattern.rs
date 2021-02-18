@@ -17,6 +17,16 @@ pub enum Pattern {
         /// The color assigned when `x` is odd.
         cb: Color,
     },
+    /// Linear gradient between two colors.
+    ///
+    /// The pattern is constant in the `y` and `z` coordinates, with gradient stops at each integer
+    /// unit of the `x` coordinate.
+    Gradient {
+        /// The first gradient stop.
+        ca: Color,
+        /// The second gradient stop.
+        cb: Color,
+    },
 }
 
 impl Pattern {
@@ -31,6 +41,7 @@ impl Pattern {
                     cb
                 }
             }
+            Self::Gradient { ca, cb } => ca + (cb - ca) * (p.x - p.x.floor()),
         }
     }
 }
