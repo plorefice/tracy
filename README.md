@@ -46,3 +46,9 @@
 
   ![Chapter 9: Planes](images/chapter09.png)
 </details>
+
+<details>
+  <summary><strong>Chapter 10: Patterns</strong></summary>
+
+  ![Chapter 10: Patterns](images/chapter10.png)
+</details>
