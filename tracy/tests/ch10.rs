@@ -234,3 +234,51 @@ fn a_ring_should_extend_in_both_x_and_z() {
         assert_eq!(pattern.color_at(p), *exp);
     }
 }
+
+#[test]
+fn checkers_should_repeat_in_x() {
+    let pattern = Pattern::Checkers {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
+
+    for (x, exp) in &[
+        (0.00, Color::WHITE),
+        (0.99, Color::WHITE),
+        (1.01, Color::BLACK),
+    ] {
+        assert_eq!(pattern.color_at(&Point::from_point(*x, 0.0, 0.0)), *exp);
+    }
+}
+
+#[test]
+fn checkers_should_repeat_in_y() {
+    let pattern = Pattern::Checkers {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
+
+    for (y, exp) in &[
+        (0.00, Color::WHITE),
+        (0.99, Color::WHITE),
+        (1.01, Color::BLACK),
+    ] {
+        assert_eq!(pattern.color_at(&Point::from_point(0.0, *y, 0.0)), *exp);
+    }
+}
+
+#[test]
+fn checkers_should_repeat_in_z() {
+    let pattern = Pattern::Checkers {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
+
+    for (z, exp) in &[
+        (0.00, Color::WHITE),
+        (0.99, Color::WHITE),
+        (1.01, Color::BLACK),
+    ] {
+        assert_eq!(pattern.color_at(&Point::from_point(0.0, 0.0, *z)), *exp);
+    }
+}

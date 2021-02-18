@@ -37,6 +37,13 @@ pub enum Pattern {
         /// The color assigned on odd rings.
         cb: Color,
     },
+    /// Alternating cubes in two colors.
+    Checkers {
+        /// The first alternating color.
+        ca: Color,
+        /// The second alternating color.
+        cb: Color,
+    },
 }
 
 impl Pattern {
@@ -54,6 +61,13 @@ impl Pattern {
             }
             Self::Rings { ca, cb } => {
                 if (p.x.powi(2) + p.z.powi(2)).sqrt().floor() as i32 % 2 == 0 {
+                    ca
+                } else {
+                    cb
+                }
+            }
+            Self::Checkers { ca, cb } => {
+                if (p.x.floor() + p.y.floor() + p.z.floor()) as i32 % 2 == 0 {
                     ca
                 } else {
                     cb
