@@ -1,6 +1,6 @@
 use tracy::{
-    math::Point,
-    rendering::{Color, Pattern},
+    math::{Point, Vector},
+    rendering::{self, Color, Material, Pattern, PointLight},
 };
 pub use utils::*;
 
@@ -61,4 +61,47 @@ fn a_stripe_pattern_alternates_in_x() {
     ] {
         assert_eq!(pattern.color_at(&Point::from_point(*x, 0.0, 0.0)), *exp);
     }
+}
+
+#[test]
+fn lighting_with_a_pattern_applied() {
+    let m = Material {
+        pattern: Pattern::Stripes {
+            ca: Color::WHITE,
+            cb: Color::BLACK,
+        },
+        ambient: 1.0,
+        diffuse: 0.0,
+        specular: 0.0,
+        ..Default::default()
+    };
+
+    let light = PointLight {
+        position: Point::from_point(0.0, 0.0, 10.0),
+        ..Default::default()
+    };
+
+    let eye = Vector::from_vector(0.0, 0.0, -1.0);
+    let normal = Vector::from_vector(0.0, 0.0, -1.0);
+
+    let c1 = rendering::phong_lighting(
+        &m,
+        &light,
+        &Point::from_point(0.9, 0.0, 0.0),
+        &eye,
+        &normal,
+        false,
+    );
+
+    let c2 = rendering::phong_lighting(
+        &m,
+        &light,
+        &Point::from_point(1.1, 0.0, 0.0),
+        &eye,
+        &normal,
+        false,
+    );
+
+    assert_eq!(c1, Color::WHITE);
+    assert_eq!(c2, Color::BLACK);
 }
