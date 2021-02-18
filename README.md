@@ -34,3 +34,15 @@
 
   ![Chapter 7: Making a Scene](images/chapter07.png)
 </details>
+
+<details>
+  <summary><strong>Chapter 8: Shadows</strong></summary>
+
+  ![Chapter 8: Shadows](images/chapter08.png)
+</details>
+
+<details>
+  <summary><strong>Chapter 9: Planes</strong></summary>
+
+  ![Chapter 9: Planes](images/chapter09.png)
+</details>

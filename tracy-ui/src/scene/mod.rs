@@ -9,6 +9,7 @@ mod ch05;
 mod ch06;
 mod ch07;
 mod ch08;
+mod ch09;
 
 /// Traits shared by all the renderable scenes.
 pub trait Scene {
@@ -27,5 +28,6 @@ pub fn get_scene_list() -> Vec<Box<dyn Scene>> {
         Box::new(ch06::PhongSphere::default()),
         Box::new(ch07::ThreeSpheres::default()),
         Box::new(ch08::ShadowSpheres::default()),
+        Box::new(ch09::PlaneShape::default()),
     ]
 }
