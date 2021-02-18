@@ -4,7 +4,7 @@ use imgui::*;
 use tracy::{
     math::{MatrixN, Point, Vector},
     query::{Object, World},
-    rendering::{Camera, Canvas, Color, Material, PointLight},
+    rendering::{Camera, Canvas, Color, Material, Pattern, PointLight},
     shape::Sphere,
 };
 
@@ -39,7 +39,7 @@ impl Scene for ShadowSpheres {
         let mut world = World::new();
 
         let floor_mat = Material {
-            color: Color::new(1.0, 0.9, 0.9),
+            pattern: Pattern::Solid(Color::new(1.0, 0.9, 0.9)),
             specular: 0.0,
             ..Default::default()
         };
@@ -76,7 +76,7 @@ impl Scene for ShadowSpheres {
             Sphere,
             MatrixN::from_translation(-0.5, 1.0, 0.5),
             Material {
-                color: Color::new(0.1, 1.0, 0.5),
+                pattern: Pattern::Solid(Color::new(0.1, 1.0, 0.5)),
                 diffuse: 0.7,
                 specular: 0.3,
                 ..Default::default()
@@ -88,7 +88,7 @@ impl Scene for ShadowSpheres {
             Sphere,
             MatrixN::from_translation(1.5, 0.5, -0.5) * MatrixN::from_scale(0.5, 0.5, 0.5),
             Material {
-                color: Color::new(0.5, 1.0, 0.1),
+                pattern: Pattern::Solid(Color::new(0.5, 1.0, 0.1)),
                 diffuse: 0.7,
                 specular: 0.3,
                 ..Default::default()
@@ -100,7 +100,7 @@ impl Scene for ShadowSpheres {
             Sphere,
             MatrixN::from_translation(-1.5, 0.33, -0.75) * MatrixN::from_scale(0.33, 0.33, 0.33),
             Material {
-                color: Color::new(1.0, 0.8, 0.1),
+                pattern: Pattern::Solid(Color::new(1.0, 0.8, 0.1)),
                 diffuse: 0.7,
                 specular: 0.3,
                 ..Default::default()

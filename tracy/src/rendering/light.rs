@@ -41,7 +41,7 @@ pub fn phong_lighting(
     in_shadow: bool,
 ) -> Color {
     // combine the surface color with the light's color/intensity
-    let effective_color = material.color * light.color * light.intensity;
+    let effective_color = material.pattern.color_at(point) * light.color * light.intensity;
 
     // find the direction to the light source
     let lightv = (light.position - point).normalize();

@@ -8,7 +8,7 @@ mod utils;
 
 #[test]
 fn creating_a_stripe_pattern() {
-    let _ = Pattern::StripePattern {
+    let _ = Pattern::Stripes {
         ca: Color::WHITE,
         cb: Color::BLACK,
     };
@@ -16,7 +16,7 @@ fn creating_a_stripe_pattern() {
 
 #[test]
 fn a_stripe_pattern_is_constant_in_y() {
-    let pattern = Pattern::StripePattern {
+    let pattern = Pattern::Stripes {
         ca: Color::WHITE,
         cb: Color::BLACK,
     };
@@ -31,7 +31,7 @@ fn a_stripe_pattern_is_constant_in_y() {
 
 #[test]
 fn a_stripe_pattern_is_constant_in_z() {
-    let pattern = Pattern::StripePattern {
+    let pattern = Pattern::Stripes {
         ca: Color::WHITE,
         cb: Color::BLACK,
     };
@@ -46,7 +46,7 @@ fn a_stripe_pattern_is_constant_in_z() {
 
 #[test]
 fn a_stripe_pattern_alternates_in_x() {
-    let pattern = Pattern::StripePattern {
+    let pattern = Pattern::Stripes {
         ca: Color::WHITE,
         cb: Color::BLACK,
     };

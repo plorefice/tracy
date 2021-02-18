@@ -4,7 +4,7 @@ use imgui::*;
 use tracy::{
     math::{MatrixN, Point},
     query::{Object, Ray, World},
-    rendering::{Canvas, Color, Material, PointLight},
+    rendering::{Canvas, Color, Material, Pattern, PointLight},
     shape::Sphere,
 };
 
@@ -52,7 +52,7 @@ impl Scene for PhongSphere {
             Sphere,
             MatrixN::identity(4),
             Material {
-                color: Color::new(self.color[0], self.color[1], self.color[2]),
+                pattern: Pattern::Solid(Color::new(self.color[0], self.color[1], self.color[2])),
                 ambient: self.ambient,
                 diffuse: self.diffuse,
                 specular: self.specular,

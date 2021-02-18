@@ -2,11 +2,13 @@
 
 use crate::rendering::Color;
 
+use super::Pattern;
+
 /// A material with standard properties.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Material {
-    /// Diffuse color.
-    pub color: Color,
+    /// Diffuse color pattern.
+    pub pattern: Pattern,
     /// Ratio of reflection of the ambient term present in all points in the scene rendered.
     pub ambient: f32,
     /// Ratio of reflection of the diffuse term of incoming light.
@@ -20,7 +22,7 @@ pub struct Material {
 impl Default for Material {
     fn default() -> Self {
         Self {
-            color: Color::WHITE,
+            pattern: Pattern::Solid(Color::WHITE),
             ambient: 0.1,
             diffuse: 0.9,
             specular: 0.9,

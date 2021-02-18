@@ -1,5 +1,6 @@
 use std::f32::consts::FRAC_1_SQRT_2;
 
+use rendering::Pattern;
 use tracy::{
     math::{MatrixN, Point, Vector, EPSILON},
     query::Ray,
@@ -138,7 +139,7 @@ fn a_point_light_has_a_position_and_intensity() {
 fn the_default_material() {
     let m = Material::default();
 
-    assert_abs_diff!(m.color, Color::WHITE);
+    assert_eq!(m.pattern, Pattern::Solid(Color::WHITE));
     assert_f32!(m.ambient, 0.1);
     assert_f32!(m.diffuse, 0.9);
     assert_f32!(m.specular, 0.9);

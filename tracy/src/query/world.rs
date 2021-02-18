@@ -7,7 +7,7 @@ use itertools::Itertools;
 
 use crate::{
     math::{MatrixN, Point, EPSILON},
-    rendering::{self, Color, Material, PointLight},
+    rendering::{self, Color, Material, Pattern, PointLight},
     shape::Sphere,
 };
 
@@ -27,7 +27,7 @@ pub struct World {
 impl Default for World {
     fn default() -> Self {
         let mat = Material {
-            color: Color::new(0.8, 1.0, 0.6),
+            pattern: Pattern::Solid(Color::new(0.8, 1.0, 0.6)),
             diffuse: 0.7,
             specular: 0.2,
             ..Default::default()

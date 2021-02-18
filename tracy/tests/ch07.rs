@@ -3,7 +3,7 @@ use std::f32::consts::{FRAC_1_SQRT_2, PI};
 use tracy::{
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Ray, World},
-    rendering::{Camera, Color, Material, PointLight},
+    rendering::{Camera, Color, Material, Pattern, PointLight},
 };
 pub use utils::*;
 
@@ -26,7 +26,7 @@ fn the_default_world() {
 
     let mut s1 = sphere();
     s1.set_material(Material {
-        color: Color::new(0.8, 1.0, 0.6),
+        pattern: Pattern::Solid(Color::new(0.8, 1.0, 0.6)),
         diffuse: 0.7,
         specular: 0.2,
         ..Default::default()
@@ -209,7 +209,10 @@ fn the_color_with_an_intersection_behind_the_ray() {
         outer.material_mut().ambient = 1.0;
         inner.material_mut().ambient = 1.0;
 
-        inner.material().color
+        match inner.material().pattern {
+            Pattern::Solid(c) => c,
+            _ => unreachable!("invalid pattern in material"),
+        }
     };
 
     let r = Ray::new(
