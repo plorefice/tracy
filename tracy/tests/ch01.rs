@@ -1,4 +1,4 @@
-use tracy::math::{Coords, Point, Vector};
+use tracy::math::{Coords, Point3, Vec3};
 pub use utils::*;
 
 mod utils;
@@ -27,13 +27,13 @@ fn a_tuple_with_w_equal_to_zero_is_a_vector() {
 
 #[test]
 fn point_creates_tuples_with_w_equal_to_one() {
-    let p = Point::from_point(4., -4., 3.);
+    let p = Point3::from_point(4., -4., 3.);
     assert_abs_diff!(p, Coords::from((4., -4., 3., 1.)));
 }
 
 #[test]
 fn vector_creates_tuples_with_w_equal_to_zero() {
-    let v = Vector::from_vector(4., -4., 3.);
+    let v = Vec3::from_vector(4., -4., 3.);
     assert_abs_diff!(v, Coords::from((4., -4., 3., 0.)));
 }
 
@@ -46,30 +46,30 @@ fn adding_two_tuples() {
 
 #[test]
 fn subtracting_two_points() {
-    let p1 = Point::from_point(3., 2., 1.);
-    let p2 = Point::from_point(5., 6., 7.);
-    assert_abs_diff!(p1 - p2, Vector::from_vector(-2., -4., -6.));
+    let p1 = Point3::from_point(3., 2., 1.);
+    let p2 = Point3::from_point(5., 6., 7.);
+    assert_abs_diff!(p1 - p2, Vec3::from_vector(-2., -4., -6.));
 }
 
 #[test]
 fn subtracting_a_vector_from_a_point() {
-    let p = Point::from_point(3., 2., 1.);
-    let v = Vector::from_vector(5., 6., 7.);
-    assert_abs_diff!(p - v, Point::from_point(-2., -4., -6.));
+    let p = Point3::from_point(3., 2., 1.);
+    let v = Vec3::from_vector(5., 6., 7.);
+    assert_abs_diff!(p - v, Point3::from_point(-2., -4., -6.));
 }
 
 #[test]
 fn subtracting_two_vectors() {
-    let v1 = Vector::from_vector(3., 2., 1.);
-    let v2 = Vector::from_vector(5., 6., 7.);
-    assert_abs_diff!(v1 - v2, Vector::from_vector(-2., -4., -6.));
+    let v1 = Vec3::from_vector(3., 2., 1.);
+    let v2 = Vec3::from_vector(5., 6., 7.);
+    assert_abs_diff!(v1 - v2, Vec3::from_vector(-2., -4., -6.));
 }
 
 #[test]
 fn subtracting_a_vector_from_the_zero_vector() {
-    let zero = Vector::from_vector(0., 0., 0.);
-    let v = Vector::from_vector(1., -2., 3.);
-    assert_abs_diff!(zero - v, Vector::from_vector(-1., 2., -3.));
+    let zero = Vec3::from_vector(0., 0., 0.);
+    let v = Vec3::from_vector(1., -2., 3.);
+    assert_abs_diff!(zero - v, Vec3::from_vector(-1., 2., -3.));
 }
 
 #[test]
@@ -99,11 +99,11 @@ fn dividing_a_tuple_by_a_scalar() {
 #[test]
 fn computing_the_magnitude_of_vectors() {
     for (v, mag) in vec![
-        (Vector::from_vector(1., 0., 0.), 1.),
-        (Vector::from_vector(0., 1., 0.), 1.),
-        (Vector::from_vector(0., 0., 1.), 1.),
-        (Vector::from_vector(1., 2., 3.), f32::sqrt(14.)),
-        (Vector::from_vector(-1., -2., -3.), f32::sqrt(14.)),
+        (Vec3::from_vector(1., 0., 0.), 1.),
+        (Vec3::from_vector(0., 1., 0.), 1.),
+        (Vec3::from_vector(0., 0., 1.), 1.),
+        (Vec3::from_vector(1., 2., 3.), f32::sqrt(14.)),
+        (Vec3::from_vector(-1., -2., -3.), f32::sqrt(14.)),
     ]
     .into_iter()
     {
@@ -114,13 +114,10 @@ fn computing_the_magnitude_of_vectors() {
 #[test]
 fn normalizing_vector() {
     for (v, norm) in vec![
+        (Vec3::from_vector(4., 0., 0.), Vec3::from_vector(1., 0., 0.)),
         (
-            Vector::from_vector(4., 0., 0.),
-            Vector::from_vector(1., 0., 0.),
-        ),
-        (
-            Vector::from_vector(1., 2., 3.),
-            Vector::from_vector(0.26726, 0.53452, 0.80178),
+            Vec3::from_vector(1., 2., 3.),
+            Vec3::from_vector(0.26726, 0.53452, 0.80178),
         ),
     ]
     .into_iter()
@@ -131,21 +128,21 @@ fn normalizing_vector() {
 
 #[test]
 fn magnitude_of_a_normalized_vector() {
-    assert_f32!(Vector::from_vector(1., 2., 3.).normalize().length(), 1.);
+    assert_f32!(Vec3::from_vector(1., 2., 3.).normalize().length(), 1.);
 }
 
 #[test]
 fn dot_product_of_two_tuples() {
-    let a = Vector::from_vector(1., 2., 3.);
-    let b = Vector::from_vector(2., 3., 4.);
+    let a = Vec3::from_vector(1., 2., 3.);
+    let b = Vec3::from_vector(2., 3., 4.);
     assert_f32!(a.dot(&b), 20.);
 }
 
 #[test]
 fn cross_product_of_two_vectors() {
-    let a = Vector::from_vector(1., 2., 3.);
-    let b = Vector::from_vector(2., 3., 4.);
+    let a = Vec3::from_vector(1., 2., 3.);
+    let b = Vec3::from_vector(2., 3., 4.);
 
-    assert_abs_diff!(a.cross(&b), Vector::from_vector(-1., 2., -1.));
-    assert_abs_diff!(b.cross(&a), Vector::from_vector(1., -2., 1.));
+    assert_abs_diff!(a.cross(&b), Vec3::from_vector(-1., 2., -1.));
+    assert_abs_diff!(b.cross(&a), Vec3::from_vector(1., -2., 1.));
 }

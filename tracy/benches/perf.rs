@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use tracy::{
-    math::{Matrix, Point, Vector},
+    math::{Matrix, Point3, Vec3},
     query::{Object, World},
     rendering::{Camera, Canvas, Color, Material, Pattern, PointLight},
     shape::Sphere,
@@ -21,7 +21,7 @@ fn render_shaded_sphere(width: u32, height: u32) -> Canvas {
     ));
 
     world.set_light(PointLight {
-        position: Point::from_point(-10., 10., -10.),
+        position: Point3::from_point(-10., 10., -10.),
         ..Default::default()
     });
 
@@ -30,9 +30,9 @@ fn render_shaded_sphere(width: u32, height: u32) -> Canvas {
         height,
         PI / 3.0,
         Matrix::look_at(
-            Point::from_point(0.0, 1.5, -5.0),
-            Point::from_point(0.0, 1.0, 0.0),
-            Vector::from_vector(0.0, 1.0, 0.0),
+            Point3::from_point(0.0, 1.5, -5.0),
+            Point3::from_point(0.0, 1.0, 0.0),
+            Vec3::from_vector(0.0, 1.0, 0.0),
         ),
     );
 

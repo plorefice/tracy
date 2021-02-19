@@ -1,5 +1,5 @@
 use crate::{
-    math::{Vector, EPSILON},
+    math::{Vec3, EPSILON},
     query::{Ray, RayCast, RayIntersection, RayIntersections},
 };
 
@@ -20,7 +20,7 @@ impl RayCast for Plane {
         RayIntersections::from(
             vec![RayIntersection {
                 toi: -ray.origin.y / ray.dir.y,
-                normal: Vector::from_vector(0.0, 1.0, 0.0),
+                normal: Vec3::from_vector(0.0, 1.0, 0.0),
             }]
             .into_iter(),
         )

@@ -1,6 +1,6 @@
 use imgui::*;
 use tracy::{
-    math::{Point, Vector},
+    math::{Point3, Vec3},
     rendering::{Canvas, Color},
 };
 
@@ -30,11 +30,11 @@ impl Scene for Trajectory {
     fn render(&self, width: u32, height: u32) -> Canvas {
         let mut canvas = Canvas::new(width, height);
 
-        let mut pos = Point::from_point(0., 1., 0.);
-        let mut vel = Vector::from_vector(1., 1.8, 0.).normalize() * self.velocity;
+        let mut pos = Point3::from_point(0., 1., 0.);
+        let mut vel = Vec3::from_vector(1., 1.8, 0.).normalize() * self.velocity;
 
-        let gravity = Vector::from_vector(0., -0.1, 0.);
-        let wind = Vector::from_vector(-0.01, 0., 0.);
+        let gravity = Vec3::from_vector(0., -0.1, 0.);
+        let wind = Vec3::from_vector(-0.01, 0., 0.);
 
         while pos.y > 0. {
             if pos.y < height as f32 {

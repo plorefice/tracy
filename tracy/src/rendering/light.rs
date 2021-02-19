@@ -1,7 +1,7 @@
 //! Light sources.
 
 use crate::{
-    math::{Point, Vector},
+    math::{Point3, Vec3},
     query::Object,
     rendering::Color,
 };
@@ -10,7 +10,7 @@ use crate::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct PointLight {
     /// Position of the light source in the world.
-    pub position: Point,
+    pub position: Point3,
     /// Color of the light source.
     pub color: Color,
     /// Brightness of the light source.
@@ -22,7 +22,7 @@ pub struct PointLight {
 impl Default for PointLight {
     fn default() -> Self {
         Self {
-            position: Point::from_point(0.0, 0.0, 0.0),
+            position: Point3::from_point(0.0, 0.0, 0.0),
             color: Color::WHITE,
             intensity: 1.0,
             casts_shadows: true,
@@ -36,9 +36,9 @@ impl Default for PointLight {
 pub fn phong_lighting(
     object: &Object,
     light: &PointLight,
-    point: &Point,
-    eye: &Vector,
-    normal: &Vector,
+    point: &Point3,
+    eye: &Vec3,
+    normal: &Vec3,
     in_shadow: bool,
 ) -> Color {
     let material = object.material();

@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_SQRT_2, SQRT_2};
 
 use tracy::{
-    math::{Matrix, Point, Vector, EPSILON},
+    math::{Matrix, Point3, Vec3, EPSILON},
     query::{Object, Ray, World},
     rendering::{Color, Material, PointLight, DEFAULT_RECURSION_DEPTH},
     shape::Plane,
@@ -21,8 +21,8 @@ fn precomputing_the_reflection_vector() {
     w.add(plane());
 
     let r = Ray::new(
-        Point::from_point(0.0, 1.0, -1.0),
-        Vector::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+        Point3::from_point(0.0, 1.0, -1.0),
+        Vec3::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
     );
 
     let interference = w
@@ -32,7 +32,7 @@ fn precomputing_the_reflection_vector() {
 
     assert_abs_diff!(
         interference.reflect,
-        Vector::from_vector(0.0, FRAC_1_SQRT_2, FRAC_1_SQRT_2)
+        Vec3::from_vector(0.0, FRAC_1_SQRT_2, FRAC_1_SQRT_2)
     );
 }
 
@@ -43,8 +43,8 @@ fn the_reflected_color_for_a_nonreflective_material() {
     w.objects_mut().nth(1).unwrap().material_mut().ambient = 1.0;
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, 0.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, 0.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -72,8 +72,8 @@ fn the_reflected_color_for_a_reflective_material() {
     ));
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -3.0),
-        Vector::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+        Point3::from_point(0.0, 0.0, -3.0),
+        Vec3::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
     );
 
     let interference = w
@@ -102,8 +102,8 @@ fn shade_hit_with_a_reflective_material() {
     ));
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -3.0),
-        Vector::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+        Point3::from_point(0.0, 0.0, -3.0),
+        Vec3::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
     );
 
     let interference = w
@@ -142,8 +142,8 @@ fn color_at_with_mutually_reflective_surfaces() {
     ));
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, 0.0),
-        Vector::from_vector(0.0, 1.0, 0.0),
+        Point3::from_point(0.0, 0.0, 0.0),
+        Vec3::from_vector(0.0, 1.0, 0.0),
     );
 
     assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_none());
@@ -163,8 +163,8 @@ fn the_reflected_color_at_the_maximum_recursive_depth() {
     ));
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -3.0),
-        Vector::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+        Point3::from_point(0.0, 0.0, -3.0),
+        Vec3::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
     );
 
     let interference = w
@@ -209,8 +209,8 @@ fn finding_n1_and_n2_at_various_intersections() {
     world.add(c);
 
     let ray = Ray::new(
-        Point::from_point(0.0, 0.0, -4.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -4.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let mut xs = world.interferences_with_ray(&ray);
@@ -240,8 +240,8 @@ fn the_under_point_is_offset_below_the_surface() {
     w.add(s);
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w

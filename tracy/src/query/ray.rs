@@ -2,7 +2,7 @@
 
 use std::{cmp::Ordering, vec::IntoIter};
 
-use crate::math::{Matrix, Point, Vector};
+use crate::math::{Matrix, Point3, Vec3};
 
 /// Trait of objects which can be tested for intersection with a ray.
 pub trait RayCast {
@@ -32,17 +32,17 @@ pub trait RayCast {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ray {
     /// Starting point of the ray.
-    pub origin: Point,
+    pub origin: Point3,
     /// Direction of the ray.
-    pub dir: Vector,
+    pub dir: Vec3,
 }
 
 impl Ray {
     /// Creates a ray given its starting point and direction.
-    pub fn new(origin: Point, dir: Vector) -> Self {
+    pub fn new(origin: Point3, dir: Vec3) -> Self {
         Self {
-            origin: Point::from_point(origin.x, origin.y, origin.z),
-            dir: Vector::from_vector(dir.x, dir.y, dir.z),
+            origin: Point3::from_point(origin.x, origin.y, origin.z),
+            dir: Vec3::from_vector(dir.x, dir.y, dir.z),
         }
     }
 
@@ -56,7 +56,7 @@ impl Ray {
 
     /// Computes the position of this ray after walking for `t` times from its starting point
     /// along its direction.
-    pub fn point_at(&self, t: f32) -> Point {
+    pub fn point_at(&self, t: f32) -> Point3 {
         self.origin + self.dir * t
     }
 }
@@ -67,12 +67,12 @@ pub struct RayIntersection {
     /// The time of impact of this intersection.
     pub toi: f32,
     /// The normal vector at the point of impact.
-    pub normal: Vector,
+    pub normal: Vec3,
 }
 
 impl RayIntersection {
     /// Creates a new intersection.
-    pub fn new(toi: f32, normal: Vector) -> Self {
+    pub fn new(toi: f32, normal: Vec3) -> Self {
         Self { toi, normal }
     }
 }

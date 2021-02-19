@@ -5,7 +5,7 @@ use std::{
     slice,
 };
 
-use super::{Coords, Point, Vector};
+use super::{Coords, Point3, Vec3};
 
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone, PartialEq)]
@@ -121,7 +121,7 @@ impl Matrix {
     }
 
     /// Creates a view transform matrix looking at `center` from `eye`.
-    pub fn look_at(eye: Point, center: Point, up: Vector) -> Matrix {
+    pub fn look_at(eye: Point3, center: Point3, up: Vec3) -> Matrix {
         let fwd = (center - eye).normalize();
         let up = up.normalize();
         let left = fwd.cross(&up);

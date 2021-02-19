@@ -1,5 +1,5 @@
 use crate::{
-    math::{Matrix, Point},
+    math::{Matrix, Point3},
     query::{Ray, World},
     rendering::Canvas,
 };
@@ -89,8 +89,8 @@ impl Camera {
 
         // transform the canvas point and the origin, then compute the ray's direction vector
         let t_inv = self.transform.inverse().unwrap();
-        let pixel = &t_inv * Point::from_point(world_x, world_y, -1.0);
-        let origin = &t_inv * Point::from_point(0.0, 0.0, 0.0);
+        let pixel = &t_inv * Point3::from_point(world_x, world_y, -1.0);
+        let origin = &t_inv * Point3::from_point(0.0, 0.0, 0.0);
         let direction = (pixel - origin).normalize();
 
         Ray::new(origin, direction)

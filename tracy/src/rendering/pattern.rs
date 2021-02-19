@@ -1,4 +1,4 @@
-use crate::math::{Matrix, Point};
+use crate::math::{Matrix, Point3};
 
 use super::Color;
 
@@ -98,7 +98,7 @@ impl Pattern {
     }
 
     /// Returns the color of `self` at object-space coordinates `p`.
-    pub fn color_at(&self, p: &Point) -> Color {
+    pub fn color_at(&self, p: &Point3) -> Color {
         let p = self.transform.inverse().unwrap() * p;
 
         match &self.kind {

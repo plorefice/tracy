@@ -2,7 +2,7 @@ use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use imgui::*;
 use tracy::{
-    math::{Matrix, Point, Vector},
+    math::{Matrix, Point3, Vec3},
     query::{Object, World},
     rendering::{Camera, Canvas, Color, Material, Pattern, PointLight},
     shape::Sphere,
@@ -108,7 +108,7 @@ impl Scene for ShadowSpheres {
         ));
 
         world.set_light(PointLight {
-            position: Point::from_point(-10.0, 10.0, -10.0),
+            position: Point3::from_point(-10.0, 10.0, -10.0),
             casts_shadows: self.cast_shadows,
             ..Default::default()
         });
@@ -118,9 +118,9 @@ impl Scene for ShadowSpheres {
             height,
             self.fov.to_radians(),
             Matrix::look_at(
-                Point::from_point(0.0, 1.5, -5.0),
-                Point::from_point(0.0, 1.0, 0.0),
-                Vector::from_vector(0.0, 1.0, 0.0),
+                Point3::from_point(0.0, 1.5, -5.0),
+                Point3::from_point(0.0, 1.0, 0.0),
+                Vec3::from_vector(0.0, 1.0, 0.0),
             ),
         );
 

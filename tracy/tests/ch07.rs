@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
 use tracy::{
-    math::{Matrix, Point, Vector, EPSILON},
+    math::{Matrix, Point3, Vec3, EPSILON},
     query::{Ray, World},
     rendering::{
         Camera, Color, Material, Pattern, PatternKind, PointLight, DEFAULT_RECURSION_DEPTH,
@@ -22,7 +22,7 @@ fn creating_a_world() {
 #[test]
 fn the_default_world() {
     let light = PointLight {
-        position: Point::from_point(-10., 10., -10.),
+        position: Point3::from_point(-10., 10., -10.),
         ..Default::default()
     };
 
@@ -56,8 +56,8 @@ fn intersect_a_world_with_a_ray() {
     let w = World::default();
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let xs = w.interferences_with_ray(&r).collect::<Vec<_>>();
@@ -75,8 +75,8 @@ fn precomputing_the_state_of_an_intersection() {
     let s = w.add(sphere());
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -86,9 +86,9 @@ fn precomputing_the_state_of_an_intersection() {
 
     assert_eq!(interference.handle, s);
     assert_f32!(interference.toi, 4.);
-    assert_abs_diff!(interference.point, Point::from_point(0.0, 0.0, -1.0));
-    assert_abs_diff!(interference.eye, Vector::from_vector(0.0, 0.0, -1.0));
-    assert_abs_diff!(interference.normal, Vector::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.point, Point3::from_point(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.eye, Vec3::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.normal, Vec3::from_vector(0.0, 0.0, -1.0));
 }
 
 #[test]
@@ -97,8 +97,8 @@ fn the_hit_when_an_intersection_occurs_on_the_outside() {
     w.add(sphere());
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -115,8 +115,8 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
     w.add(sphere());
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, 0.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, 0.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -124,9 +124,9 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
         .find(|i| (i.toi - 1.).abs() < EPSILON)
         .unwrap();
 
-    assert_abs_diff!(interference.point, Point::from_point(0.0, 0.0, 1.0));
-    assert_abs_diff!(interference.eye, Vector::from_vector(0.0, 0.0, -1.0));
-    assert_abs_diff!(interference.normal, Vector::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.point, Point3::from_point(0.0, 0.0, 1.0));
+    assert_abs_diff!(interference.eye, Vec3::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(interference.normal, Vec3::from_vector(0.0, 0.0, -1.0));
     assert!(interference.inside);
 }
 
@@ -134,8 +134,8 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
 fn shading_an_intersection() {
     let w = World::default();
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -154,13 +154,13 @@ fn shading_an_intersection_from_the_inside() {
     let mut w = World::default();
 
     w.set_light(PointLight {
-        position: Point::from_point(0.0, 0.25, 0.0),
+        position: Point3::from_point(0.0, 0.25, 0.0),
         ..Default::default()
     });
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, 0.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, 0.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -178,8 +178,8 @@ fn shading_an_intersection_from_the_inside() {
 fn the_color_when_a_ray_misses() {
     let w = World::default();
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 1.0, 0.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 1.0, 0.0),
     );
 
     assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_none());
@@ -189,8 +189,8 @@ fn the_color_when_a_ray_misses() {
 fn the_color_when_a_ray_hits() {
     let w = World::default();
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     assert_abs_diff!(
@@ -218,8 +218,8 @@ fn the_color_with_an_intersection_behind_the_ray() {
     };
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, 0.75),
-        Vector::from_vector(0.0, 0.0, -1.0),
+        Point3::from_point(0.0, 0.0, 0.75),
+        Vec3::from_vector(0.0, 0.0, -1.0),
     );
 
     assert_abs_diff!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).unwrap(), expected);
@@ -227,9 +227,9 @@ fn the_color_with_an_intersection_behind_the_ray() {
 
 #[test]
 fn the_transform_matrix_for_the_default_orientation() {
-    let eye = Point::from_point(0.0, 0.0, 0.0);
-    let center = Point::from_point(0.0, 0.0, -1.0);
-    let up = Vector::from_vector(0.0, 1.0, 0.0);
+    let eye = Point3::from_point(0.0, 0.0, 0.0);
+    let center = Point3::from_point(0.0, 0.0, -1.0);
+    let up = Vec3::from_vector(0.0, 1.0, 0.0);
 
     let t = Matrix::look_at(eye, center, up);
     assert_abs_diff!(t, Matrix::identity(4));
@@ -237,9 +237,9 @@ fn the_transform_matrix_for_the_default_orientation() {
 
 #[test]
 fn a_view_transformation_matrix_looking_in_positive_z_direction() {
-    let eye = Point::from_point(0.0, 0.0, 0.0);
-    let center = Point::from_point(0.0, 0.0, 1.0);
-    let up = Vector::from_vector(0.0, 1.0, 0.0);
+    let eye = Point3::from_point(0.0, 0.0, 0.0);
+    let center = Point3::from_point(0.0, 0.0, 1.0);
+    let up = Vec3::from_vector(0.0, 1.0, 0.0);
 
     let t = Matrix::look_at(eye, center, up);
     assert_abs_diff!(dbg!(t), Matrix::from_scale(-1.0, 1.0, -1.0));
@@ -247,9 +247,9 @@ fn a_view_transformation_matrix_looking_in_positive_z_direction() {
 
 #[test]
 fn the_view_transformation_moves_the_world() {
-    let eye = Point::from_point(0.0, 0.0, 8.0);
-    let center = Point::from_point(0.0, 0.0, 0.0);
-    let up = Vector::from_vector(0.0, 1.0, 0.0);
+    let eye = Point3::from_point(0.0, 0.0, 8.0);
+    let center = Point3::from_point(0.0, 0.0, 0.0);
+    let up = Vec3::from_vector(0.0, 1.0, 0.0);
 
     let t = Matrix::look_at(eye, center, up);
     assert_abs_diff!(t, Matrix::from_translation(0.0, 0.0, -8.0));
@@ -257,9 +257,9 @@ fn the_view_transformation_moves_the_world() {
 
 #[test]
 fn an_arbitrary_view_transformation() {
-    let eye = Point::from_point(1.0, 3.0, 2.0);
-    let center = Point::from_point(4.0, -2.0, 8.0);
-    let up = Vector::from_vector(1.0, 1.0, 0.0);
+    let eye = Point3::from_point(1.0, 3.0, 2.0);
+    let center = Point3::from_point(4.0, -2.0, 8.0);
+    let up = Vec3::from_vector(1.0, 1.0, 0.0);
 
     let t = Matrix::look_at(eye, center, up);
 
@@ -302,8 +302,8 @@ fn constructing_a_ray_through_the_center_of_the_canvas() {
     let c = Camera::new(201, 101, PI / 2.0);
     let r = c.ray_to(100, 50);
 
-    assert_abs_diff!(r.origin, Point::from_point(0.0, 0.0, 0.0));
-    assert_abs_diff!(r.dir, Vector::from_vector(0.0, 0.0, -1.0));
+    assert_abs_diff!(r.origin, Point3::from_point(0.0, 0.0, 0.0));
+    assert_abs_diff!(r.dir, Vec3::from_vector(0.0, 0.0, -1.0));
 }
 
 #[test]
@@ -311,8 +311,8 @@ fn constructing_a_ray_through_a_corner_of_the_canvas() {
     let c = Camera::new(201, 101, PI / 2.0);
     let r = c.ray_to(0, 0);
 
-    assert_abs_diff!(r.origin, Point::from_point(0.0, 0.0, 0.0));
-    assert_abs_diff!(r.dir, Vector::from_vector(0.66519, 0.33259, -0.66851));
+    assert_abs_diff!(r.origin, Point3::from_point(0.0, 0.0, 0.0));
+    assert_abs_diff!(r.dir, Vec3::from_vector(0.66519, 0.33259, -0.66851));
 }
 
 #[test]
@@ -326,11 +326,8 @@ fn constructing_a_ray_when_the_camera_is_transformed() {
 
     let r = c.ray_to(100, 50);
 
-    assert_abs_diff!(r.origin, Point::from_point(0.0, 2.0, -5.0));
-    assert_abs_diff!(
-        r.dir,
-        Vector::from_vector(FRAC_1_SQRT_2, 0.0, -FRAC_1_SQRT_2)
-    );
+    assert_abs_diff!(r.origin, Point3::from_point(0.0, 2.0, -5.0));
+    assert_abs_diff!(r.dir, Vec3::from_vector(FRAC_1_SQRT_2, 0.0, -FRAC_1_SQRT_2));
 }
 
 #[test]
@@ -342,9 +339,9 @@ fn rendering_a_world_with_a_camera() {
         11,
         PI / 2.0,
         Matrix::look_at(
-            Point::from_point(0.0, 0.0, -5.0),
-            Point::from_point(0.0, 0.0, 0.0),
-            Vector::from_vector(0.0, 1.0, 0.0),
+            Point3::from_point(0.0, 0.0, -5.0),
+            Point3::from_point(0.0, 0.0, 0.0),
+            Vec3::from_vector(0.0, 1.0, 0.0),
         ),
     );
 

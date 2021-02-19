@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 
 use crate::{
-    math::{Matrix, Point, Vector, EPSILON},
+    math::{Matrix, Point3, Vec3, EPSILON},
     rendering::{self, Color, Material, Pattern, PointLight},
     shape::Sphere,
 };
@@ -35,7 +35,7 @@ impl Default for World {
 
         Self {
             light: Some(PointLight {
-                position: Point::from_point(-10., 10., -10.),
+                position: Point3::from_point(-10., 10., -10.),
                 color: Color::WHITE,
                 intensity: 1.,
                 casts_shadows: true,
@@ -166,7 +166,7 @@ impl World {
     }
 
     /// Checks whether the given point lies in shadow of the light source.
-    pub fn is_in_shadow(&self, point: &Point) -> bool {
+    pub fn is_in_shadow(&self, point: &Point3) -> bool {
         if let Some(light) = self.light() {
             let v = light.position - point;
             let distance = v.length();
@@ -193,17 +193,17 @@ pub struct Interference {
     /// The time of impact of the ray with the object.
     pub toi: f32,
     /// The coordinates of the intersection.
-    pub point: Point,
+    pub point: Point3,
     /// The point slightly above the intersection point along its normal.
-    pub over_point: Point,
+    pub over_point: Point3,
     /// The point slightly below the intersection point along its normal.
-    pub under_point: Point,
+    pub under_point: Point3,
     /// The vector from the intersection point towards the camera.
-    pub eye: Vector,
+    pub eye: Vec3,
     /// The normal vector to the intesection point.
-    pub normal: Vector,
+    pub normal: Vec3,
     /// The reflected ray after this interference.
-    pub reflect: Vector,
+    pub reflect: Vec3,
     /// Whether this intersection occurred on the object's inside.
     pub inside: bool,
     /// Refractive index of the material being exited by this intersection.

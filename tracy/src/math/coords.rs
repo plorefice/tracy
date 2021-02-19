@@ -5,10 +5,10 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use super::EPSILON;
 
 /// A point in 3D space.
-pub type Point = Coords;
+pub type Point3 = Coords;
 
 /// A vector in 3D space.
-pub type Vector = Coords;
+pub type Vec3 = Coords;
 
 /// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]

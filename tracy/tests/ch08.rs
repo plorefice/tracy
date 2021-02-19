@@ -1,6 +1,6 @@
 use rendering::DEFAULT_RECURSION_DEPTH;
 use tracy::{
-    math::{Matrix, Point, Vector, EPSILON},
+    math::{Matrix, Point3, Vec3, EPSILON},
     query::{Object, Ray, World},
     rendering::{self, Color, PointLight},
     shape::Sphere,
@@ -11,17 +11,17 @@ mod utils;
 
 #[test]
 fn lighting_with_the_surface_in_shadow() {
-    let eye = Vector::from_vector(0.0, 0.0, -1.0);
-    let normal = Vector::from_vector(0.0, 0.0, -1.0);
+    let eye = Vec3::from_vector(0.0, 0.0, -1.0);
+    let normal = Vec3::from_vector(0.0, 0.0, -1.0);
     let light = PointLight {
-        position: Point::from_point(0.0, 0.0, -10.0),
+        position: Point3::from_point(0.0, 0.0, -10.0),
         ..Default::default()
     };
 
     let result = rendering::phong_lighting(
         &sphere(),
         &light,
-        &Point::from_point(0.0, 0.0, 0.0),
+        &Point3::from_point(0.0, 0.0, 0.0),
         &eye,
         &normal,
         true,
@@ -33,28 +33,28 @@ fn lighting_with_the_surface_in_shadow() {
 #[test]
 fn there_is_no_shadow_when_nothing_is_collinear_with_point_and_light() {
     let w = World::default();
-    let p = Point::from_point(0.0, 10.0, 0.0);
+    let p = Point3::from_point(0.0, 10.0, 0.0);
     assert!(!w.is_in_shadow(&p));
 }
 
 #[test]
 fn the_shadow_when_an_object_is_between_the_point_and_the_light() {
     let w = World::default();
-    let p = Point::from_point(10.0, -10.0, 10.0);
+    let p = Point3::from_point(10.0, -10.0, 10.0);
     assert!(w.is_in_shadow(&p));
 }
 
 #[test]
 fn there_is_no_shadow_when_an_object_is_behind_the_light() {
     let w = World::default();
-    let p = Point::from_point(-20.0, 20.0, -20.0);
+    let p = Point3::from_point(-20.0, 20.0, -20.0);
     assert!(!w.is_in_shadow(&p));
 }
 
 #[test]
 fn there_is_no_shadow_when_an_object_is_behind_the_point() {
     let w = World::default();
-    let p = Point::from_point(-2.0, 2.0, -2.0);
+    let p = Point3::from_point(-2.0, 2.0, -2.0);
     assert!(!w.is_in_shadow(&p));
 }
 
@@ -63,7 +63,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
     let mut w = World::new();
 
     w.set_light(PointLight {
-        position: Point::from_point(0.0, 0.0, -10.0),
+        position: Point3::from_point(0.0, 0.0, -10.0),
         ..Default::default()
     });
 
@@ -74,8 +74,8 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
     ));
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, 5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, 5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w
@@ -94,8 +94,8 @@ fn the_hit_should_offset_the_point() {
     w.add(Object::new(Sphere, Matrix::from_translation(0.0, 0.0, 1.0)));
 
     let r = Ray::new(
-        Point::from_point(0.0, 0.0, -5.0),
-        Vector::from_vector(0.0, 0.0, 1.0),
+        Point3::from_point(0.0, 0.0, -5.0),
+        Vec3::from_vector(0.0, 0.0, 1.0),
     );
 
     let interference = w

@@ -2,7 +2,7 @@ use std::f32;
 
 use imgui::*;
 use tracy::{
-    math::{Matrix, Point},
+    math::{Matrix, Point3},
     query::{Object, Ray, World},
     rendering::{Canvas, Color},
     shape::Sphere,
@@ -41,7 +41,7 @@ impl Scene for FlatSphere {
 
         world.add(Object::new(Sphere, Matrix::identity(4)));
 
-        let ray_origin = Point::from_point(0., 0., -5.);
+        let ray_origin = Point3::from_point(0., 0., -5.);
 
         let wall_z = 10.;
         let wall_size = 7.;
@@ -53,7 +53,7 @@ impl Scene for FlatSphere {
             for x in 0..width {
                 let wall_x = -wall_size / 2. + pixel_size * x as f32;
 
-                let target = Point::from_point(wall_x, wall_y, wall_z);
+                let target = Point3::from_point(wall_x, wall_y, wall_z);
                 let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
 
                 if world.interferences_with_ray(&ray).hit().is_some() {
