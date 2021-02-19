@@ -134,8 +134,9 @@ impl World {
         );
 
         let reflected = self.reflected_color(interference, remaining)?;
+        let refracted = self.refracted_color(interference, remaining)?;
 
-        Some(surface + reflected)
+        Some(surface + reflected + refracted)
     }
 
     /// Recursively computes the reflected color at the specified interference point.
@@ -154,6 +155,37 @@ impl World {
             let r = Ray::new(interference.over_point, interference.reflect);
             let c = self.color_at(&r, remaining - 1)?;
             Some(c * reflective)
+        }
+    }
+
+    /// Recursively computes the refracted color at the specified interference point.
+    ///
+    /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
+    /// reached.
+    pub fn refracted_color(&self, interference: &Interference, remaining: u32) -> Option<Color> {
+        let obj = self.get(interference.handle)?;
+        let transparency = obj.material().transparency;
+
+        if remaining == 0 {
+            None
+        } else if transparency == 0.0 {
+            Some(Color::BLACK)
+        } else {
+            let n_ratio = interference.n1 / interference.n2;
+            let cos_i = interference.eye.dot(&interference.normal);
+            let sin2_t = n_ratio.powi(2) * (1.0 - cos_i.powi(2));
+
+            if sin2_t > 1.0 {
+                Some(Color::BLACK)
+            } else {
+                let cos_t = (1.0 - sin2_t).sqrt();
+                let direction =
+                    interference.normal * (n_ratio * cos_i - cos_t) - interference.eye * n_ratio;
+
+                let r = Ray::new(interference.under_point, direction);
+                let c = self.color_at(&r, remaining - 1)?;
+                Some(c * transparency)
+            }
         }
     }
 

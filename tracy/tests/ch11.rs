@@ -3,8 +3,8 @@ use std::f32::consts::{FRAC_1_SQRT_2, SQRT_2};
 use tracy::{
     math::{Matrix, Point3, Vec3, EPSILON},
     query::{Object, Ray, World},
-    rendering::{Color, Material, PointLight, DEFAULT_RECURSION_DEPTH},
-    shape::Plane,
+    rendering::{Color, Material, Pattern, PatternKind, PointLight, DEFAULT_RECURSION_DEPTH},
+    shape::{Plane, Sphere},
 };
 pub use utils::*;
 
@@ -239,4 +239,115 @@ fn the_under_point_is_offset_below_the_surface() {
 
     assert!(interference.under_point.z > EPSILON / 2.0);
     assert!(interference.point.z < interference.under_point.z);
+}
+
+#[test]
+fn the_refracted_color_with_an_opaque_surface() {
+    let w = World::default();
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 4.0).abs() < EPSILON)
+        .unwrap();
+
+    assert_eq!(
+        w.refracted_color(&interference, DEFAULT_RECURSION_DEPTH),
+        Some(Color::BLACK)
+    );
+}
+
+#[test]
+fn the_refracted_color_at_the_maximum_recursive_depth() {
+    let mut w = World::default();
+
+    let shape = w.objects_mut().next().unwrap();
+    shape.material_mut().transparency = 1.0;
+    shape.material_mut().refractive_index = 1.5;
+
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 4.0).abs() < EPSILON)
+        .unwrap();
+
+    assert!(w.refracted_color(&interference, 0).is_none());
+}
+
+#[test]
+fn the_refracted_color_under_total_internal_reflection() {
+    let mut w = World::default();
+
+    let shape = w.objects_mut().next().unwrap();
+    shape.material_mut().transparency = 1.0;
+    shape.material_mut().refractive_index = 1.5;
+
+    let r = Ray::new(Point3::new(0.0, 0.0, FRAC_1_SQRT_2), Vec3::unit_y());
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - FRAC_1_SQRT_2).abs() < EPSILON)
+        .unwrap();
+
+    assert_eq!(w.refracted_color(&interference, 5), Some(Color::BLACK));
+}
+
+#[test]
+fn the_refracted_color_with_a_refracted_ray() {
+    let mut w = World::default();
+
+    let a = w.objects_mut().next().unwrap();
+    a.material_mut().ambient = 1.0;
+    a.material_mut().pattern = Pattern::new(PatternKind::Test);
+
+    let b = w.objects_mut().nth(1).unwrap();
+    b.material_mut().transparency = 1.0;
+    b.material_mut().refractive_index = 1.5;
+
+    let r = Ray::new(Point3::new(0.0, 0.0, 0.1), Vec3::unit_y());
+
+    let interference = w.interferences_with_ray(&r).nth(2).unwrap();
+
+    assert_abs_diff!(
+        w.refracted_color(&interference, 5).unwrap(),
+        Color::new(0.0, 0.99888, 0.04725)
+    );
+}
+
+#[test]
+fn shade_hit_with_a_transparent_material() {
+    let mut w = World::default();
+
+    w.add(Object::new_with_material(
+        Plane,
+        Matrix::from_translation(0.0, -1.0, 0.0),
+        Material {
+            transparency: 0.5,
+            refractive_index: 1.5,
+            ..Default::default()
+        },
+    ));
+
+    w.add(Object::new_with_material(
+        Sphere,
+        Matrix::from_translation(0.0, -3.5, -0.5),
+        Material {
+            pattern: Pattern::new(Color::new(1.0, 0.0, 0.0).into()),
+            ambient: 0.5,
+            ..Default::default()
+        },
+    ));
+
+    let r = Ray::new(
+        Point3::new(0.0, 0.0, -3.0),
+        Vec3::new(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+    );
+
+    let interference = w.interferences_with_ray(&r).next().unwrap();
+
+    assert_abs_diff!(
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
+        Color::new(0.93642, 0.68642, 0.68642)
+    );
 }

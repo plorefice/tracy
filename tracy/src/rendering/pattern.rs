@@ -68,6 +68,8 @@ pub enum PatternKind {
         /// The second gradient stop.
         b: Color,
     },
+    /// Test pattern that returns a color with the same coordinate of the point hit.
+    Test,
 }
 
 impl From<Color> for PatternKind {
@@ -130,6 +132,7 @@ impl Pattern {
                 let dist = (p.x.powi(2) + p.z.powi(2)).sqrt();
                 a + (b - a) * (dist - dist.floor())
             }
+            PatternKind::Test => Color::new(p.x, p.y, p.z),
         }
     }
 }
