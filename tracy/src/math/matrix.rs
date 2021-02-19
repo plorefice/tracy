@@ -5,7 +5,7 @@ use std::{
     slice,
 };
 
-use super::{Coords, Point3, Vec3};
+use super::{Point3, Vec3};
 
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone, PartialEq)]
@@ -349,91 +349,64 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
     }
 }
 
-impl Mul<Point3> for Matrix {
-    type Output = Point3;
+macro_rules! impl_mul {
+    ($($t:ty)*) => {$(
+        impl Mul<$t> for Matrix {
+            type Output = $t;
 
-    fn mul(self, rhs: Point3) -> Self::Output {
-        let coords = &self * <Point3 as Into<Coords>>::into(rhs);
-
-        Self::Output {
-            x: coords.x,
-            y: coords.y,
-            z: coords.z,
+            fn mul(self, rhs: $t) -> Self::Output {
+                &self * &rhs
+            }
         }
-    }
+
+        impl Mul<$t> for &Matrix {
+            type Output = $t;
+
+            fn mul(self, rhs: $t) -> Self::Output {
+                self * &rhs
+            }
+        }
+
+        impl Mul<&$t> for Matrix {
+            type Output = $t;
+
+            fn mul(self, rhs: &$t) -> Self::Output {
+                &self * rhs
+            }
+        }
+
+        impl Mul<&$t> for &Matrix {
+            type Output = $t;
+
+            fn mul(self, rhs: &$t) -> Self::Output {
+                let coords = self * <$t as Into<[f32; 4]>>::into(*rhs);
+                Self::Output::new(coords[0], coords[1], coords[2])
+            }
+        }
+    )*};
 }
 
-impl Mul<Point3> for &Matrix {
-    type Output = Point3;
+impl_mul!(Point3 Vec3);
 
-    fn mul(self, rhs: Point3) -> Self::Output {
-        let coords = self * <Point3 as Into<Coords>>::into(rhs);
+impl Mul<[f32; 4]> for Matrix {
+    type Output = [f32; 4];
 
-        Self::Output {
-            x: coords.x,
-            y: coords.y,
-            z: coords.z,
-        }
-    }
-}
-
-impl Mul<&Point3> for Matrix {
-    type Output = Point3;
-
-    fn mul(self, rhs: &Point3) -> Self::Output {
-        let coords = self * <Point3 as Into<Coords>>::into(*rhs);
-
-        Self::Output {
-            x: coords.x,
-            y: coords.y,
-            z: coords.z,
-        }
-    }
-}
-
-impl Mul<&Point3> for &Matrix {
-    type Output = Point3;
-
-    fn mul(self, rhs: &Point3) -> Self::Output {
-        let coords = self * <Point3 as Into<Coords>>::into(*rhs);
-
-        Self::Output {
-            x: coords.x,
-            y: coords.y,
-            z: coords.z,
-        }
-    }
-}
-
-impl Mul<Coords> for Matrix {
-    type Output = Coords;
-
-    fn mul(self, rhs: Coords) -> Self::Output {
+    fn mul(self, rhs: [f32; 4]) -> Self::Output {
         &self * rhs
     }
 }
 
-impl Mul<&Coords> for Matrix {
-    type Output = Coords;
-
-    fn mul(self, rhs: &Coords) -> Self::Output {
-        &self * *rhs
-    }
-}
-
-impl Mul<Coords> for &Matrix {
-    type Output = Coords;
+impl Mul<[f32; 4]> for &Matrix {
+    type Output = [f32; 4];
 
     #[allow(clippy::suspicious_arithmetic_impl)]
-    fn mul(self, rhs: Coords) -> Self::Output {
-        let data = <[f32; 4]>::from(rhs);
-
-        Self::Output {
-            x: (0..4).fold(0., |sum, i| sum + self[(0, i)] * data[i]),
-            y: (0..4).fold(0., |sum, i| sum + self[(1, i)] * data[i]),
-            z: (0..4).fold(0., |sum, i| sum + self[(2, i)] * data[i]),
-            w: (0..4).fold(0., |sum, i| sum + self[(3, i)] * data[i]),
-        }
+    fn mul(self, rhs: [f32; 4]) -> Self::Output {
+        [
+            (0..4).fold(0., |sum, i| sum + self[(0, i)] * rhs[i]),
+            (0..4).fold(0., |sum, i| sum + self[(1, i)] * rhs[i]),
+            (0..4).fold(0., |sum, i| sum + self[(2, i)] * rhs[i]),
+            (0..4).fold(0., |sum, i| sum + self[(3, i)] * rhs[i]),
+        ]
     }
 }
 

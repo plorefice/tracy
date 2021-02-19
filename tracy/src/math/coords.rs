@@ -2,64 +2,26 @@
 
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use super::EPSILON;
-
 /// A point in 3D space.
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Point3 {
-    /// The `x` component of this tuple.
+    /// The `x` component of this point.
     pub x: f32,
-    /// The `y` component of this tuple.
+    /// The `y` component of this point.
     pub y: f32,
-    /// The `z` component of this tuple.
+    /// The `z` component of this point.
     pub z: f32,
 }
 
-impl From<(f32, f32, f32)> for Point3 {
-    fn from((x, y, z): (f32, f32, f32)) -> Self {
-        Self { x, y, z }
-    }
-}
-
-impl From<[f32; 3]> for Point3 {
-    fn from([x, y, z]: [f32; 3]) -> Self {
-        Self { x, y, z }
-    }
-}
-
-impl From<Point3> for (f32, f32, f32) {
-    fn from(p: Point3) -> Self {
-        (p.x, p.y, p.z)
-    }
-}
-
-impl From<Point3> for (f32, f32, f32, f32) {
-    fn from(p: Point3) -> Self {
-        (p.x, p.y, p.z, 1.0)
-    }
-}
-
-impl From<Point3> for [f32; 3] {
-    fn from(p: Point3) -> Self {
-        [p.x, p.y, p.z]
-    }
-}
-
-impl From<Point3> for [f32; 4] {
-    fn from(p: Point3) -> Self {
-        [p.x, p.y, p.z, 1.0]
-    }
-}
-
-impl From<Point3> for Coords {
-    fn from(p: Point3) -> Self {
-        Self {
-            x: p.x,
-            y: p.y,
-            z: p.z,
-            w: 1.0,
-        }
-    }
+/// A vector in 3D space.
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct Vec3 {
+    /// The `x` component of this vector.
+    pub x: f32,
+    /// The `y` component of this vector.
+    pub y: f32,
+    /// The `z` component of this vector.
+    pub z: f32,
 }
 
 impl Point3 {
@@ -77,137 +39,15 @@ impl Point3 {
     }
 }
 
-impl Add<Vec3> for Point3 {
-    type Output = Point3;
-
-    fn add(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
-    }
-}
-
-impl Sub<Vec3> for Point3 {
-    type Output = Point3;
-
-    fn sub(self, rhs: Vec3) -> Self::Output {
-        Self::Output {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
-    }
-}
-
-impl Sub<Point3> for Point3 {
-    type Output = Vec3;
-
-    fn sub(self, rhs: Point3) -> Self::Output {
-        Self::Output {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: 0.0,
-        }
-    }
-}
-
-impl Sub<&Point3> for Point3 {
-    type Output = Vec3;
-
-    fn sub(self, rhs: &Point3) -> Self::Output {
-        Self::Output {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-            w: 0.0,
-        }
-    }
-}
-
-impl AddAssign<Vec3> for Point3 {
-    fn add_assign(&mut self, rhs: Vec3) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-    }
-}
-
-/// A vector in 3D space.
-pub type Vec3 = Coords;
-
-/// A four-dimensional `(x,y,z,w)` tuple  that can represent a point or vector in 3D space.
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
-pub struct Coords {
-    /// The `x` component of this tuple.
-    pub x: f32,
-    /// The `y` component of this tuple.
-    pub y: f32,
-    /// The `z` component of this tuple.
-    pub z: f32,
-    /// The `w` component of this tuple.
-    pub w: f32,
-}
-
-impl From<(f32, f32, f32, f32)> for Coords {
-    fn from((x, y, z, w): (f32, f32, f32, f32)) -> Self {
-        Self { x, y, z, w }
-    }
-}
-
-impl From<Coords> for [f32; 4] {
-    fn from(c: Coords) -> Self {
-        [c.x, c.y, c.z, c.w]
-    }
-}
-
-impl Coords {
-    /// Creates a new tuple from the coordinates of a point in space.
-    pub fn from_point(x: f32, y: f32, z: f32) -> Self {
-        Self { x, y, z, w: 1.0 }
-    }
-
-    /// Creates a new tuple from the coordinates of a vector in space.
-    pub fn from_vector(x: f32, y: f32, z: f32) -> Self {
-        Self { x, y, z, w: 0.0 }
-    }
-
-    /// Checks whether this tuple represents a point, ie. its `w` component is equal to 1.
-    pub fn is_point(&self) -> bool {
-        (self.w - 1.0).abs() <= EPSILON
-    }
-
-    /// Checks whether this tuple represents a vector, ie. its `w` component is equal to 0.
-    pub fn is_vector(&self) -> bool {
-        self.w == 0.0
-    }
-
-    /// Converts `self` into a point.
-    pub fn to_point(mut self) -> Self {
-        self.w = 1.;
-        self
-    }
-
-    /// Converts `self` into a vector.
-    pub fn to_vector(mut self) -> Self {
-        self.w = 0.;
-        self
-    }
-
-    /// Returns true if the absolute difference of all elements between `self` and `other`
-    /// is less than or equal to `max_abs_diff`.
-    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
-        (self.x - other.x).abs() < max_abs_diff
-            && (self.y - other.y).abs() < max_abs_diff
-            && (self.z - other.z).abs() < max_abs_diff
-            && (self.w - other.w).abs() < max_abs_diff
+impl Vec3 {
+    /// Creates a new vector from its coordinates.
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
     }
 
     /// Computes the magnitude of `self`.
     pub fn length(&self) -> f32 {
-        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2) + self.w.powi(2)).sqrt()
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
     }
 
     /// Returns `self` normalized to length 1.0.
@@ -216,20 +56,17 @@ impl Coords {
             x: self.x / self.length(),
             y: self.y / self.length(),
             z: self.z / self.length(),
-            w: self.w / self.length(),
         }
     }
 
     /// Computes the dot product of `self` and `rhs`.
     pub fn dot(&self, rhs: &Self) -> f32 {
-        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z + self.w * rhs.w
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
     }
 
     /// Computes the cross product of `self` and `rhs`.
-    ///
-    /// This operation only makes sense on vectors.
     pub fn cross(&self, rhs: &Self) -> Self {
-        Self::from_vector(
+        Self::new(
             self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
             self.x * rhs.y - self.y * rhs.x,
@@ -237,10 +74,16 @@ impl Coords {
     }
 
     /// Reflects `self` around `n`.
-    ///
-    /// This operation only makes sense on vectors.
     pub fn reflect(&self, n: &Self) -> Self {
-        self - n * 2. * self.dot(n)
+        self - n * 2.0 * self.dot(n)
+    }
+
+    /// Returns true if the absolute difference of all elements between `self` and `other`
+    /// is less than or equal to `max_abs_diff`.
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        (self.x - other.x).abs() < max_abs_diff
+            && (self.y - other.y).abs() < max_abs_diff
+            && (self.z - other.z).abs() < max_abs_diff
     }
 }
 
@@ -288,119 +131,174 @@ macro_rules! impl_ref_bin_op {
     };
 }
 
-macro_rules! impl_ops {
-    ($($t:ty)*) => ($(
-        impl Add for $t {
-            type Output = Self;
-
-            fn add(self, rhs: Self) -> Self::Output {
-                Self::Output {
-                    x: self.x + rhs.x,
-                    y: self.y + rhs.y,
-                    z: self.z + rhs.z,
-                    w: self.w + rhs.w,
-                }
-            }
-        }
-
-        impl_ref_bin_op!(impl Add, add for $t, $t);
-
-        impl Sub for $t {
-            type Output = Self;
-
-            fn sub(self, rhs: Self) -> Self::Output {
-                Self::Output {
-                    x: self.x - rhs.x,
-                    y: self.y - rhs.y,
-                    z: self.z - rhs.z,
-                    w: self.w - rhs.w,
-                }
-            }
-        }
-
-        impl_ref_bin_op!(impl Sub, sub for $t, $t);
-
-        impl Mul<f32> for $t {
+macro_rules! impl_unary_op {
+    (impl $imp:ident[$method:ident, $op:tt] for $t:ty) => {
+        impl $imp for $t {
             type Output = $t;
 
-            fn mul(self, rhs: f32) -> Self::Output {
+            fn $method(self) -> Self::Output {
                 Self::Output {
-                    x: rhs * self.x,
-                    y: rhs * self.y,
-                    z: rhs * self.z,
-                    w: rhs * self.w,
+                    x: $op self.x,
+                    y: $op self.y,
+                    z: $op self.z,
                 }
             }
         }
 
-        impl_ref_bin_op!(impl Mul, mul for $t, f32);
+        impl_ref_unary_op!(impl $imp, $method for $t);
+    };
+}
 
-        impl Div<f32> for $t {
-            type Output = $t;
+macro_rules! impl_bin_op {
+    (impl $imp:ident[$method:ident, $op:tt] for $t:ty : $u:ty => $out:ty) => {
+        impl $imp<$u> for $t {
+            type Output = $out;
 
-            fn div(self, rhs: f32) -> Self::Output {
+            fn $method(self, rhs: $u) -> Self::Output {
                 Self::Output {
-                    x: self.x / rhs,
-                    y: self.y / rhs,
-                    z: self.z / rhs,
-                    w: self.w / rhs,
+                    x: self.x $op rhs.x,
+                    y: self.y $op rhs.y,
+                    z: self.z $op rhs.z,
                 }
             }
         }
 
-        impl_ref_bin_op!(impl Div, div for $t, f32);
+        impl_ref_bin_op!(impl $imp, $method for $t, $u);
+    };
+}
 
-        impl Neg for $t {
-            type Output = Self;
+macro_rules! impl_op_scalar {
+    (impl $imp:ident[$method:ident, $op:tt] for $t:ty : $u:ty => $out:ty) => {
+        impl $imp<$u> for $t {
+            type Output = $out;
 
-            fn neg(self) -> Self::Output {
+            fn $method(self, rhs: $u) -> Self::Output {
                 Self::Output {
-                    x: -self.x,
-                    y: -self.y,
-                    z: -self.z,
-                    w: -self.w,
+                    x: self.x $op rhs,
+                    y: self.y $op rhs,
+                    z: self.z $op rhs,
                 }
             }
         }
 
-        impl_ref_unary_op!(impl Neg, neg for $t);
-    )*)
+        impl_ref_bin_op!(impl $imp, $method for $t, $u);
+    };
 }
 
-impl_ops!(Coords);
+macro_rules! impl_assign_ops {
+    ($($t:ty)*) => {
+        $(
+            impl AddAssign for $t {
+                fn add_assign(&mut self, rhs: Self) {
+                    self.x += rhs.x;
+                    self.y += rhs.y;
+                    self.z += rhs.z;
+                }
+            }
 
-impl AddAssign for Coords {
-    fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-        self.w += rhs.w;
+            impl SubAssign for $t {
+                fn sub_assign(&mut self, rhs: Self) {
+                    self.x -= rhs.x;
+                    self.y -= rhs.y;
+                    self.z -= rhs.z;
+                }
+            }
+
+            impl MulAssign<f32> for $t {
+                fn mul_assign(&mut self, rhs: f32) {
+                    self.x *= rhs;
+                    self.y *= rhs;
+                    self.z *= rhs;
+                }
+            }
+
+            impl DivAssign<f32> for $t {
+                fn div_assign(&mut self, rhs: f32) {
+                    self.x /= rhs;
+                    self.y /= rhs;
+                    self.z /= rhs;
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! impl_conversions {
+    ($t:ty, $w:expr) => {
+        impl From<(f32, f32, f32)> for $t {
+            fn from((x, y, z): (f32, f32, f32)) -> Self {
+                Self { x, y, z }
+            }
+        }
+
+        impl From<[f32; 3]> for $t {
+            fn from([x, y, z]: [f32; 3]) -> Self {
+                Self { x, y, z }
+            }
+        }
+
+        impl From<$t> for (f32, f32, f32) {
+            fn from(p: $t) -> Self {
+                (p.x, p.y, p.z)
+            }
+        }
+
+        impl From<$t> for (f32, f32, f32, f32) {
+            fn from(p: $t) -> Self {
+                (p.x, p.y, p.z, $w)
+            }
+        }
+
+        impl From<$t> for [f32; 3] {
+            fn from(p: $t) -> Self {
+                [p.x, p.y, p.z]
+            }
+        }
+
+        impl From<$t> for [f32; 4] {
+            fn from(p: $t) -> Self {
+                [p.x, p.y, p.z, $w]
+            }
+        }
+    };
+}
+
+impl From<Point3> for Vec3 {
+    fn from(p: Point3) -> Self {
+        Self {
+            x: p.x,
+            y: p.y,
+            z: p.z,
+        }
     }
 }
 
-impl SubAssign for Coords {
-    fn sub_assign(&mut self, rhs: Self) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-        self.w -= rhs.w;
+impl From<Vec3> for Point3 {
+    fn from(v: Vec3) -> Self {
+        Self {
+            x: v.x,
+            y: v.y,
+            z: v.z,
+        }
     }
 }
 
-impl MulAssign<f32> for Coords {
-    fn mul_assign(&mut self, rhs: f32) {
-        self.x *= rhs;
-        self.y *= rhs;
-        self.z *= rhs;
-        self.w *= rhs;
-    }
-}
+impl_bin_op!(impl Add[add, +] for Point3 : Vec3 => Point3);
+impl_bin_op!(impl Sub[sub, -] for Point3 : Vec3 => Point3);
+impl_bin_op!(impl Sub[sub, -] for Point3 : Point3 => Vec3);
 
-impl DivAssign<f32> for Coords {
-    fn div_assign(&mut self, rhs: f32) {
-        self.x /= rhs;
-        self.y /= rhs;
-        self.z /= rhs;
-        self.w /= rhs;
-    }
-}
+impl_bin_op!(impl Add[add, +] for Vec3 : Vec3 => Vec3);
+impl_bin_op!(impl Sub[sub, -] for Vec3 : Vec3 => Vec3);
+
+impl_op_scalar!(impl Mul[mul, *] for Point3 : f32 => Point3);
+impl_op_scalar!(impl Div[div, /] for Point3 : f32 => Point3);
+impl_op_scalar!(impl Mul[mul, *] for Vec3 : f32 => Vec3);
+impl_op_scalar!(impl Div[div, /] for Vec3 : f32 => Vec3);
+
+impl_unary_op!(impl Neg[neg, -] for Point3);
+impl_unary_op!(impl Neg[neg, -] for Vec3);
+
+impl_assign_ops!(Point3 Vec3);
+
+impl_conversions!(Point3, 1.0);
+impl_conversions!(Vec3, 0.0);

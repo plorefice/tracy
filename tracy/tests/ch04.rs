@@ -25,7 +25,7 @@ fn multiplying_by_the_inverse_of_a_translation_matrix() {
 #[test]
 fn translation_does_not_affect_vectors() {
     let t = Matrix::from_translation(5., -3., 2.);
-    let v = Vec3::from_vector(-3., 4., 5.);
+    let v = Vec3::new(-3., 4., 5.);
 
     assert_abs_diff!(t * v, v);
 }
@@ -41,18 +41,18 @@ fn a_scaling_matrix_applied_to_a_point() {
 #[test]
 fn a_scaling_matrix_applied_to_a_vector() {
     let t = Matrix::from_scale(2., 3., 4.);
-    let v = Vec3::from_vector(-4., 6., 8.);
+    let v = Vec3::new(-4., 6., 8.);
 
-    assert_abs_diff!(t * v, Vec3::from_vector(-8., 18., 32.));
+    assert_abs_diff!(t * v, Vec3::new(-8., 18., 32.));
 }
 
 #[test]
 fn multiplying_by_the_inverse_of_a_scaling_matrix() {
     let t = Matrix::from_scale(2., 3., 4.);
     let inv = t.inverse().unwrap();
-    let v = Vec3::from_vector(-4., 6., 8.);
+    let v = Vec3::new(-4., 6., 8.);
 
-    assert_abs_diff!(inv * v, Vec3::from_vector(-2., 2., 2.));
+    assert_abs_diff!(inv * v, Vec3::new(-2., 2., 2.));
 }
 
 #[test]

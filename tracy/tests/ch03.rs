@@ -1,4 +1,4 @@
-use tracy::math::{Coords, Matrix};
+use tracy::math::{Matrix, Point3};
 pub use utils::*;
 
 mod utils;
@@ -118,9 +118,9 @@ fn a_matrix_multiplied_by_a_tuple() {
         ],
     );
 
-    let b = Coords::from((1., 2., 3., 1.));
+    let b = Point3::new(1., 2., 3.);
 
-    assert_abs_diff!(a * b, Coords::from((18., 24., 33., 1.)));
+    assert_abs_diff!(a * b, Point3::new(18., 24., 33.));
 }
 
 #[test]
@@ -137,7 +137,7 @@ fn multiplying_a_matrix_by_the_identity_matrix() {
 
 #[test]
 fn multiplying_the_identity_matrix_by_a_tuple() {
-    let a = Coords::from((1., 2., 3., 4.));
+    let a = Point3::new(1., 2., 3.);
     assert_abs_diff!(Matrix::identity(4) * a, a);
 }
 

@@ -13,53 +13,53 @@ mod utils;
 #[test]
 fn the_normal_on_a_sphere_at_a_point_on_the_x_axis() {
     let n = sphere()
-        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::from_vector(1., 0., 0.)))
+        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::new(1., 0., 0.)))
         .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
-    assert_abs_diff!(n, Vec3::from_vector(1., 0., 0.));
+    assert_abs_diff!(n, Vec3::new(1., 0., 0.));
 }
 
 #[test]
 fn the_normal_on_a_sphere_at_a_point_on_the_y_axis() {
     let n = sphere()
-        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::from_vector(0., 1., 0.)))
+        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::new(0., 1., 0.)))
         .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
-    assert_abs_diff!(n, Vec3::from_vector(0., 1., 0.));
+    assert_abs_diff!(n, Vec3::new(0., 1., 0.));
 }
 
 #[test]
 fn the_normal_on_a_sphere_at_a_point_on_the_z_axis() {
     let n = sphere()
-        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::from_vector(0., 0., 1.)))
+        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::new(0., 0., 1.)))
         .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
-    assert_abs_diff!(n, Vec3::from_vector(0., 0., 1.));
+    assert_abs_diff!(n, Vec3::new(0., 0., 1.));
 }
 
 #[test]
 fn the_normal_on_a_sphere_at_a_nonaxial_point() {
     let v = 1. / f32::sqrt(3.);
     let n = sphere()
-        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::from_vector(v, v, v)))
+        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::new(v, v, v)))
         .hit()
         .map(|hit| hit.normal)
         .unwrap();
 
-    assert_abs_diff!(n, Vec3::from_vector(v, v, v));
+    assert_abs_diff!(n, Vec3::new(v, v, v));
 }
 
 #[test]
 fn the_normal_is_a_normalized_vector() {
     let v = 1. / f32::sqrt(3.);
     let n = sphere()
-        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::from_vector(v, v, v)))
+        .interferences_with_ray(&Ray::new(Point3::default(), Vec3::new(v, v, v)))
         .hit()
         .map(|hit| hit.normal)
         .unwrap();
@@ -72,17 +72,13 @@ fn computing_the_normal_on_a_translated_sphere() {
     let mut s = sphere();
     s.set_transform(Matrix::from_translation(0., 1., 0.));
 
-    let r = Ray::new(
-        Point3::default(),
-        Vec3::from_vector(0., 1.70711, -FRAC_1_SQRT_2),
-    );
+    let r = Ray::new(Point3::default(), Vec3::new(0., 1.70711, -FRAC_1_SQRT_2));
 
     let mut xs = s.interferences_with_ray(&r);
 
-    assert!(xs.any(|x| x.normal.abs_diff_eq(
-        &Vec3::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
-        EPSILON
-    )));
+    assert!(xs.any(|x| x
+        .normal
+        .abs_diff_eq(&Vec3::new(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2), EPSILON)));
 }
 
 #[test]
@@ -92,32 +88,32 @@ fn computing_the_normal_on_a_transformed_sphere() {
 
     let r = Ray::new(
         Point3::default(),
-        Vec3::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
+        Vec3::new(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
     );
 
     let mut xs = s.interferences_with_ray(&r);
 
     assert!(xs.any(|x| x
         .normal
-        .abs_diff_eq(&Vec3::from_vector(0., 0.97014, -0.24254), EPSILON)));
+        .abs_diff_eq(&Vec3::new(0., 0.97014, -0.24254), EPSILON)));
 }
 
 #[test]
 fn reflecting_a_vector_approaching_at_45_deg() {
-    let v = Vec3::from_vector(1., -1., 0.);
-    let n = Vec3::from_vector(0., 1., 0.);
+    let v = Vec3::new(1., -1., 0.);
+    let n = Vec3::new(0., 1., 0.);
     let r = v.reflect(&n);
 
-    assert_abs_diff!(r, Vec3::from_vector(1., 1., 0.));
+    assert_abs_diff!(r, Vec3::new(1., 1., 0.));
 }
 
 #[test]
 fn reflecting_a_vector_off_a_slanted_surface() {
-    let v = Vec3::from_vector(0., -1., 0.);
-    let n = Vec3::from_vector(FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.);
+    let v = Vec3::new(0., -1., 0.);
+    let n = Vec3::new(FRAC_1_SQRT_2, FRAC_1_SQRT_2, 0.);
     let r = v.reflect(&n);
 
-    assert_abs_diff!(r, Vec3::from_vector(1., 0., 0.));
+    assert_abs_diff!(r, Vec3::new(1., 0., 0.));
 }
 
 #[test]
@@ -168,32 +164,32 @@ fn a_sphere_may_be_assigned_a_material() {
 fn lighting_in_several_configurations() {
     for (eyev, normalv, pos, exp) in vec![
         (
-            Vec3::from_vector(0., 0., -1.),
-            Vec3::from_vector(0., 0., -1.),
+            Vec3::new(0., 0., -1.),
+            Vec3::new(0., 0., -1.),
             Point3::new(0., 0., -10.),
             Color::new(1.9, 1.9, 1.9),
         ),
         (
-            Vec3::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
-            Vec3::from_vector(0., 0., -1.),
+            Vec3::new(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
+            Vec3::new(0., 0., -1.),
             Point3::new(0., 0., -10.),
             Color::WHITE,
         ),
         (
-            Vec3::from_vector(0., 0., -1.),
-            Vec3::from_vector(0., 0., -1.),
+            Vec3::new(0., 0., -1.),
+            Vec3::new(0., 0., -1.),
             Point3::new(0., 10., -10.),
             Color::new(0.7364, 0.7364, 0.7364),
         ),
         (
-            Vec3::from_vector(0., -FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
-            Vec3::from_vector(0., 0., -1.),
+            Vec3::new(0., -FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
+            Vec3::new(0., 0., -1.),
             Point3::new(0., 10., -10.),
             Color::new(1.6364, 1.6364, 1.6364),
         ),
         (
-            Vec3::from_vector(0., 0., -1.),
-            Vec3::from_vector(0., 0., -1.),
+            Vec3::new(0., 0., -1.),
+            Vec3::new(0., 0., -1.),
             Point3::new(0., 0., 10.),
             Color::new(0.1, 0.1, 0.1),
         ),

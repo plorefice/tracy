@@ -95,7 +95,7 @@ impl Scene for PlaneShape {
             Matrix::look_at(
                 Point3::new(0.0, 1.5, -5.0),
                 Point3::new(0.0, 1.0, 0.0),
-                Vec3::from_vector(0.0, 1.0, 0.0),
+                Vec3::new(0.0, 1.0, 0.0),
             ),
         );
 

@@ -31,10 +31,10 @@ impl Scene for Trajectory {
         let mut canvas = Canvas::new(width, height);
 
         let mut pos = Point3::new(0., 1., 0.);
-        let mut vel = Vec3::from_vector(1., 1.8, 0.).normalize() * self.velocity;
+        let mut vel = Vec3::new(1., 1.8, 0.).normalize() * self.velocity;
 
-        let gravity = Vec3::from_vector(0., -0.1, 0.);
-        let wind = Vec3::from_vector(-0.01, 0., 0.);
+        let gravity = Vec3::new(0., -0.1, 0.);
+        let wind = Vec3::new(-0.01, 0., 0.);
 
         while pos.y > 0. {
             if pos.y < height as f32 {
@@ -45,8 +45,8 @@ impl Scene for Trajectory {
                 );
             }
 
-            pos += vel;
-            vel += gravity + wind;
+            pos = pos + vel;
+            vel = vel + gravity + wind;
         }
 
         canvas

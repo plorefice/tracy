@@ -87,8 +87,8 @@ fn lighting_with_a_pattern_applied() {
         ..Default::default()
     };
 
-    let eye = Vec3::from_vector(0.0, 0.0, -1.0);
-    let normal = Vec3::from_vector(0.0, 0.0, -1.0);
+    let eye = Vec3::new(0.0, 0.0, -1.0);
+    let normal = Vec3::new(0.0, 0.0, -1.0);
 
     let c1 = rendering::phong_lighting(
         &obj,

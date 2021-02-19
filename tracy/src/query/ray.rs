@@ -19,7 +19,7 @@ pub trait RayCast {
         RayIntersections::from(
             self.intersections_in_local_space(&local_ray)
                 .map(|x| RayIntersection {
-                    normal: (inv.transpose() * x.normal).to_vector().normalize(),
+                    normal: (inv.transpose() * x.normal).normalize(),
                     ..x
                 })
                 .collect::<Vec<_>>()
@@ -42,7 +42,7 @@ impl Ray {
     pub fn new(origin: Point3, dir: Vec3) -> Self {
         Self {
             origin: (origin.x, origin.y, origin.z).into(),
-            dir: Vec3::from_vector(dir.x, dir.y, dir.z),
+            dir: Vec3::new(dir.x, dir.y, dir.z),
         }
     }
 

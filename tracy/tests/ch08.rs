@@ -11,8 +11,8 @@ mod utils;
 
 #[test]
 fn lighting_with_the_surface_in_shadow() {
-    let eye = Vec3::from_vector(0.0, 0.0, -1.0);
-    let normal = Vec3::from_vector(0.0, 0.0, -1.0);
+    let eye = Vec3::new(0.0, 0.0, -1.0);
+    let normal = Vec3::new(0.0, 0.0, -1.0);
     let light = PointLight {
         position: Point3::new(0.0, 0.0, -10.0),
         ..Default::default()
@@ -73,7 +73,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
         Matrix::from_translation(0.0, 0.0, 10.0),
     ));
 
-    let r = Ray::new(Point3::new(0.0, 0.0, 5.0), Vec3::from_vector(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, 5.0), Vec3::new(0.0, 0.0, 1.0));
 
     let interference = w
         .interferences_with_ray(&r)
@@ -90,10 +90,7 @@ fn the_hit_should_offset_the_point() {
 
     w.add(Object::new(Sphere, Matrix::from_translation(0.0, 0.0, 1.0)));
 
-    let r = Ray::new(
-        Point3::new(0.0, 0.0, -5.0),
-        Vec3::from_vector(0.0, 0.0, 1.0),
-    );
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
 
     let interference = w
         .interferences_with_ray(&r)

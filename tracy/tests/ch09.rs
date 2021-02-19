@@ -44,7 +44,7 @@ fn assigning_a_material() {
 fn intersecting_a_scaled_shape_with_a_ray() {
     let r = Ray::new(
         Point3::new(0.0, 0.0, -5.0),
-        Vec3::from_vector(0.0, 0.0, 1.0),
+        Vec3::new(0.0, 0.0, 1.0),
     );
 
     let mut s = test_shape();
@@ -55,14 +55,14 @@ fn intersecting_a_scaled_shape_with_a_ray() {
     let saved_ray = test_shape.saved_ray.lock().unwrap().unwrap();
 
     assert_abs_diff!(saved_ray.origin, Point3::new(0.0, 0.0, -2.5));
-    assert_abs_diff!(saved_ray.dir, Vec3::from_vector(0.0, 0.0, 0.5));
+    assert_abs_diff!(saved_ray.dir, Vec3::new(0.0, 0.0, 0.5));
 }
 
 #[test]
 fn intersecting_a_translated_shape_with_a_ray() {
     let r = Ray::new(
         Point3::new(0.0, 0.0, -5.0),
-        Vec3::from_vector(0.0, 0.0, 1.0),
+        Vec3::new(0.0, 0.0, 1.0),
     );
 
     let mut s = test_shape();
@@ -73,7 +73,7 @@ fn intersecting_a_translated_shape_with_a_ray() {
     let saved_ray = test_shape.saved_ray.lock().unwrap().unwrap();
 
     assert_abs_diff!(saved_ray.origin, Point3::new(-5.0, 0.0, -5.0));
-    assert_abs_diff!(saved_ray.dir, Vec3::from_vector(0.0, 0.0, 1.0));
+    assert_abs_diff!(saved_ray.dir, Vec3::new(0.0, 0.0, 1.0));
 }
 
 #[test]
@@ -83,12 +83,12 @@ fn computing_the_normal_on_a_translated_shape() {
 
     let r = Ray::new(
         Point3::new(0.0, 0.0, 0.0),
-        Vec3::from_vector(0.0, 1.0 + FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
+        Vec3::new(0.0, 1.0 + FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
     );
 
     assert_abs_diff!(
         s.interferences_with_ray(&r).next().unwrap().normal,
-        Vec3::from_vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
+        Vec3::new(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2)
     );
 }
 
@@ -99,12 +99,12 @@ fn computing_the_normal_on_a_transformed_shape() {
 
     let r = Ray::new(
         Point3::new(0.0, 0.0, 0.0),
-        Vec3::from_vector(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
+        Vec3::new(0.0, FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
     );
 
     assert_abs_diff!(
         s.interferences_with_ray(&r).next().unwrap().normal,
-        Vec3::from_vector(0.0, 0.97014, -0.2425)
+        Vec3::new(0.0, 0.97014, -0.2425)
     );
 }
 
@@ -124,7 +124,7 @@ fn the_normal_of_a_plane_is_constant_everywhere() {
 
         assert_abs_diff!(
             p.interferences_with_ray(&r).next().unwrap().normal,
-            Vec3::from_vector(0.0, 1.0, 0.0)
+            Vec3::new(0.0, 1.0, 0.0)
         );
     }
 }
@@ -134,7 +134,7 @@ fn intersect_with_a_ray_parallel_to_the_plane() {
     let p = plane();
     let r = Ray::new(
         Point3::new(0.0, 10.0, 0.0),
-        Vec3::from_vector(0.0, 0.0, 1.0),
+        Vec3::new(0.0, 0.0, 1.0),
     );
     assert_eq!(p.interferences_with_ray(&r).count(), 0);
 }
@@ -142,7 +142,7 @@ fn intersect_with_a_ray_parallel_to_the_plane() {
 #[test]
 fn intersect_with_a_coplanar_ray() {
     let p = plane();
-    let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::from_vector(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
     assert_eq!(p.interferences_with_ray(&r).count(), 0);
 }
 
@@ -151,7 +151,7 @@ fn a_ray_intersecting_a_plane_from_above() {
     let p = plane();
     let r = Ray::new(
         Point3::new(0.0, 1.0, 0.0),
-        Vec3::from_vector(0.0, -1.0, 0.0),
+        Vec3::new(0.0, -1.0, 0.0),
     );
 
     let xs = p.interferences_with_ray(&r).collect::<Vec<_>>();
@@ -165,7 +165,7 @@ fn a_ray_intersecting_a_plane_from_below() {
     let p = plane();
     let r = Ray::new(
         Point3::new(0.0, -1.0, 0.0),
-        Vec3::from_vector(0.0, 1.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
     );
 
     let xs = p.interferences_with_ray(&r).collect::<Vec<_>>();
