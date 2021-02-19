@@ -30,7 +30,7 @@ impl Scene for Trajectory {
     fn render(&self, width: u32, height: u32) -> Canvas {
         let mut canvas = Canvas::new(width, height);
 
-        let mut pos = Point3::from_point(0., 1., 0.);
+        let mut pos = Point3::new(0., 1., 0.);
         let mut vel = Vec3::from_vector(1., 1.8, 0.).normalize() * self.velocity;
 
         let gravity = Vec3::from_vector(0., -0.1, 0.);

@@ -22,7 +22,7 @@ pub struct PointLight {
 impl Default for PointLight {
     fn default() -> Self {
         Self {
-            position: Point3::from_point(0.0, 0.0, 0.0),
+            position: (0.0, 0.0, 0.0).into(),
             color: Color::WHITE,
             intensity: 1.0,
             casts_shadows: true,

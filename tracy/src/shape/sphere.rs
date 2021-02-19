@@ -15,7 +15,7 @@ impl Shape for Sphere {}
 
 impl RayCast for Sphere {
     fn intersections_in_local_space(&self, ray: &Ray) -> RayIntersections {
-        let distance = ray.origin - Point3::from_point(0., 0., 0.);
+        let distance = ray.origin - Point3::new(0.0, 0.0, 0.0);
 
         let a = ray.dir.dot(&ray.dir);
         let b = 2. * ray.dir.dot(&distance);
@@ -33,7 +33,7 @@ impl RayCast for Sphere {
                 (-b + discriminant.sqrt()) / (2. * a),
             ]
             .iter()
-            .map(|&toi| RayIntersection::new(toi, ray.origin + ray.dir * toi))
+            .map(|&toi| RayIntersection::new(toi, (ray.origin + ray.dir * toi).into()))
             .collect::<Vec<_>>()
             .into_iter(),
         )

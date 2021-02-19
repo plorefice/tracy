@@ -349,6 +349,62 @@ impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
     }
 }
 
+impl Mul<Point3> for Matrix {
+    type Output = Point3;
+
+    fn mul(self, rhs: Point3) -> Self::Output {
+        let coords = &self * <Point3 as Into<Coords>>::into(rhs);
+
+        Self::Output {
+            x: coords.x,
+            y: coords.y,
+            z: coords.z,
+        }
+    }
+}
+
+impl Mul<Point3> for &Matrix {
+    type Output = Point3;
+
+    fn mul(self, rhs: Point3) -> Self::Output {
+        let coords = self * <Point3 as Into<Coords>>::into(rhs);
+
+        Self::Output {
+            x: coords.x,
+            y: coords.y,
+            z: coords.z,
+        }
+    }
+}
+
+impl Mul<&Point3> for Matrix {
+    type Output = Point3;
+
+    fn mul(self, rhs: &Point3) -> Self::Output {
+        let coords = self * <Point3 as Into<Coords>>::into(*rhs);
+
+        Self::Output {
+            x: coords.x,
+            y: coords.y,
+            z: coords.z,
+        }
+    }
+}
+
+impl Mul<&Point3> for &Matrix {
+    type Output = Point3;
+
+    fn mul(self, rhs: &Point3) -> Self::Output {
+        let coords = self * <Point3 as Into<Coords>>::into(*rhs);
+
+        Self::Output {
+            x: coords.x,
+            y: coords.y,
+            z: coords.z,
+        }
+    }
+}
+
 impl Mul<Coords> for Matrix {
     type Output = Coords;
 

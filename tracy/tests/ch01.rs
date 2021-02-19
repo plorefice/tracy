@@ -27,8 +27,11 @@ fn a_tuple_with_w_equal_to_zero_is_a_vector() {
 
 #[test]
 fn point_creates_tuples_with_w_equal_to_one() {
-    let p = Point3::from_point(4., -4., 3.);
-    assert_abs_diff!(p, Coords::from((4., -4., 3., 1.)));
+    let p = Point3::new(4., -4., 3.);
+    assert_abs_diff!(
+        Coords::from(p),
+        Coords::from((4., -4., 3., 1.))
+    );
 }
 
 #[test]
@@ -46,16 +49,16 @@ fn adding_two_tuples() {
 
 #[test]
 fn subtracting_two_points() {
-    let p1 = Point3::from_point(3., 2., 1.);
-    let p2 = Point3::from_point(5., 6., 7.);
+    let p1 = Point3::new(3., 2., 1.);
+    let p2 = Point3::new(5., 6., 7.);
     assert_abs_diff!(p1 - p2, Vec3::from_vector(-2., -4., -6.));
 }
 
 #[test]
 fn subtracting_a_vector_from_a_point() {
-    let p = Point3::from_point(3., 2., 1.);
+    let p = Point3::new(3., 2., 1.);
     let v = Vec3::from_vector(5., 6., 7.);
-    assert_abs_diff!(p - v, Point3::from_point(-2., -4., -6.));
+    assert_abs_diff!(p - v, Point3::new(-2., -4., -6.));
 }
 
 #[test]

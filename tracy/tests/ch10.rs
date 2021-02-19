@@ -25,7 +25,7 @@ fn a_stripe_pattern_is_constant_in_y() {
 
     for y in 0..=2 {
         assert_eq!(
-            pattern.color_at(&Point3::from_point(0.0, y as f32, 0.0)),
+            pattern.color_at(&Point3::new(0.0, y as f32, 0.0)),
             Color::WHITE
         );
     }
@@ -40,7 +40,7 @@ fn a_stripe_pattern_is_constant_in_z() {
 
     for z in 0..=2 {
         assert_eq!(
-            pattern.color_at(&Point3::from_point(0.0, 0.0, z as f32)),
+            pattern.color_at(&Point3::new(0.0, 0.0, z as f32)),
             Color::WHITE
         );
     }
@@ -61,7 +61,7 @@ fn a_stripe_pattern_alternates_in_x() {
         (-1.0, Color::BLACK),
         (-1.1, Color::WHITE),
     ] {
-        assert_eq!(pattern.color_at(&Point3::from_point(*x, 0.0, 0.0)), *exp);
+        assert_eq!(pattern.color_at(&Point3::new(*x, 0.0, 0.0)), *exp);
     }
 }
 
@@ -83,7 +83,7 @@ fn lighting_with_a_pattern_applied() {
     );
 
     let light = PointLight {
-        position: Point3::from_point(0.0, 0.0, 10.0),
+        position: Point3::new(0.0, 0.0, 10.0),
         ..Default::default()
     };
 
@@ -93,7 +93,7 @@ fn lighting_with_a_pattern_applied() {
     let c1 = rendering::phong_lighting(
         &obj,
         &light,
-        &Point3::from_point(0.9, 0.0, 0.0),
+        &Point3::new(0.9, 0.0, 0.0),
         &eye,
         &normal,
         false,
@@ -102,7 +102,7 @@ fn lighting_with_a_pattern_applied() {
     let c2 = rendering::phong_lighting(
         &obj,
         &light,
-        &Point3::from_point(1.1, 0.0, 0.0),
+        &Point3::new(1.1, 0.0, 0.0),
         &eye,
         &normal,
         false,
@@ -132,7 +132,7 @@ fn stripes_with_an_object_transformation() {
     let c = rendering::phong_lighting(
         &obj,
         &PointLight::default(),
-        &Point3::from_point(1.5, 0.0, 0.0),
+        &Point3::new(1.5, 0.0, 0.0),
         &Vec3::default(),
         &Vec3::default(),
         false,
@@ -164,7 +164,7 @@ fn stripes_with_a_pattern_transformation() {
     let c = rendering::phong_lighting(
         &obj,
         &PointLight::default(),
-        &Point3::from_point(1.5, 0.0, 0.0),
+        &Point3::new(1.5, 0.0, 0.0),
         &Vec3::default(),
         &Vec3::default(),
         false,
@@ -196,7 +196,7 @@ fn stripes_with_both_an_object_and_a_pattern_transformation() {
     let c = rendering::phong_lighting(
         &obj,
         &PointLight::default(),
-        &Point3::from_point(2.5, 0.0, 0.0),
+        &Point3::new(2.5, 0.0, 0.0),
         &Vec3::default(),
         &Vec3::default(),
         false,
@@ -218,7 +218,7 @@ fn a_linear_gradient_linearly_interpolates_between_colors() {
         (0.5, Color::new(0.5, 0.5, 0.5)),
         (0.75, Color::new(0.25, 0.25, 0.25)),
     ] {
-        assert_eq!(pattern.color_at(&Point3::from_point(x, 0.0, 0.0)), exp);
+        assert_eq!(pattern.color_at(&Point3::new(x, 0.0, 0.0)), exp);
     }
 }
 
@@ -230,10 +230,10 @@ fn a_radial_gradient_linearly_interpolates_in_both_x_and_z() {
     });
 
     for &(p, exp) in &[
-        (Point3::from_point(0.0, 0.0, 0.0), 1.0),
-        (Point3::from_point(0.25, 0.0, 0.0), 0.75),
-        (Point3::from_point(0.0, 0.0, 0.5), 0.5),
-        (Point3::from_point(0.75, 0.0, 0.0), 0.25),
+        (Point3::new(0.0, 0.0, 0.0), 1.0),
+        (Point3::new(0.25, 0.0, 0.0), 0.75),
+        (Point3::new(0.0, 0.0, 0.5), 0.5),
+        (Point3::new(0.75, 0.0, 0.0), 0.25),
     ] {
         assert_eq!(pattern.color_at(&p), Color::new(exp, exp, exp));
     }
@@ -247,10 +247,10 @@ fn a_ring_should_extend_in_both_x_and_z() {
     });
 
     for &(p, exp) in &[
-        (Point3::from_point(0.0, 0.0, 0.0), Color::WHITE),
-        (Point3::from_point(1.0, 0.0, 0.0), Color::BLACK),
-        (Point3::from_point(0.0, 0.0, 1.0), Color::BLACK),
-        (Point3::from_point(0.708, 0.0, 0.708), Color::BLACK),
+        (Point3::new(0.0, 0.0, 0.0), Color::WHITE),
+        (Point3::new(1.0, 0.0, 0.0), Color::BLACK),
+        (Point3::new(0.0, 0.0, 1.0), Color::BLACK),
+        (Point3::new(0.708, 0.0, 0.708), Color::BLACK),
     ] {
         assert_eq!(pattern.color_at(&p), exp);
     }
@@ -268,7 +268,7 @@ fn checkers_should_repeat_in_x() {
         (0.99, Color::WHITE),
         (1.01, Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(&Point3::from_point(x, 0.0, 0.0)), exp);
+        assert_eq!(pattern.color_at(&Point3::new(x, 0.0, 0.0)), exp);
     }
 }
 
@@ -284,7 +284,7 @@ fn checkers_should_repeat_in_y() {
         (0.99, Color::WHITE),
         (1.01, Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(&Point3::from_point(0.0, y, 0.0)), exp);
+        assert_eq!(pattern.color_at(&Point3::new(0.0, y, 0.0)), exp);
     }
 }
 
@@ -300,6 +300,6 @@ fn checkers_should_repeat_in_z() {
         (0.99, Color::WHITE),
         (1.01, Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(&Point3::from_point(0.0, 0.0, z)), exp);
+        assert_eq!(pattern.color_at(&Point3::new(0.0, 0.0, z)), exp);
     }
 }

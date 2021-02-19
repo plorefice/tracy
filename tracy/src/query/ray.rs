@@ -41,7 +41,7 @@ impl Ray {
     /// Creates a ray given its starting point and direction.
     pub fn new(origin: Point3, dir: Vec3) -> Self {
         Self {
-            origin: Point3::from_point(origin.x, origin.y, origin.z),
+            origin: (origin.x, origin.y, origin.z).into(),
             dir: Vec3::from_vector(dir.x, dir.y, dir.z),
         }
     }

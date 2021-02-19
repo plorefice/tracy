@@ -9,7 +9,7 @@ mod utils;
 
 #[test]
 fn creating_and_querying_a_ray() {
-    let origin = Point3::from_point(1., 2., 3.);
+    let origin = Point3::new(1., 2., 3.);
     let direction = Vec3::from_vector(4., 5., 6.);
     let r = Ray::new(origin, direction);
 
@@ -19,49 +19,37 @@ fn creating_and_querying_a_ray() {
 
 #[test]
 fn computing_a_point_from_a_distance() {
-    let r = Ray::new(
-        Point3::from_point(2., 3., 4.),
-        Vec3::from_vector(1., 0., 0.),
-    );
+    let r = Ray::new(Point3::new(2., 3., 4.), Vec3::from_vector(1., 0., 0.));
 
-    assert_abs_diff!(r.point_at(0.), Point3::from_point(2., 3., 4.));
-    assert_abs_diff!(r.point_at(1.), Point3::from_point(3., 3., 4.));
-    assert_abs_diff!(r.point_at(-1.), Point3::from_point(1., 3., 4.));
-    assert_abs_diff!(r.point_at(2.5), Point3::from_point(4.5, 3., 4.));
+    assert_abs_diff!(r.point_at(0.), Point3::new(2., 3., 4.));
+    assert_abs_diff!(r.point_at(1.), Point3::new(3., 3., 4.));
+    assert_abs_diff!(r.point_at(-1.), Point3::new(1., 3., 4.));
+    assert_abs_diff!(r.point_at(2.5), Point3::new(4.5, 3., 4.));
 }
 
 #[test]
 fn translating_a_ray() {
-    let r = Ray::new(
-        Point3::from_point(1., 2., 3.),
-        Vec3::from_vector(0., 1., 0.),
-    );
+    let r = Ray::new(Point3::new(1., 2., 3.), Vec3::from_vector(0., 1., 0.));
     let m = Matrix::from_translation(3., 4., 5.);
     let r2 = r.transform_by(&m);
 
-    assert_abs_diff!(r2.origin, Point3::from_point(4., 6., 8.));
+    assert_abs_diff!(r2.origin, Point3::new(4., 6., 8.));
     assert_abs_diff!(r2.dir, Vec3::from_vector(0., 1., 0.));
 }
 
 #[test]
 fn scaling_a_ray() {
-    let r = Ray::new(
-        Point3::from_point(1., 2., 3.),
-        Vec3::from_vector(0., 1., 0.),
-    );
+    let r = Ray::new(Point3::new(1., 2., 3.), Vec3::from_vector(0., 1., 0.));
     let m = Matrix::from_scale(2., 3., 4.);
     let r2 = r.transform_by(&m);
 
-    assert_abs_diff!(r2.origin, Point3::from_point(2., 6., 12.));
+    assert_abs_diff!(r2.origin, Point3::new(2., 6., 12.));
     assert_abs_diff!(r2.dir, Vec3::from_vector(0., 3., 0.));
 }
 
 #[test]
 fn a_ray_intersects_a_sphere_at_two_points() {
-    let r = Ray::new(
-        Point3::from_point(0., 0., -5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 0., -5.), Vec3::from_vector(0., 0., 1.));
 
     let xs = tois_with_default_sphere(&r);
 
@@ -72,10 +60,7 @@ fn a_ray_intersects_a_sphere_at_two_points() {
 
 #[test]
 fn a_ray_intersects_a_sphere_at_a_tangent() {
-    let r = Ray::new(
-        Point3::from_point(0., 1., -5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 1., -5.), Vec3::from_vector(0., 0., 1.));
 
     let xs = tois_with_default_sphere(&r);
 
@@ -86,10 +71,7 @@ fn a_ray_intersects_a_sphere_at_a_tangent() {
 
 #[test]
 fn a_ray_misses_a_sphere() {
-    let r = Ray::new(
-        Point3::from_point(0., 2., -5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 2., -5.), Vec3::from_vector(0., 0., 1.));
 
     let xs = tois_with_default_sphere(&r);
 
@@ -98,10 +80,7 @@ fn a_ray_misses_a_sphere() {
 
 #[test]
 fn a_ray_originates_inside_a_sphere() {
-    let r = Ray::new(
-        Point3::from_point(0., 0., 0.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 0., 0.), Vec3::from_vector(0., 0., 1.));
 
     let xs = tois_with_default_sphere(&r);
 
@@ -112,10 +91,7 @@ fn a_ray_originates_inside_a_sphere() {
 
 #[test]
 fn a_sphere_is_behind_a_ray() {
-    let r = Ray::new(
-        Point3::from_point(0., 0., 5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 0., 5.), Vec3::from_vector(0., 0., 1.));
 
     let xs = tois_with_default_sphere(&r);
 
@@ -140,10 +116,7 @@ fn changing_a_sphere_transformation() {
 
 #[test]
 fn intersecting_a_scaled_sphere_with_a_ray() {
-    let r = Ray::new(
-        Point3::from_point(0., 0., -5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 0., -5.), Vec3::from_vector(0., 0., 1.));
 
     let mut s = sphere();
     s.set_transform(Matrix::from_scale(2., 2., 2.));
@@ -160,10 +133,7 @@ fn intersecting_a_scaled_sphere_with_a_ray() {
 
 #[test]
 fn intersecting_a_translated_sphere_with_a_ray() {
-    let r = Ray::new(
-        Point3::from_point(0., 0., -5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 0., -5.), Vec3::from_vector(0., 0., 1.));
 
     let mut s = sphere();
     s.set_transform(Matrix::from_translation(5., 0., 0.));
@@ -201,10 +171,7 @@ fn aggregating_intersections() {
 
 #[test]
 fn intersect_sets_the_object_on_the_intersection() {
-    let r = Ray::new(
-        Point3::from_point(0., 0., -5.),
-        Vec3::from_vector(0., 0., 1.),
-    );
+    let r = Ray::new(Point3::new(0., 0., -5.), Vec3::from_vector(0., 0., 1.));
 
     assert_eq!(sphere().interferences_with_ray(&r).count(), 2);
 }

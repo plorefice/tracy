@@ -104,7 +104,7 @@ impl Scene for ThreeSpheres {
         ));
 
         world.set_light(PointLight {
-            position: Point3::from_point(-10.0, 10.0, -10.0),
+            position: Point3::new(-10.0, 10.0, -10.0),
             casts_shadows: false,
             ..Default::default()
         });
@@ -114,8 +114,8 @@ impl Scene for ThreeSpheres {
             height,
             self.fov.to_radians(),
             Matrix::look_at(
-                Point3::from_point(0.0, 1.5, -5.0),
-                Point3::from_point(0.0, 1.0, 0.0),
+                Point3::new(0.0, 1.5, -5.0),
+                Point3::new(0.0, 1.0, 0.0),
                 Vec3::from_vector(0.0, 1.0, 0.0),
             ),
         );

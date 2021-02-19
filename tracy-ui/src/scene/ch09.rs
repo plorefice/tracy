@@ -84,7 +84,7 @@ impl Scene for PlaneShape {
         ));
 
         world.set_light(PointLight {
-            position: Point3::from_point(-10.0, 10.0, -10.0),
+            position: Point3::new(-10.0, 10.0, -10.0),
             ..Default::default()
         });
 
@@ -93,8 +93,8 @@ impl Scene for PlaneShape {
             height,
             PI / 3.0,
             Matrix::look_at(
-                Point3::from_point(0.0, 1.5, -5.0),
-                Point3::from_point(0.0, 1.0, 0.0),
+                Point3::new(0.0, 1.5, -5.0),
+                Point3::new(0.0, 1.0, 0.0),
                 Vec3::from_vector(0.0, 1.0, 0.0),
             ),
         );

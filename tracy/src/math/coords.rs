@@ -5,7 +5,135 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use super::EPSILON;
 
 /// A point in 3D space.
-pub type Point3 = Coords;
+#[derive(Debug, Default, Clone, Copy, PartialEq)]
+pub struct Point3 {
+    /// The `x` component of this tuple.
+    pub x: f32,
+    /// The `y` component of this tuple.
+    pub y: f32,
+    /// The `z` component of this tuple.
+    pub z: f32,
+}
+
+impl From<(f32, f32, f32)> for Point3 {
+    fn from((x, y, z): (f32, f32, f32)) -> Self {
+        Self { x, y, z }
+    }
+}
+
+impl From<[f32; 3]> for Point3 {
+    fn from([x, y, z]: [f32; 3]) -> Self {
+        Self { x, y, z }
+    }
+}
+
+impl From<Point3> for (f32, f32, f32) {
+    fn from(p: Point3) -> Self {
+        (p.x, p.y, p.z)
+    }
+}
+
+impl From<Point3> for (f32, f32, f32, f32) {
+    fn from(p: Point3) -> Self {
+        (p.x, p.y, p.z, 1.0)
+    }
+}
+
+impl From<Point3> for [f32; 3] {
+    fn from(p: Point3) -> Self {
+        [p.x, p.y, p.z]
+    }
+}
+
+impl From<Point3> for [f32; 4] {
+    fn from(p: Point3) -> Self {
+        [p.x, p.y, p.z, 1.0]
+    }
+}
+
+impl From<Point3> for Coords {
+    fn from(p: Point3) -> Self {
+        Self {
+            x: p.x,
+            y: p.y,
+            z: p.z,
+            w: 1.0,
+        }
+    }
+}
+
+impl Point3 {
+    /// Creates a new point from its coordinates.
+    pub fn new(x: f32, y: f32, z: f32) -> Self {
+        Self { x, y, z }
+    }
+
+    /// Returns true if the absolute difference of all elements between `self` and `other`
+    /// is less than or equal to `max_abs_diff`.
+    pub fn abs_diff_eq(&self, other: &Self, max_abs_diff: f32) -> bool {
+        (self.x - other.x).abs() < max_abs_diff
+            && (self.y - other.y).abs() < max_abs_diff
+            && (self.z - other.z).abs() < max_abs_diff
+    }
+}
+
+impl Add<Vec3> for Point3 {
+    type Output = Point3;
+
+    fn add(self, rhs: Vec3) -> Self::Output {
+        Self::Output {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+            z: self.z + rhs.z,
+        }
+    }
+}
+
+impl Sub<Vec3> for Point3 {
+    type Output = Point3;
+
+    fn sub(self, rhs: Vec3) -> Self::Output {
+        Self::Output {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+        }
+    }
+}
+
+impl Sub<Point3> for Point3 {
+    type Output = Vec3;
+
+    fn sub(self, rhs: Point3) -> Self::Output {
+        Self::Output {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: 0.0,
+        }
+    }
+}
+
+impl Sub<&Point3> for Point3 {
+    type Output = Vec3;
+
+    fn sub(self, rhs: &Point3) -> Self::Output {
+        Self::Output {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+            z: self.z - rhs.z,
+            w: 0.0,
+        }
+    }
+}
+
+impl AddAssign<Vec3> for Point3 {
+    fn add_assign(&mut self, rhs: Vec3) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+    }
+}
 
 /// A vector in 3D space.
 pub type Vec3 = Coords;

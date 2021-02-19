@@ -123,7 +123,7 @@ fn reflecting_a_vector_off_a_slanted_surface() {
 #[test]
 fn a_point_light_has_a_position_and_intensity() {
     let color = Color::WHITE;
-    let position = Point3::from_point(0., 0., 0.);
+    let position = Point3::new(0., 0., 0.);
 
     let light = PointLight {
         position,
@@ -170,31 +170,31 @@ fn lighting_in_several_configurations() {
         (
             Vec3::from_vector(0., 0., -1.),
             Vec3::from_vector(0., 0., -1.),
-            Point3::from_point(0., 0., -10.),
+            Point3::new(0., 0., -10.),
             Color::new(1.9, 1.9, 1.9),
         ),
         (
             Vec3::from_vector(0., FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
             Vec3::from_vector(0., 0., -1.),
-            Point3::from_point(0., 0., -10.),
+            Point3::new(0., 0., -10.),
             Color::WHITE,
         ),
         (
             Vec3::from_vector(0., 0., -1.),
             Vec3::from_vector(0., 0., -1.),
-            Point3::from_point(0., 10., -10.),
+            Point3::new(0., 10., -10.),
             Color::new(0.7364, 0.7364, 0.7364),
         ),
         (
             Vec3::from_vector(0., -FRAC_1_SQRT_2, -FRAC_1_SQRT_2),
             Vec3::from_vector(0., 0., -1.),
-            Point3::from_point(0., 10., -10.),
+            Point3::new(0., 10., -10.),
             Color::new(1.6364, 1.6364, 1.6364),
         ),
         (
             Vec3::from_vector(0., 0., -1.),
             Vec3::from_vector(0., 0., -1.),
-            Point3::from_point(0., 0., 10.),
+            Point3::new(0., 0., 10.),
             Color::new(0.1, 0.1, 0.1),
         ),
     ]
@@ -208,7 +208,7 @@ fn lighting_in_several_configurations() {
         let res = rendering::phong_lighting(
             &sphere(),
             &light,
-            &Point3::from_point(0., 0., 0.),
+            &Point3::new(0., 0., 0.),
             &eyev,
             &normalv,
             false,

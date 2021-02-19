@@ -22,7 +22,7 @@ impl RayCast for TestShape {
         RayIntersections::from(
             vec![RayIntersection {
                 toi: 0.,
-                normal: ray.origin + ray.dir,
+                normal: (ray.origin + ray.dir).into(),
             }]
             .into_iter(),
         )
