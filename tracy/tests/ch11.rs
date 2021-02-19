@@ -188,3 +188,45 @@ fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
     assert_f32!(s.material().transparency, 1.0);
     assert_f32!(s.material().refractive_index, 1.5);
 }
+
+#[test]
+fn finding_n1_and_n2_at_various_intersections() {
+    let mut world = World::new();
+
+    let mut a = glass_sphere();
+    a.set_transform(MatrixN::from_scale(2.0, 2.0, 2.0));
+    a.material_mut().refractive_index = 1.5;
+    world.add(a);
+
+    let mut b = glass_sphere();
+    b.set_transform(MatrixN::from_translation(0.0, 0.0, -0.25));
+    b.material_mut().refractive_index = 2.0;
+    world.add(b);
+
+    let mut c = glass_sphere();
+    c.set_transform(MatrixN::from_translation(0.0, 0.0, 0.25));
+    c.material_mut().refractive_index = 2.5;
+    world.add(c);
+
+    let ray = Ray::new(
+        Point::from_point(0.0, 0.0, -4.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let mut xs = world.interferences_with_ray(&ray);
+
+    for &(n1, n2) in [
+        (1.0, 1.5),
+        (1.5, 2.0),
+        (2.0, 2.5),
+        (2.5, 2.5),
+        (2.5, 1.5),
+        (1.5, 1.0),
+    ]
+    .iter()
+    {
+        let x = xs.next().unwrap();
+        assert_f32!(x.n1, n1);
+        assert_f32!(x.n2, n2);
+    }
+}

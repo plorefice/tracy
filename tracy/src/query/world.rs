@@ -99,6 +99,7 @@ impl World {
     pub fn interferences_with_ray<'a>(&'a self, ray: &'a Ray) -> InterferencesWithRay {
         InterferencesWithRay {
             ray,
+            world: self,
             inner: self
                 .handles()
                 .map(move |hnd| {
@@ -111,6 +112,7 @@ impl World {
                 })
                 .flat_map(|(obj, intersections)| intersections.map(move |i| (obj, i)))
                 .sorted_unstable_by(|(_, x1), (_, x2)| x1.toi.partial_cmp(&x2.toi).unwrap()),
+            containers: Vec::with_capacity(8),
         }
     }
 
@@ -202,23 +204,36 @@ pub struct Interference {
     pub reflect: Vector,
     /// Whether this intersection occurred on the object's inside.
     pub inside: bool,
+    /// Refractive index of the material being exited by this intersection.
+    pub n1: f32,
+    /// Refractive index of the material being entered by this intersection.
+    pub n2: f32,
 }
 
 /// Iterator over all the objects in the world that intersect a specific ray.
 #[derive(Debug, Clone)]
-pub struct InterferencesWithRay<'a> {
+pub struct InterferencesWithRay<'a, 'b> {
     ray: &'a Ray,
+    world: &'b World,
     inner: IntoIter<(ObjectHandle, RayIntersection)>,
+    containers: Vec<ObjectHandle>,
 }
 
-impl<'a> InterferencesWithRay<'a> {
+impl<'a> InterferencesWithRay<'a, '_> {
     /// Returns the first intersection to have hit an object in the world.
     pub fn hit(mut self) -> Option<Interference> {
         self.find(|i| i.toi >= 0.)
     }
+
+    /// Returns the refractive index of the last entered object, or `None` if no objects have been
+    /// entered by this iterator yet.
+    fn get_current_refractive_index(&self) -> Option<f32> {
+        let hnd = self.containers.last()?;
+        Some(self.world.get(*hnd)?.material().refractive_index)
+    }
 }
 
-impl Iterator for InterferencesWithRay<'_> {
+impl Iterator for InterferencesWithRay<'_, '_> {
     type Item = Interference;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -229,6 +244,16 @@ impl Iterator for InterferencesWithRay<'_> {
             let reflect = self.ray.dir.reflect(&normal);
             let point = self.ray.point_at(i.toi);
 
+            let n1 = self.get_current_refractive_index().unwrap_or(1.0);
+
+            if self.containers.contains(&handle) {
+                self.containers.retain(|elem| elem != &handle);
+            } else {
+                self.containers.push(handle);
+            }
+
+            let n2 = self.get_current_refractive_index().unwrap_or(1.0);
+
             Interference {
                 handle,
                 toi: i.toi,
@@ -238,6 +263,8 @@ impl Iterator for InterferencesWithRay<'_> {
                 normal,
                 reflect,
                 inside,
+                n1,
+                n2,
             }
         })
     }
