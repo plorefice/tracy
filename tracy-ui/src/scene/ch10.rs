@@ -84,12 +84,29 @@ impl Scene for Patterns {
             Sphere,
             MatrixN::from_translation(1.0, 0.5, -1.0) * MatrixN::from_scale(0.5, 0.5, 0.5),
             Material {
-                pattern: Pattern::Gradient {
+                pattern: Pattern::LinearGradient {
                     ca: Color::new(0.8, 0.0, 0.0),
                     cb: Color::new(0.0, 0.8, 0.0),
                 },
                 transform: MatrixN::from_translation(1.0, 0.0, 0.0)
                     * MatrixN::from_scale(2.0, 2.0, 2.0),
+                specular: 0.0,
+                ..Default::default()
+            },
+        ));
+
+        // Middle sphere
+        world.add(Object::new_with_material(
+            Sphere,
+            MatrixN::from_translation(0.0, 0.4, -2.0) * MatrixN::from_scale(0.4, 0.4, 0.4),
+            Material {
+                pattern: Pattern::RadialGradient {
+                    ca: Color::new(0.0, 0.8, 1.0),
+                    cb: Color::new(0.0, 0.5, 0.7),
+                },
+                transform: MatrixN::from_rotation_y(PI / 4.0)
+                    * MatrixN::from_rotation_x(-PI / 2.0)
+                    * MatrixN::from_scale(0.21, 0.21, 0.21),
                 specular: 0.0,
                 ..Default::default()
             },

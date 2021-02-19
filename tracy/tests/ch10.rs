@@ -202,19 +202,36 @@ fn stripes_with_both_an_object_and_a_pattern_transformation() {
 }
 
 #[test]
-fn a_gradient_linearly_interpolates_between_colors() {
-    let pattern = Pattern::Gradient {
+fn a_linear_gradient_linearly_interpolates_between_colors() {
+    let pattern = Pattern::LinearGradient {
         ca: Color::WHITE,
         cb: Color::BLACK,
     };
 
-    for (x, exp) in &[
+    for &(x, exp) in &[
         (0.0, Color::WHITE),
         (0.25, Color::new(0.75, 0.75, 0.75)),
         (0.5, Color::new(0.5, 0.5, 0.5)),
         (0.75, Color::new(0.25, 0.25, 0.25)),
     ] {
-        assert_eq!(pattern.color_at(&Point::from_point(*x, 0.0, 0.0)), *exp);
+        assert_eq!(pattern.color_at(&Point::from_point(x, 0.0, 0.0)), exp);
+    }
+}
+
+#[test]
+fn a_radial_gradient_linearly_interpolates_in_both_x_and_z() {
+    let pattern = Pattern::RadialGradient {
+        ca: Color::WHITE,
+        cb: Color::BLACK,
+    };
+
+    for &(p, exp) in &[
+        (Point::from_point(0.0, 0.0, 0.0), 1.0),
+        (Point::from_point(0.25, 0.0, 0.0), 0.75),
+        (Point::from_point(0.0, 0.0, 0.5), 0.5),
+        (Point::from_point(0.75, 0.0, 0.0), 0.25),
+    ] {
+        assert_eq!(pattern.color_at(&p), Color::new(exp, exp, exp));
     }
 }
 
@@ -225,13 +242,13 @@ fn a_ring_should_extend_in_both_x_and_z() {
         cb: Color::BLACK,
     };
 
-    for (p, exp) in &[
+    for &(p, exp) in &[
         (Point::from_point(0.0, 0.0, 0.0), Color::WHITE),
         (Point::from_point(1.0, 0.0, 0.0), Color::BLACK),
         (Point::from_point(0.0, 0.0, 1.0), Color::BLACK),
         (Point::from_point(0.708, 0.0, 0.708), Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(p), *exp);
+        assert_eq!(pattern.color_at(&p), exp);
     }
 }
 
@@ -242,12 +259,12 @@ fn checkers_should_repeat_in_x() {
         cb: Color::BLACK,
     };
 
-    for (x, exp) in &[
+    for &(x, exp) in &[
         (0.00, Color::WHITE),
         (0.99, Color::WHITE),
         (1.01, Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(&Point::from_point(*x, 0.0, 0.0)), *exp);
+        assert_eq!(pattern.color_at(&Point::from_point(x, 0.0, 0.0)), exp);
     }
 }
 
@@ -258,12 +275,12 @@ fn checkers_should_repeat_in_y() {
         cb: Color::BLACK,
     };
 
-    for (y, exp) in &[
+    for &(y, exp) in &[
         (0.00, Color::WHITE),
         (0.99, Color::WHITE),
         (1.01, Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(&Point::from_point(0.0, *y, 0.0)), *exp);
+        assert_eq!(pattern.color_at(&Point::from_point(0.0, y, 0.0)), exp);
     }
 }
 
@@ -274,11 +291,11 @@ fn checkers_should_repeat_in_z() {
         cb: Color::BLACK,
     };
 
-    for (z, exp) in &[
+    for &(z, exp) in &[
         (0.00, Color::WHITE),
         (0.99, Color::WHITE),
         (1.01, Color::BLACK),
     ] {
-        assert_eq!(pattern.color_at(&Point::from_point(0.0, 0.0, *z)), *exp);
+        assert_eq!(pattern.color_at(&Point::from_point(0.0, 0.0, z)), exp);
     }
 }

@@ -17,19 +17,9 @@ pub enum Pattern {
         /// The color assigned when `x` is odd.
         cb: Color,
     },
-    /// Linear gradient between two colors.
-    ///
-    /// The pattern is constant in the `y` and `z` coordinates, with gradient stops at each integer
-    /// unit of the `x` coordinate.
-    Gradient {
-        /// The first gradient stop.
-        ca: Color,
-        /// The second gradient stop.
-        cb: Color,
-    },
     /// Two repeating, equally spaced color rings.
     ///
-    /// The pattern is constant in the `y` coordinate, and alternates at each integer contentric
+    /// The pattern is constant in the `y` coordinate, and alternates at each integer concentric
     /// ring on the `xz` plane.
     Rings {
         /// The color assigned on even rings.
@@ -44,6 +34,26 @@ pub enum Pattern {
         /// The second alternating color.
         cb: Color,
     },
+    /// Linear gradient between two colors.
+    ///
+    /// The pattern is constant in the `y` and `z` coordinates, with gradient stops at each integer
+    /// unit of the `x` coordinate.
+    LinearGradient {
+        /// The first gradient stop.
+        ca: Color,
+        /// The second gradient stop.
+        cb: Color,
+    },
+    /// Radial gradient between two colors.
+    ///
+    /// The pattern is constant in the `y` coordinate, with gradient stops at each integer
+    /// concentric ring on the `xz` plane.
+    RadialGradient {
+        /// The first gradient stop.
+        ca: Color,
+        /// The second gradient stop.
+        cb: Color,
+    },
 }
 
 impl Pattern {
@@ -51,7 +61,6 @@ impl Pattern {
     pub fn color_at(&self, p: &Point) -> Color {
         match *self {
             Self::Solid(c) => c,
-            Self::Gradient { ca, cb } => ca + (cb - ca) * (p.x - p.x.floor()),
             Self::Stripes { ca, cb } => {
                 if (p.x.floor() as i32) % 2 == 0 {
                     ca
@@ -72,6 +81,11 @@ impl Pattern {
                 } else {
                     cb
                 }
+            }
+            Self::LinearGradient { ca, cb } => ca + (cb - ca) * (p.x - p.x.floor()),
+            Self::RadialGradient { ca, cb } => {
+                let dist = (p.x.powi(2) + p.z.powi(2)).sqrt();
+                ca + (cb - ca) * (dist - dist.floor())
             }
         }
     }
