@@ -3,6 +3,7 @@ use std::sync::Mutex;
 use tracy::{
     math::MatrixN,
     query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
+    rendering::Material,
     shape::{Plane, Shape, Sphere},
 };
 
@@ -52,6 +53,19 @@ macro_rules! assert_not_abs_diff {
 /// Creates a default unit sphere centered in the origin.
 pub fn sphere() -> Object {
     Object::new(Sphere, MatrixN::identity(4))
+}
+
+/// Creates a sphere with a glassy texture.
+pub fn glass_sphere() -> Object {
+    Object::new_with_material(
+        Sphere,
+        MatrixN::identity(4),
+        Material {
+            transparency: 1.0,
+            refractive_index: 1.5,
+            ..Default::default()
+        },
+    )
 }
 
 /// Creates a default plane.

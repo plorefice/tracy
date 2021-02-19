@@ -174,3 +174,17 @@ fn the_reflected_color_at_the_maximum_recursive_depth() {
 
     assert!(w.reflected_color(&interference, 0).is_none());
 }
+
+#[test]
+fn transparency_and_refractive_index_for_the_default_material() {
+    assert_f32!(Material::default().transparency, 0.0);
+    assert_f32!(Material::default().refractive_index, 1.0);
+}
+
+#[test]
+fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
+    let s = glass_sphere();
+    assert_eq!(s.transform(), &MatrixN::identity(4));
+    assert_f32!(s.material().transparency, 1.0);
+    assert_f32!(s.material().refractive_index, 1.5);
+}

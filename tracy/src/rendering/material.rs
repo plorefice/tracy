@@ -15,10 +15,14 @@ pub struct Material {
     pub diffuse: f32,
     /// Ratio of reflection of the specular term of incoming light.
     pub specular: f32,
-    /// Shininess constant, larger for surfaces that are smoother and more mirror-like.
+    /// Larger for surfaces that are smoother and more mirror-like.
     pub shininess: f32,
-    /// Reflectivity constant, 0 for completely opaque materials, 1 for a perfect mirror.
+    /// 0 for completely opaque materials, 1 for a perfect mirror.
     pub reflective: f32,
+    /// Larger for materials that let more light through.
+    pub transparency: f32,
+    /// Degree to which light will bend when entering or exiting the material.
+    pub refractive_index: f32,
 }
 
 impl Default for Material {
@@ -30,6 +34,8 @@ impl Default for Material {
             specular: 0.9,
             shininess: 200.0,
             reflective: 0.0,
+            transparency: 0.0,
+            refractive_index: 1.0,
         }
     }
 }
