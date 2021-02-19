@@ -10,7 +10,7 @@ use super::{Coords, Point, Vector};
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Matrix {
-    data: Vec<f32>,
+    data: [f32; 16],
     order: usize,
 }
 
@@ -18,14 +18,14 @@ impl Matrix {
     /// Creates a matrix of order `n` filled with zeros.
     pub fn zeros(n: usize) -> Self {
         Self {
-            data: vec![0.; n * n],
+            data: [0.0; 16],
             order: n,
         }
     }
 
     /// Creates the identity matrix of order `n`.
     pub fn identity(n: usize) -> Self {
-        let mut data = vec![0.; n * n];
+        let mut data = [0.0; 16];
 
         for i in 0..n {
             data[i * n + i] = 1.;
@@ -41,13 +41,13 @@ impl Matrix {
     ///
     /// Panics if `data.len() != n * n`.
     pub fn from_column_slice<D: AsRef<[f32]>>(n: usize, data: D) -> Self {
-        let data = data.as_ref();
-        assert_eq!(n * n, data.len());
+        let cols = data.as_ref();
+        assert_eq!(n * n, cols.len());
 
-        Self {
-            data: Vec::from(data),
-            order: n,
-        }
+        let mut data: [f32; 16] = Default::default();
+        data[..n * n].copy_from_slice(cols);
+
+        Self { data, order: n }
     }
 
     /// Creates a matrix of order `n` with its elements filled with the components provided
@@ -383,7 +383,7 @@ impl Mul<Coords> for &Matrix {
 
 // NOTE: this is an extremely efficient, loop-unrolled matrix inverse from MESA (MIT licensed).
 fn do_inverse4(m: &Matrix, out: &mut Matrix) -> bool {
-    let m = m.data.as_slice();
+    let m = m.data;
 
     out[(0, 0)] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15]
         + m[9] * m[7] * m[14]
