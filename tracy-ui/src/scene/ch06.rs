@@ -59,6 +59,7 @@ impl Scene for PhongSphere {
                 diffuse: self.diffuse,
                 specular: self.specular,
                 shininess: self.shininess,
+                ..Default::default()
             },
         ));
 
