@@ -55,7 +55,7 @@ fn the_default_world() {
 fn intersect_a_world_with_a_ray() {
     let w = World::default();
 
-    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
 
     let xs = w.interferences_with_ray(&r).collect::<Vec<_>>();
 
@@ -71,7 +71,7 @@ fn precomputing_the_state_of_an_intersection() {
     let mut w = World::new();
     let s = w.add(sphere());
 
-    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
 
     let interference = w
         .interferences_with_ray(&r)
@@ -90,7 +90,7 @@ fn the_hit_when_an_intersection_occurs_on_the_outside() {
     let mut w = World::new();
     w.add(sphere());
 
-    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
 
     let interference = w
         .interferences_with_ray(&r)
@@ -105,7 +105,7 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
     let mut w = World::new();
     w.add(sphere());
 
-    let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::unit_z());
 
     let interference = w
         .interferences_with_ray(&r)
@@ -121,7 +121,7 @@ fn the_hit_when_an_intersection_occurs_on_the_inside() {
 #[test]
 fn shading_an_intersection() {
     let w = World::default();
-    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
 
     let interference = w
         .interferences_with_ray(&r)
@@ -143,7 +143,7 @@ fn shading_an_intersection_from_the_inside() {
         ..Default::default()
     });
 
-    let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::unit_z());
 
     let interference = w
         .interferences_with_ray(&r)
@@ -159,7 +159,7 @@ fn shading_an_intersection_from_the_inside() {
 #[test]
 fn the_color_when_a_ray_misses() {
     let w = World::default();
-    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 1.0, 0.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_y());
 
     assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_none());
 }
@@ -167,7 +167,7 @@ fn the_color_when_a_ray_misses() {
 #[test]
 fn the_color_when_a_ray_hits() {
     let w = World::default();
-    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::new(0.0, 0.0, 1.0));
+    let r = Ray::new(Point3::new(0.0, 0.0, -5.0), Vec3::unit_z());
 
     assert_abs_diff!(
         w.color_at(&r, DEFAULT_RECURSION_DEPTH).unwrap(),
@@ -202,7 +202,7 @@ fn the_color_with_an_intersection_behind_the_ray() {
 fn the_transform_matrix_for_the_default_orientation() {
     let eye = Point3::new(0.0, 0.0, 0.0);
     let center = Point3::new(0.0, 0.0, -1.0);
-    let up = Vec3::new(0.0, 1.0, 0.0);
+    let up = Vec3::unit_y();
 
     let t = Matrix::look_at(eye, center, up);
     assert_abs_diff!(t, Matrix::identity(4));
@@ -212,7 +212,7 @@ fn the_transform_matrix_for_the_default_orientation() {
 fn a_view_transformation_matrix_looking_in_positive_z_direction() {
     let eye = Point3::new(0.0, 0.0, 0.0);
     let center = Point3::new(0.0, 0.0, 1.0);
-    let up = Vec3::new(0.0, 1.0, 0.0);
+    let up = Vec3::unit_y();
 
     let t = Matrix::look_at(eye, center, up);
     assert_abs_diff!(dbg!(t), Matrix::from_scale(-1.0, 1.0, -1.0));
@@ -222,7 +222,7 @@ fn a_view_transformation_matrix_looking_in_positive_z_direction() {
 fn the_view_transformation_moves_the_world() {
     let eye = Point3::new(0.0, 0.0, 8.0);
     let center = Point3::new(0.0, 0.0, 0.0);
-    let up = Vec3::new(0.0, 1.0, 0.0);
+    let up = Vec3::unit_y();
 
     let t = Matrix::look_at(eye, center, up);
     assert_abs_diff!(t, Matrix::from_translation(0.0, 0.0, -8.0));
@@ -314,7 +314,7 @@ fn rendering_a_world_with_a_camera() {
         Matrix::look_at(
             Point3::new(0.0, 0.0, -5.0),
             Point3::new(0.0, 0.0, 0.0),
-            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::unit_y(),
         ),
     );
 

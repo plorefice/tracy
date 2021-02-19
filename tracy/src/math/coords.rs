@@ -45,6 +45,21 @@ impl Vec3 {
         Self { x, y, z }
     }
 
+    /// Creates the unit `x` vector, ie. `(1, 0, 0)`.
+    pub fn unit_x() -> Self {
+        Self::new(1.0, 0.0, 0.0)
+    }
+
+    /// Creates the unit `y` vector, ie. `(0, 1, 0)`.
+    pub fn unit_y() -> Self {
+        Self::new(0.0, 1.0, 0.0)
+    }
+
+    /// Creates the unit `z` vector, ie. `(0, 0, 1)`.
+    pub fn unit_z() -> Self {
+        Self::new(0.0, 0.0, 1.0)
+    }
+
     /// Computes the magnitude of `self`.
     pub fn length(&self) -> f32 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
