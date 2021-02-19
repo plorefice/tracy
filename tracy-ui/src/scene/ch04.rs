@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use imgui::*;
 use tracy::{
-    math::{MatrixN, Point},
+    math::{Matrix, Point},
     rendering::{Canvas, Color},
 };
 
@@ -27,10 +27,10 @@ impl Scene for Clock {
         let (wf, hf) = (width as f32, height as f32);
 
         let radius = wf / 3.;
-        let move_to_center = MatrixN::from_translation(wf / 2., hf / 2., 0.);
+        let move_to_center = Matrix::from_translation(wf / 2., hf / 2., 0.);
 
         for i in 0..12 {
-            let rotate = MatrixN::from_rotation_z(PI / 6. * i as f32);
+            let rotate = Matrix::from_rotation_z(PI / 6. * i as f32);
             let pos = &move_to_center * rotate * Point::from_point(0., radius, 0.);
 
             canvas.put(pos.x as u32, pos.y as u32, Color::WHITE);

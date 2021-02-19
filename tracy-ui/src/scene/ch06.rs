@@ -2,7 +2,7 @@ use std::f32;
 
 use imgui::*;
 use tracy::{
-    math::{MatrixN, Point},
+    math::{Matrix, Point},
     query::{Object, Ray, World},
     rendering::{Canvas, Color, Material, Pattern, PointLight, DEFAULT_RECURSION_DEPTH},
     shape::Sphere,
@@ -50,7 +50,7 @@ impl Scene for PhongSphere {
 
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::identity(4),
+            Matrix::identity(4),
             Material {
                 pattern: Pattern::new(
                     Color::new(self.color[0], self.color[1], self.color[2]).into(),

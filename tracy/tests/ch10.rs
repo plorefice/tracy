@@ -1,5 +1,5 @@
 use tracy::{
-    math::{MatrixN, Point, Vector},
+    math::{Matrix, Point, Vector},
     query::Object,
     rendering::{self, Color, Material, Pattern, PatternKind, PointLight},
     shape::Sphere,
@@ -69,7 +69,7 @@ fn a_stripe_pattern_alternates_in_x() {
 fn lighting_with_a_pattern_applied() {
     let obj = Object::new_with_material(
         Sphere,
-        MatrixN::identity(4),
+        Matrix::identity(4),
         Material {
             pattern: Pattern::new(PatternKind::Stripes {
                 a: Box::new(Pattern::new(Color::WHITE.into())),
@@ -116,7 +116,7 @@ fn lighting_with_a_pattern_applied() {
 fn stripes_with_an_object_transformation() {
     let obj = Object::new_with_material(
         Sphere,
-        MatrixN::from_scale(2.0, 2.0, 2.0),
+        Matrix::from_scale(2.0, 2.0, 2.0),
         Material {
             pattern: Pattern::new(PatternKind::Stripes {
                 a: Box::new(Pattern::new(Color::WHITE.into())),
@@ -145,14 +145,14 @@ fn stripes_with_an_object_transformation() {
 fn stripes_with_a_pattern_transformation() {
     let obj = Object::new_with_material(
         Sphere,
-        MatrixN::identity(4),
+        Matrix::identity(4),
         Material {
             pattern: Pattern::new_with_transform(
                 PatternKind::Stripes {
                     a: Box::new(Pattern::new(Color::WHITE.into())),
                     b: Box::new(Pattern::new(Color::BLACK.into())),
                 },
-                MatrixN::from_scale(2.0, 2.0, 2.0),
+                Matrix::from_scale(2.0, 2.0, 2.0),
             ),
             ambient: 1.0,
             diffuse: 0.0,
@@ -177,14 +177,14 @@ fn stripes_with_a_pattern_transformation() {
 fn stripes_with_both_an_object_and_a_pattern_transformation() {
     let obj = Object::new_with_material(
         Sphere,
-        MatrixN::from_scale(2.0, 2.0, 2.0),
+        Matrix::from_scale(2.0, 2.0, 2.0),
         Material {
             pattern: Pattern::new_with_transform(
                 PatternKind::Stripes {
                     a: Box::new(Pattern::new(Color::WHITE.into())),
                     b: Box::new(Pattern::new(Color::BLACK.into())),
                 },
-                MatrixN::from_translation(0.5, 0.0, 0.0),
+                Matrix::from_translation(0.5, 0.0, 0.0),
             ),
             ambient: 1.0,
             diffuse: 0.0,

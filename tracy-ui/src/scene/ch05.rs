@@ -2,7 +2,7 @@ use std::f32;
 
 use imgui::*;
 use tracy::{
-    math::{MatrixN, Point},
+    math::{Matrix, Point},
     query::{Object, Ray, World},
     rendering::{Canvas, Color},
     shape::Sphere,
@@ -39,7 +39,7 @@ impl Scene for FlatSphere {
 
         let canvas_size = width as f32;
 
-        world.add(Object::new(Sphere, MatrixN::identity(4)));
+        world.add(Object::new(Sphere, Matrix::identity(4)));
 
         let ray_origin = Point::from_point(0., 0., -5.);
 

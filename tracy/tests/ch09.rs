@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
 use tracy::{
-    math::{MatrixN, Point, Vector},
+    math::{Matrix, Point, Vector},
     query::Ray,
     rendering::Material,
 };
@@ -12,14 +12,14 @@ mod utils;
 #[test]
 fn the_default_transformation() {
     let s = test_shape();
-    assert_abs_diff!(s.transform(), MatrixN::identity(4));
+    assert_abs_diff!(s.transform(), Matrix::identity(4));
 }
 
 #[test]
 fn assigning_a_transformation() {
     let mut s = test_shape();
-    s.set_transform(MatrixN::from_translation(2.0, 3.0, 4.0));
-    assert_abs_diff!(s.transform(), MatrixN::from_translation(2.0, 3.0, 4.0));
+    s.set_transform(Matrix::from_translation(2.0, 3.0, 4.0));
+    assert_abs_diff!(s.transform(), Matrix::from_translation(2.0, 3.0, 4.0));
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn intersecting_a_scaled_shape_with_a_ray() {
     );
 
     let mut s = test_shape();
-    s.set_transform(MatrixN::from_scale(2.0, 2.0, 2.0));
+    s.set_transform(Matrix::from_scale(2.0, 2.0, 2.0));
     s.interferences_with_ray(&r);
 
     let test_shape = s.shape().as_any().downcast_ref::<TestShape>().unwrap();
@@ -66,7 +66,7 @@ fn intersecting_a_translated_shape_with_a_ray() {
     );
 
     let mut s = test_shape();
-    s.set_transform(MatrixN::from_translation(5.0, 0.0, 0.0));
+    s.set_transform(Matrix::from_translation(5.0, 0.0, 0.0));
     s.interferences_with_ray(&r);
 
     let test_shape = s.shape().as_any().downcast_ref::<TestShape>().unwrap();
@@ -79,7 +79,7 @@ fn intersecting_a_translated_shape_with_a_ray() {
 #[test]
 fn computing_the_normal_on_a_translated_shape() {
     let mut s = test_shape();
-    s.set_transform(MatrixN::from_translation(0.0, 1.0, 0.0));
+    s.set_transform(Matrix::from_translation(0.0, 1.0, 0.0));
 
     let r = Ray::new(
         Point::from_point(0.0, 0.0, 0.0),
@@ -95,7 +95,7 @@ fn computing_the_normal_on_a_translated_shape() {
 #[test]
 fn computing_the_normal_on_a_transformed_shape() {
     let mut s = test_shape();
-    s.set_transform(MatrixN::from_scale(1.0, 0.5, 1.0) * MatrixN::from_rotation_z(PI / 5.0));
+    s.set_transform(Matrix::from_scale(1.0, 0.5, 1.0) * Matrix::from_rotation_z(PI / 5.0));
 
     let r = Ray::new(
         Point::from_point(0.0, 0.0, 0.0),

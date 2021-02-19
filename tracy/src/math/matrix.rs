@@ -9,12 +9,12 @@ use super::{Coords, Point, Vector};
 
 /// A NxN, column-major matrix.
 #[derive(Debug, Clone, PartialEq)]
-pub struct MatrixN {
+pub struct Matrix {
     data: Vec<f32>,
     order: usize,
 }
 
-impl MatrixN {
+impl Matrix {
     /// Creates a matrix of order `n` filled with zeros.
     pub fn zeros(n: usize) -> Self {
         Self {
@@ -121,13 +121,13 @@ impl MatrixN {
     }
 
     /// Creates a view transform matrix looking at `center` from `eye`.
-    pub fn look_at(eye: Point, center: Point, up: Vector) -> MatrixN {
+    pub fn look_at(eye: Point, center: Point, up: Vector) -> Matrix {
         let fwd = (center - eye).normalize();
         let up = up.normalize();
         let left = fwd.cross(&up);
         let up = left.cross(&fwd);
 
-        let orientation = MatrixN::from_column_slice(
+        let orientation = Matrix::from_column_slice(
             4,
             [
                 left.x, up.x, -fwd.x, 0.0, left.y, up.y, -fwd.y, 0.0, left.z, up.z, -fwd.z, 0.0,
@@ -135,7 +135,7 @@ impl MatrixN {
             ],
         );
 
-        orientation * MatrixN::from_translation(-eye.x, -eye.y, -eye.z)
+        orientation * Matrix::from_translation(-eye.x, -eye.y, -eye.z)
     }
 
     /// Returns the order of this matrix, ie. the number of its rows/columns.
@@ -203,7 +203,7 @@ impl MatrixN {
     }
 
     /// Returns the inverse of the matrix, or `None` if the matrix is not invertible.
-    pub fn inverse(&self) -> Option<MatrixN> {
+    pub fn inverse(&self) -> Option<Matrix> {
         match self.order() {
             0 => None,
             4 => {
@@ -242,8 +242,8 @@ impl MatrixN {
     }
 
     /// Returns the matrix of order `n-1` obtain by removing `row` and `col` from `self`.
-    pub fn submatrix(&self, row: usize, col: usize) -> MatrixN {
-        let mut out = MatrixN::zeros(self.order() - 1);
+    pub fn submatrix(&self, row: usize, col: usize) -> Matrix {
+        let mut out = Matrix::zeros(self.order() - 1);
         let mut iter = out.iter_mut();
 
         for j in 0..self.order() {
@@ -289,7 +289,7 @@ impl MatrixN {
     }
 }
 
-impl Index<(usize, usize)> for MatrixN {
+impl Index<(usize, usize)> for Matrix {
     type Output = f32;
 
     fn index(&self, (i, j): (usize, usize)) -> &Self::Output {
@@ -297,13 +297,13 @@ impl Index<(usize, usize)> for MatrixN {
     }
 }
 
-impl IndexMut<(usize, usize)> for MatrixN {
+impl IndexMut<(usize, usize)> for Matrix {
     fn index_mut(&mut self, (i, j): (usize, usize)) -> &mut Self::Output {
         self.data.index_mut(self.liner_index(i, j))
     }
 }
 
-impl Mul for MatrixN {
+impl Mul for Matrix {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -311,7 +311,7 @@ impl Mul for MatrixN {
     }
 }
 
-impl Mul<&MatrixN> for MatrixN {
+impl Mul<&Matrix> for Matrix {
     type Output = Self;
 
     fn mul(self, rhs: &Self) -> Self::Output {
@@ -319,18 +319,18 @@ impl Mul<&MatrixN> for MatrixN {
     }
 }
 
-impl Mul<MatrixN> for &MatrixN {
-    type Output = MatrixN;
+impl Mul<Matrix> for &Matrix {
+    type Output = Matrix;
 
-    fn mul(self, rhs: MatrixN) -> Self::Output {
+    fn mul(self, rhs: Matrix) -> Self::Output {
         self * &rhs
     }
 }
 
-impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
-    type Output = MatrixN;
+impl<'a, 'b> Mul<&'b Matrix> for &'a Matrix {
+    type Output = Matrix;
 
-    fn mul(self, rhs: &'b MatrixN) -> Self::Output {
+    fn mul(self, rhs: &'b Matrix) -> Self::Output {
         assert_eq!(rhs.order, self.order);
 
         let mut out = Self::Output::zeros(self.order);
@@ -349,7 +349,7 @@ impl<'a, 'b> Mul<&'b MatrixN> for &'a MatrixN {
     }
 }
 
-impl Mul<Coords> for MatrixN {
+impl Mul<Coords> for Matrix {
     type Output = Coords;
 
     fn mul(self, rhs: Coords) -> Self::Output {
@@ -357,7 +357,7 @@ impl Mul<Coords> for MatrixN {
     }
 }
 
-impl Mul<&Coords> for MatrixN {
+impl Mul<&Coords> for Matrix {
     type Output = Coords;
 
     fn mul(self, rhs: &Coords) -> Self::Output {
@@ -365,7 +365,7 @@ impl Mul<&Coords> for MatrixN {
     }
 }
 
-impl Mul<Coords> for &MatrixN {
+impl Mul<Coords> for &Matrix {
     type Output = Coords;
 
     #[allow(clippy::suspicious_arithmetic_impl)]
@@ -382,7 +382,7 @@ impl Mul<Coords> for &MatrixN {
 }
 
 // NOTE: this is an extremely efficient, loop-unrolled matrix inverse from MESA (MIT licensed).
-fn do_inverse4(m: &MatrixN, out: &mut MatrixN) -> bool {
+fn do_inverse4(m: &Matrix, out: &mut Matrix) -> bool {
     let m = m.data.as_slice();
 
     out[(0, 0)] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15]

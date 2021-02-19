@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use imgui::*;
 use tracy::{
-    math::{MatrixN, Point, Vector},
+    math::{Matrix, Point, Vector},
     query::{Object, World},
     rendering::{Camera, Canvas, Color, Material, Pattern, PatternKind, PointLight},
     shape::{Plane, Sphere},
@@ -37,7 +37,7 @@ impl Patterns {
             width,
             height,
             PI / 3.0,
-            MatrixN::look_at(
+            Matrix::look_at(
                 Point::from_point(0.0, 1.5, -4.0),
                 Point::from_point(0.0, 0.5, 0.0),
                 Vector::from_vector(0.0, 1.0, 0.0),
@@ -53,14 +53,14 @@ impl Patterns {
         // Floor
         world.add(Object::new_with_material(
             Plane,
-            MatrixN::identity(4),
+            Matrix::identity(4),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::Checkers {
                         a: Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
                         b: Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
                     },
-                    MatrixN::from_translation(0.0, 0.01, 0.0),
+                    Matrix::from_translation(0.0, 0.01, 0.0),
                 ),
                 specular: 0.0,
                 ..Default::default()
@@ -70,14 +70,14 @@ impl Patterns {
         // Wall
         world.add(Object::new_with_material(
             Plane,
-            MatrixN::from_translation(0.0, 0.0, 2.0) * MatrixN::from_rotation_x(PI / 2.0),
+            Matrix::from_translation(0.0, 0.0, 2.0) * Matrix::from_rotation_x(PI / 2.0),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::Stripes {
                         a: Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
                         b: Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
                     },
-                    MatrixN::from_rotation_y(PI / 4.0),
+                    Matrix::from_rotation_y(PI / 4.0),
                 ),
                 specular: 0.0,
                 ..Default::default()
@@ -87,16 +87,16 @@ impl Patterns {
         // Left sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(-1.0, 1.0, 0.0),
+            Matrix::from_translation(-1.0, 1.0, 0.0),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::Rings {
                         a: Box::new(Pattern::new(Color::new(0.0, 0.8, 0.0).into())),
                         b: Box::new(Pattern::new(Color::new(0.0, 0.5, 0.0).into())),
                     },
-                    MatrixN::from_rotation_x(-PI / 4.0)
-                        * MatrixN::from_rotation_y(PI / 3.0)
-                        * MatrixN::from_scale(0.22, 0.22, 0.22),
+                    Matrix::from_rotation_x(-PI / 4.0)
+                        * Matrix::from_rotation_y(PI / 3.0)
+                        * Matrix::from_scale(0.22, 0.22, 0.22),
                 ),
                 specular: 0.0,
                 ..Default::default()
@@ -106,14 +106,14 @@ impl Patterns {
         // Right sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(1.0, 0.5, -1.0) * MatrixN::from_scale(0.5, 0.5, 0.5),
+            Matrix::from_translation(1.0, 0.5, -1.0) * Matrix::from_scale(0.5, 0.5, 0.5),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::LinearGradient {
                         a: Color::new(0.8, 0.0, 0.0),
                         b: Color::new(0.0, 0.8, 0.0),
                     },
-                    MatrixN::from_translation(1.0, 0.0, 0.0) * MatrixN::from_scale(2.0, 2.0, 2.0),
+                    Matrix::from_translation(1.0, 0.0, 0.0) * Matrix::from_scale(2.0, 2.0, 2.0),
                 ),
                 specular: 0.0,
                 ..Default::default()
@@ -123,16 +123,16 @@ impl Patterns {
         // Middle sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(0.0, 0.4, -2.0) * MatrixN::from_scale(0.4, 0.4, 0.4),
+            Matrix::from_translation(0.0, 0.4, -2.0) * Matrix::from_scale(0.4, 0.4, 0.4),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::RadialGradient {
                         a: Color::new(0.0, 0.8, 1.0),
                         b: Color::new(0.0, 0.5, 0.7),
                     },
-                    MatrixN::from_rotation_y(PI / 4.0)
-                        * MatrixN::from_rotation_x(-PI / 2.0)
-                        * MatrixN::from_scale(0.21, 0.21, 0.21),
+                    Matrix::from_rotation_y(PI / 4.0)
+                        * Matrix::from_rotation_x(-PI / 2.0)
+                        * Matrix::from_scale(0.21, 0.21, 0.21),
                 ),
                 specular: 0.0,
                 ..Default::default()
@@ -150,7 +150,7 @@ impl Patterns {
                 a: Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
                 b: Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
             },
-            MatrixN::from_rotation_y(PI / 4.) * MatrixN::from_scale(0.25, 0.25, 0.25),
+            Matrix::from_rotation_y(PI / 4.) * Matrix::from_scale(0.25, 0.25, 0.25),
         );
 
         let p2 = Pattern::new_with_transform(
@@ -158,20 +158,20 @@ impl Patterns {
                 a: Box::new(Pattern::new(Color::new(0.0, 0.3, 0.0).into())),
                 b: Box::new(Pattern::new(Color::new(0.0, 0.0, 0.3).into())),
             },
-            MatrixN::from_rotation_y(-PI / 4.) * MatrixN::from_scale(0.25, 0.25, 0.25),
+            Matrix::from_rotation_y(-PI / 4.) * Matrix::from_scale(0.25, 0.25, 0.25),
         );
 
         // Floor
         world.add(Object::new_with_material(
             Plane,
-            MatrixN::identity(4),
+            Matrix::identity(4),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::Checkers {
                         a: Box::new(p1),
                         b: Box::new(p2),
                     },
-                    MatrixN::from_translation(0.0, 0.01, 0.0),
+                    Matrix::from_translation(0.0, 0.01, 0.0),
                 ),
                 specular: 0.0,
                 ..Default::default()
@@ -189,7 +189,7 @@ impl Patterns {
                 a: Box::new(Pattern::new(Color::WHITE.into())),
                 b: Box::new(Pattern::new(Color::new(0.0, 0.7, 0.0).into())),
             },
-            MatrixN::from_rotation_y(PI / 4.) * MatrixN::from_scale(0.5, 0.5, 0.5),
+            Matrix::from_rotation_y(PI / 4.) * Matrix::from_scale(0.5, 0.5, 0.5),
         );
 
         let p2 = Pattern::new_with_transform(
@@ -197,20 +197,20 @@ impl Patterns {
                 a: Box::new(Pattern::new(Color::WHITE.into())),
                 b: Box::new(Pattern::new(Color::new(0.0, 0.7, 0.0).into())),
             },
-            MatrixN::from_rotation_y(-PI / 4.) * MatrixN::from_scale(0.5, 0.5, 0.5),
+            Matrix::from_rotation_y(-PI / 4.) * Matrix::from_scale(0.5, 0.5, 0.5),
         );
 
         // Floor
         world.add(Object::new_with_material(
             Plane,
-            MatrixN::identity(4),
+            Matrix::identity(4),
             Material {
                 pattern: Pattern::new_with_transform(
                     PatternKind::Blended {
                         a: Box::new(p1),
                         b: Box::new(p2),
                     },
-                    MatrixN::from_translation(0.0, 0.01, 0.0),
+                    Matrix::from_translation(0.0, 0.01, 0.0),
                 ),
                 specular: 0.0,
                 ..Default::default()

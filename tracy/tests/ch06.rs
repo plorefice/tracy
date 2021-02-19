@@ -2,7 +2,7 @@ use std::f32::consts::FRAC_1_SQRT_2;
 
 use rendering::Pattern;
 use tracy::{
-    math::{MatrixN, Point, Vector, EPSILON},
+    math::{Matrix, Point, Vector, EPSILON},
     query::Ray,
     rendering::{self, Color, Material, PointLight},
 };
@@ -70,7 +70,7 @@ fn the_normal_is_a_normalized_vector() {
 #[test]
 fn computing_the_normal_on_a_translated_sphere() {
     let mut s = sphere();
-    s.set_transform(MatrixN::from_translation(0., 1., 0.));
+    s.set_transform(Matrix::from_translation(0., 1., 0.));
 
     let r = Ray::new(
         Point::default(),
@@ -88,7 +88,7 @@ fn computing_the_normal_on_a_translated_sphere() {
 #[test]
 fn computing_the_normal_on_a_transformed_sphere() {
     let mut s = sphere();
-    s.set_transform(MatrixN::from_scale(1., 0.5, 1.) * MatrixN::from_rotation_z(0.62832));
+    s.set_transform(Matrix::from_scale(1., 0.5, 1.) * Matrix::from_rotation_z(0.62832));
 
     let r = Ray::new(
         Point::default(),

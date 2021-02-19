@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use tracy::{
-    math::{MatrixN, Point, Vector},
+    math::{Matrix, Point, Vector},
     query::{Ray, RayIntersection, RayIntersections},
 };
 pub use utils::*;
@@ -36,7 +36,7 @@ fn translating_a_ray() {
         Point::from_point(1., 2., 3.),
         Vector::from_vector(0., 1., 0.),
     );
-    let m = MatrixN::from_translation(3., 4., 5.);
+    let m = Matrix::from_translation(3., 4., 5.);
     let r2 = r.transform_by(&m);
 
     assert_abs_diff!(r2.origin, Point::from_point(4., 6., 8.));
@@ -49,7 +49,7 @@ fn scaling_a_ray() {
         Point::from_point(1., 2., 3.),
         Vector::from_vector(0., 1., 0.),
     );
-    let m = MatrixN::from_scale(2., 3., 4.);
+    let m = Matrix::from_scale(2., 3., 4.);
     let r2 = r.transform_by(&m);
 
     assert_abs_diff!(r2.origin, Point::from_point(2., 6., 12.));
@@ -126,13 +126,13 @@ fn a_sphere_is_behind_a_ray() {
 
 #[test]
 fn a_sphere_default_transformation() {
-    assert_abs_diff!(sphere().transform(), MatrixN::identity(4));
+    assert_abs_diff!(sphere().transform(), Matrix::identity(4));
 }
 
 #[test]
 fn changing_a_sphere_transformation() {
     let mut s = sphere();
-    let t = MatrixN::from_translation(2., 3., 4.);
+    let t = Matrix::from_translation(2., 3., 4.);
     s.set_transform(t.clone());
 
     assert_abs_diff!(s.transform(), t);
@@ -146,7 +146,7 @@ fn intersecting_a_scaled_sphere_with_a_ray() {
     );
 
     let mut s = sphere();
-    s.set_transform(MatrixN::from_scale(2., 2., 2.));
+    s.set_transform(Matrix::from_scale(2., 2., 2.));
 
     let xs = s
         .interferences_with_ray(&r)
@@ -166,7 +166,7 @@ fn intersecting_a_translated_sphere_with_a_ray() {
     );
 
     let mut s = sphere();
-    s.set_transform(MatrixN::from_translation(5., 0., 0.));
+    s.set_transform(Matrix::from_translation(5., 0., 0.));
 
     assert_eq!(s.interferences_with_ray(&r).count(), 0);
 }

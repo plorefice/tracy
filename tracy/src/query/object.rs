@@ -1,4 +1,4 @@
-use crate::{math::MatrixN, rendering::Material, shape::Shape};
+use crate::{math::Matrix, rendering::Material, shape::Shape};
 
 use super::{Ray, RayIntersections};
 
@@ -7,17 +7,17 @@ use super::{Ray, RayIntersections};
 pub struct Object {
     shape: Box<dyn Shape>,
     material: Material,
-    transform: MatrixN,
+    transform: Matrix,
 }
 
 impl Object {
     /// Creates a new object with the given shape and transformation.
-    pub fn new<S: Shape>(shape: S, transform: MatrixN) -> Self {
+    pub fn new<S: Shape>(shape: S, transform: Matrix) -> Self {
         Self::new_with_material(shape, transform, Default::default())
     }
 
     /// Creates a new object with the given material.
-    pub fn new_with_material<S: Shape>(shape: S, transform: MatrixN, material: Material) -> Self {
+    pub fn new_with_material<S: Shape>(shape: S, transform: Matrix, material: Material) -> Self {
         Self {
             shape: Box::new(shape),
             material,
@@ -46,12 +46,12 @@ impl Object {
     }
 
     /// Returns the transform applied to this object's shape.
-    pub fn transform(&self) -> &MatrixN {
+    pub fn transform(&self) -> &Matrix {
         &self.transform
     }
 
     /// Changes the transform of this object.
-    pub fn set_transform(&mut self, transform: MatrixN) {
+    pub fn set_transform(&mut self, transform: Matrix) {
         self.transform = transform;
     }
 

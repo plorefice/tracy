@@ -1,4 +1,4 @@
-use crate::math::{MatrixN, Point};
+use crate::math::{Matrix, Point};
 
 use super::Color;
 
@@ -6,7 +6,7 @@ use super::Color;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pattern {
     kind: PatternKind,
-    transform: MatrixN,
+    transform: Matrix,
 }
 
 /// Different kinds of patterns.
@@ -79,11 +79,11 @@ impl From<Color> for PatternKind {
 impl Pattern {
     /// Create a new pattern with an identity trasformation applied.
     pub fn new(kind: PatternKind) -> Self {
-        Self::new_with_transform(kind, MatrixN::identity(4))
+        Self::new_with_transform(kind, Matrix::identity(4))
     }
 
     /// Creates a new pattern with an applied transformation.
-    pub fn new_with_transform(kind: PatternKind, transform: MatrixN) -> Self {
+    pub fn new_with_transform(kind: PatternKind, transform: Matrix) -> Self {
         Self { kind, transform }
     }
 
@@ -93,7 +93,7 @@ impl Pattern {
     }
 
     /// Returns the transformation applied to `self`.
-    pub fn transform(&self) -> &MatrixN {
+    pub fn transform(&self) -> &Matrix {
         &self.transform
     }
 

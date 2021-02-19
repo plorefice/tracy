@@ -1,6 +1,6 @@
 use rendering::DEFAULT_RECURSION_DEPTH;
 use tracy::{
-    math::{MatrixN, Point, Vector, EPSILON},
+    math::{Matrix, Point, Vector, EPSILON},
     query::{Object, Ray, World},
     rendering::{self, Color, PointLight},
     shape::Sphere,
@@ -70,7 +70,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
     w.add(sphere());
     w.add(Object::new(
         Sphere,
-        MatrixN::from_translation(0.0, 0.0, 10.0),
+        Matrix::from_translation(0.0, 0.0, 10.0),
     ));
 
     let r = Ray::new(
@@ -91,10 +91,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
 fn the_hit_should_offset_the_point() {
     let mut w = World::new();
 
-    w.add(Object::new(
-        Sphere,
-        MatrixN::from_translation(0.0, 0.0, 1.0),
-    ));
+    w.add(Object::new(Sphere, Matrix::from_translation(0.0, 0.0, 1.0)));
 
     let r = Ray::new(
         Point::from_point(0.0, 0.0, -5.0),

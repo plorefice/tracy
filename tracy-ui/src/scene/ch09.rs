@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use imgui::*;
 use tracy::{
-    math::{MatrixN, Point, Vector},
+    math::{Matrix, Point, Vector},
     query::{Object, World},
     rendering::{Camera, Canvas, Color, Material, Pattern, PointLight},
     shape::{Plane, Sphere},
@@ -43,14 +43,14 @@ impl Scene for PlaneShape {
         // Floor
         world.add(Object::new_with_material(
             Plane,
-            MatrixN::from_translation(0.0, self.plane_y, 0.0),
+            Matrix::from_translation(0.0, self.plane_y, 0.0),
             floor_mat,
         ));
 
         // Middle sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(-0.5, 1.0, 0.5),
+            Matrix::from_translation(-0.5, 1.0, 0.5),
             Material {
                 pattern: Pattern::new(Color::new(0.1, 1.0, 0.5).into()),
                 diffuse: 0.7,
@@ -62,7 +62,7 @@ impl Scene for PlaneShape {
         // Right sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(1.5, 0.5, -0.5) * MatrixN::from_scale(0.5, 0.5, 0.5),
+            Matrix::from_translation(1.5, 0.5, -0.5) * Matrix::from_scale(0.5, 0.5, 0.5),
             Material {
                 pattern: Pattern::new(Color::new(0.5, 1.0, 0.1).into()),
                 diffuse: 0.7,
@@ -74,7 +74,7 @@ impl Scene for PlaneShape {
         // Left sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(-1.5, 0.33, -0.75) * MatrixN::from_scale(0.33, 0.33, 0.33),
+            Matrix::from_translation(-1.5, 0.33, -0.75) * Matrix::from_scale(0.33, 0.33, 0.33),
             Material {
                 pattern: Pattern::new(Color::new(1.0, 0.8, 0.1).into()),
                 diffuse: 0.7,
@@ -92,7 +92,7 @@ impl Scene for PlaneShape {
             width,
             height,
             PI / 3.0,
-            MatrixN::look_at(
+            Matrix::look_at(
                 Point::from_point(0.0, 1.5, -5.0),
                 Point::from_point(0.0, 1.0, 0.0),
                 Vector::from_vector(0.0, 1.0, 0.0),

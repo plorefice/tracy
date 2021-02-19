@@ -1,5 +1,5 @@
 use crate::{
-    math::{MatrixN, Point},
+    math::{Matrix, Point},
     query::{Ray, World},
     rendering::Canvas,
 };
@@ -12,7 +12,7 @@ pub const DEFAULT_RECURSION_DEPTH: u32 = 5;
 pub struct Camera {
     size: (u32, u32),
     fov: f32,
-    transform: MatrixN,
+    transform: Matrix,
     recursion_limit: u32,
 
     // Derived parameters
@@ -26,11 +26,11 @@ impl Camera {
     ///
     /// The view transformation will be multiplicative identity.
     pub fn new(hsize: u32, vsize: u32, fov: f32) -> Self {
-        Self::new_with_transform(hsize, vsize, fov, MatrixN::identity(4))
+        Self::new_with_transform(hsize, vsize, fov, Matrix::identity(4))
     }
 
     /// Creates a new perspective camera with a view transform matrix.
-    pub fn new_with_transform(hsize: u32, vsize: u32, fov: f32, transform: MatrixN) -> Self {
+    pub fn new_with_transform(hsize: u32, vsize: u32, fov: f32, transform: Matrix) -> Self {
         let mut camera = Camera {
             size: (hsize, vsize),
             fov,
@@ -61,12 +61,12 @@ impl Camera {
     }
 
     /// Updates this camera's view transform.
-    pub fn view_transform(&self) -> &MatrixN {
+    pub fn view_transform(&self) -> &Matrix {
         &self.transform
     }
 
     /// Sets this camera's view transform.
-    pub fn set_view_transform(&mut self, transform: MatrixN) {
+    pub fn set_view_transform(&mut self, transform: Matrix) {
         self.transform = transform;
         self.update();
     }

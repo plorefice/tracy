@@ -2,7 +2,7 @@ use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
 
 use imgui::*;
 use tracy::{
-    math::{MatrixN, Point, Vector},
+    math::{Matrix, Point, Vector},
     query::{Object, World},
     rendering::{Camera, Canvas, Color, Material, Pattern, PointLight},
     shape::Sphere,
@@ -47,34 +47,34 @@ impl Scene for ShadowSpheres {
         // Floor
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_scale(10.0, 0.01, 10.0),
+            Matrix::from_scale(10.0, 0.01, 10.0),
             floor_mat.clone(),
         ));
 
         // Left wall
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(0.0, 0.0, 5.0)
-                * MatrixN::from_rotation_y(-FRAC_PI_4)
-                * MatrixN::from_rotation_x(FRAC_PI_2)
-                * MatrixN::from_scale(10.0, 0.1, 10.0),
+            Matrix::from_translation(0.0, 0.0, 5.0)
+                * Matrix::from_rotation_y(-FRAC_PI_4)
+                * Matrix::from_rotation_x(FRAC_PI_2)
+                * Matrix::from_scale(10.0, 0.1, 10.0),
             floor_mat.clone(),
         ));
 
         // Right wall
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(0.0, 0.0, 5.0)
-                * MatrixN::from_rotation_y(FRAC_PI_4)
-                * MatrixN::from_rotation_x(FRAC_PI_2)
-                * MatrixN::from_scale(10.0, 0.1, 10.0),
+            Matrix::from_translation(0.0, 0.0, 5.0)
+                * Matrix::from_rotation_y(FRAC_PI_4)
+                * Matrix::from_rotation_x(FRAC_PI_2)
+                * Matrix::from_scale(10.0, 0.1, 10.0),
             floor_mat,
         ));
 
         // Middle sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(-0.5, 1.0, 0.5),
+            Matrix::from_translation(-0.5, 1.0, 0.5),
             Material {
                 pattern: Pattern::new(Color::new(0.1, 1.0, 0.5).into()),
                 diffuse: 0.7,
@@ -86,7 +86,7 @@ impl Scene for ShadowSpheres {
         // Right sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(1.5, 0.5, -0.5) * MatrixN::from_scale(0.5, 0.5, 0.5),
+            Matrix::from_translation(1.5, 0.5, -0.5) * Matrix::from_scale(0.5, 0.5, 0.5),
             Material {
                 pattern: Pattern::new(Color::new(0.5, 1.0, 0.1).into()),
                 diffuse: 0.7,
@@ -98,7 +98,7 @@ impl Scene for ShadowSpheres {
         // Left sphere
         world.add(Object::new_with_material(
             Sphere,
-            MatrixN::from_translation(-1.5, 0.33, -0.75) * MatrixN::from_scale(0.33, 0.33, 0.33),
+            Matrix::from_translation(-1.5, 0.33, -0.75) * Matrix::from_scale(0.33, 0.33, 0.33),
             Material {
                 pattern: Pattern::new(Color::new(1.0, 0.8, 0.1).into()),
                 diffuse: 0.7,
@@ -117,7 +117,7 @@ impl Scene for ShadowSpheres {
             width,
             height,
             self.fov.to_radians(),
-            MatrixN::look_at(
+            Matrix::look_at(
                 Point::from_point(0.0, 1.5, -5.0),
                 Point::from_point(0.0, 1.0, 0.0),
                 Vector::from_vector(0.0, 1.0, 0.0),

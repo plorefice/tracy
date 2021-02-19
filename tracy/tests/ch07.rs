@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_SQRT_2, PI};
 
 use tracy::{
-    math::{MatrixN, Point, Vector, EPSILON},
+    math::{Matrix, Point, Vector, EPSILON},
     query::{Ray, World},
     rendering::{
         Camera, Color, Material, Pattern, PatternKind, PointLight, DEFAULT_RECURSION_DEPTH,
@@ -35,7 +35,7 @@ fn the_default_world() {
     });
 
     let mut s2 = sphere();
-    s2.set_transform(MatrixN::from_scale(0.5, 0.5, 0.5));
+    s2.set_transform(Matrix::from_scale(0.5, 0.5, 0.5));
 
     let w = World::default();
     let mut objs = w.objects();
@@ -231,8 +231,8 @@ fn the_transform_matrix_for_the_default_orientation() {
     let center = Point::from_point(0.0, 0.0, -1.0);
     let up = Vector::from_vector(0.0, 1.0, 0.0);
 
-    let t = MatrixN::look_at(eye, center, up);
-    assert_abs_diff!(t, MatrixN::identity(4));
+    let t = Matrix::look_at(eye, center, up);
+    assert_abs_diff!(t, Matrix::identity(4));
 }
 
 #[test]
@@ -241,8 +241,8 @@ fn a_view_transformation_matrix_looking_in_positive_z_direction() {
     let center = Point::from_point(0.0, 0.0, 1.0);
     let up = Vector::from_vector(0.0, 1.0, 0.0);
 
-    let t = MatrixN::look_at(eye, center, up);
-    assert_abs_diff!(dbg!(t), MatrixN::from_scale(-1.0, 1.0, -1.0));
+    let t = Matrix::look_at(eye, center, up);
+    assert_abs_diff!(dbg!(t), Matrix::from_scale(-1.0, 1.0, -1.0));
 }
 
 #[test]
@@ -251,8 +251,8 @@ fn the_view_transformation_moves_the_world() {
     let center = Point::from_point(0.0, 0.0, 0.0);
     let up = Vector::from_vector(0.0, 1.0, 0.0);
 
-    let t = MatrixN::look_at(eye, center, up);
-    assert_abs_diff!(t, MatrixN::from_translation(0.0, 0.0, -8.0));
+    let t = Matrix::look_at(eye, center, up);
+    assert_abs_diff!(t, Matrix::from_translation(0.0, 0.0, -8.0));
 }
 
 #[test]
@@ -261,11 +261,11 @@ fn an_arbitrary_view_transformation() {
     let center = Point::from_point(4.0, -2.0, 8.0);
     let up = Vector::from_vector(1.0, 1.0, 0.0);
 
-    let t = MatrixN::look_at(eye, center, up);
+    let t = Matrix::look_at(eye, center, up);
 
     assert_abs_diff!(
         t,
-        MatrixN::from_row_slice(
+        Matrix::from_row_slice(
             4,
             [
                 -0.50709, 0.50709, 0.67612, -2.36643, 0.76772, 0.60609, 0.12122, -2.82843,
@@ -282,7 +282,7 @@ fn constructing_a_camera() {
     assert_eq!(c.horizontal_size(), 160);
     assert_eq!(c.vertical_size(), 120);
     assert_f32!(c.fov(), PI / 2.);
-    assert_abs_diff!(c.view_transform(), MatrixN::identity(4));
+    assert_abs_diff!(c.view_transform(), Matrix::identity(4));
 }
 
 #[test]
@@ -321,7 +321,7 @@ fn constructing_a_ray_when_the_camera_is_transformed() {
         201,
         101,
         PI / 2.0,
-        MatrixN::from_rotation_y(PI / 4.0) * MatrixN::from_translation(0.0, -2.0, 5.0),
+        Matrix::from_rotation_y(PI / 4.0) * Matrix::from_translation(0.0, -2.0, 5.0),
     );
 
     let r = c.ray_to(100, 50);
@@ -341,7 +341,7 @@ fn rendering_a_world_with_a_camera() {
         11,
         11,
         PI / 2.0,
-        MatrixN::look_at(
+        Matrix::look_at(
             Point::from_point(0.0, 0.0, -5.0),
             Point::from_point(0.0, 0.0, 0.0),
             Vector::from_vector(0.0, 1.0, 0.0),

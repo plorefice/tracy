@@ -2,7 +2,7 @@
 
 use std::{cmp::Ordering, vec::IntoIter};
 
-use crate::math::{MatrixN, Point, Vector};
+use crate::math::{Matrix, Point, Vector};
 
 /// Trait of objects which can be tested for intersection with a ray.
 pub trait RayCast {
@@ -12,7 +12,7 @@ pub trait RayCast {
     /// Computes all the intersection points between `self` and `ray`, using transform `m`.
     ///
     /// The ray is given in world-space coordinates.
-    fn intersections_in_world_space(&self, m: &MatrixN, ray: &Ray) -> RayIntersections {
+    fn intersections_in_world_space(&self, m: &Matrix, ray: &Ray) -> RayIntersections {
         let inv = m.inverse().unwrap();
         let local_ray = ray.transform_by(&inv);
 
@@ -47,7 +47,7 @@ impl Ray {
     }
 
     /// Creates a new ray by applying a transformation to `self`.
-    pub fn transform_by(&self, m: &MatrixN) -> Self {
+    pub fn transform_by(&self, m: &Matrix) -> Self {
         Self {
             origin: m * self.origin,
             dir: m * self.dir,

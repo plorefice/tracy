@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 
 use crate::{
-    math::{MatrixN, Point, Vector, EPSILON},
+    math::{Matrix, Point, Vector, EPSILON},
     rendering::{self, Color, Material, Pattern, PointLight},
     shape::Sphere,
 };
@@ -41,8 +41,8 @@ impl Default for World {
                 casts_shadows: true,
             }),
             objects: vec![
-                Object::new_with_material(Sphere, MatrixN::identity(4), mat),
-                Object::new(Sphere, MatrixN::from_scale(0.5, 0.5, 0.5)),
+                Object::new_with_material(Sphere, Matrix::identity(4), mat),
+                Object::new(Sphere, Matrix::from_scale(0.5, 0.5, 0.5)),
             ],
         }
     }

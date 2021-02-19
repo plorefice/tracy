@@ -1,7 +1,7 @@
 use std::sync::Mutex;
 
 use tracy::{
-    math::MatrixN,
+    math::Matrix,
     query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
     rendering::Material,
     shape::{Plane, Shape, Sphere},
@@ -52,14 +52,14 @@ macro_rules! assert_not_abs_diff {
 
 /// Creates a default unit sphere centered in the origin.
 pub fn sphere() -> Object {
-    Object::new(Sphere, MatrixN::identity(4))
+    Object::new(Sphere, Matrix::identity(4))
 }
 
 /// Creates a sphere with a glassy texture.
 pub fn glass_sphere() -> Object {
     Object::new_with_material(
         Sphere,
-        MatrixN::identity(4),
+        Matrix::identity(4),
         Material {
             transparency: 1.0,
             refractive_index: 1.5,
@@ -70,7 +70,7 @@ pub fn glass_sphere() -> Object {
 
 /// Creates a default plane.
 pub fn plane() -> Object {
-    Object::new(Plane, MatrixN::identity(4))
+    Object::new(Plane, Matrix::identity(4))
 }
 
 /// Creates a test shape centered in the origin.
@@ -79,6 +79,6 @@ pub fn test_shape() -> Object {
         TestShape {
             saved_ray: Mutex::new(None),
         },
-        MatrixN::identity(4),
+        Matrix::identity(4),
     )
 }

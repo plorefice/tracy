@@ -1,7 +1,7 @@
 use std::f32::consts::{FRAC_1_SQRT_2, SQRT_2};
 
 use tracy::{
-    math::{MatrixN, Point, Vector, EPSILON},
+    math::{Matrix, Point, Vector, EPSILON},
     query::{Object, Ray, World},
     rendering::{Color, Material, PointLight, DEFAULT_RECURSION_DEPTH},
     shape::Plane,
@@ -64,7 +64,7 @@ fn the_reflected_color_for_a_reflective_material() {
 
     w.add(Object::new_with_material(
         Plane,
-        MatrixN::from_translation(0.0, -1.0, 0.0),
+        Matrix::from_translation(0.0, -1.0, 0.0),
         Material {
             reflective: 0.5,
             ..Default::default()
@@ -94,7 +94,7 @@ fn shade_hit_with_a_reflective_material() {
 
     w.add(Object::new_with_material(
         Plane,
-        MatrixN::from_translation(0.0, -1.0, 0.0),
+        Matrix::from_translation(0.0, -1.0, 0.0),
         Material {
             reflective: 0.5,
             ..Default::default()
@@ -125,7 +125,7 @@ fn color_at_with_mutually_reflective_surfaces() {
 
     w.add(Object::new_with_material(
         Plane,
-        MatrixN::from_translation(0.0, -1.0, 0.0),
+        Matrix::from_translation(0.0, -1.0, 0.0),
         Material {
             reflective: 1.0,
             ..Default::default()
@@ -134,7 +134,7 @@ fn color_at_with_mutually_reflective_surfaces() {
 
     w.add(Object::new_with_material(
         Plane,
-        MatrixN::from_translation(0.0, 1.0, 0.0),
+        Matrix::from_translation(0.0, 1.0, 0.0),
         Material {
             reflective: 1.0,
             ..Default::default()
@@ -155,7 +155,7 @@ fn the_reflected_color_at_the_maximum_recursive_depth() {
 
     w.add(Object::new_with_material(
         Plane,
-        MatrixN::from_translation(0.0, -1.0, 0.0),
+        Matrix::from_translation(0.0, -1.0, 0.0),
         Material {
             reflective: 0.5,
             ..Default::default()
@@ -184,7 +184,7 @@ fn transparency_and_refractive_index_for_the_default_material() {
 #[test]
 fn a_helper_for_producing_a_sphere_with_a_glassy_material() {
     let s = glass_sphere();
-    assert_eq!(s.transform(), &MatrixN::identity(4));
+    assert_eq!(s.transform(), &Matrix::identity(4));
     assert_f32!(s.material().transparency, 1.0);
     assert_f32!(s.material().refractive_index, 1.5);
 }
@@ -194,17 +194,17 @@ fn finding_n1_and_n2_at_various_intersections() {
     let mut world = World::new();
 
     let mut a = glass_sphere();
-    a.set_transform(MatrixN::from_scale(2.0, 2.0, 2.0));
+    a.set_transform(Matrix::from_scale(2.0, 2.0, 2.0));
     a.material_mut().refractive_index = 1.5;
     world.add(a);
 
     let mut b = glass_sphere();
-    b.set_transform(MatrixN::from_translation(0.0, 0.0, -0.25));
+    b.set_transform(Matrix::from_translation(0.0, 0.0, -0.25));
     b.material_mut().refractive_index = 2.0;
     world.add(b);
 
     let mut c = glass_sphere();
-    c.set_transform(MatrixN::from_translation(0.0, 0.0, 0.25));
+    c.set_transform(Matrix::from_translation(0.0, 0.0, 0.25));
     c.material_mut().refractive_index = 2.5;
     world.add(c);
 
@@ -236,7 +236,7 @@ fn the_under_point_is_offset_below_the_surface() {
     let mut w = World::new();
 
     let mut s = glass_sphere();
-    s.set_transform(MatrixN::from_translation(0.0, 0.0, 1.0));
+    s.set_transform(Matrix::from_translation(0.0, 0.0, 1.0));
     w.add(s);
 
     let r = Ray::new(
