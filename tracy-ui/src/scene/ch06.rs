@@ -4,7 +4,7 @@ use imgui::*;
 use tracy::{
     math::{MatrixN, Point},
     query::{Object, Ray, World},
-    rendering::{Canvas, Color, Material, Pattern, PointLight},
+    rendering::{Canvas, Color, Material, Pattern, PointLight, DEFAULT_RECURSION_DEPTH},
     shape::Sphere,
 };
 
@@ -84,7 +84,13 @@ impl Scene for PhongSphere {
                 let target = Point::from_point(wall_x, wall_y, wall_z);
                 let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
 
-                canvas.put(x, y, world.color_at(&ray).unwrap_or_default());
+                canvas.put(
+                    x,
+                    y,
+                    world
+                        .color_at(&ray, DEFAULT_RECURSION_DEPTH)
+                        .unwrap_or_default(),
+                );
             }
         }
 

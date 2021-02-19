@@ -3,7 +3,9 @@ use std::f32::consts::{FRAC_1_SQRT_2, PI};
 use tracy::{
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Ray, World},
-    rendering::{Camera, Color, Material, Pattern, PatternKind, PointLight},
+    rendering::{
+        Camera, Color, Material, Pattern, PatternKind, PointLight, DEFAULT_RECURSION_DEPTH,
+    },
 };
 pub use utils::*;
 
@@ -142,7 +144,7 @@ fn shading_an_intersection() {
         .unwrap();
 
     assert_abs_diff!(
-        w.shade_hit(&interference).unwrap(),
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
         Color::new(0.38066, 0.47583, 0.2855)
     );
 }
@@ -167,7 +169,7 @@ fn shading_an_intersection_from_the_inside() {
         .unwrap();
 
     assert_abs_diff!(
-        w.shade_hit(&interference).unwrap(),
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
         Color::new(0.90498, 0.90498, 0.90498)
     );
 }
@@ -180,7 +182,7 @@ fn the_color_when_a_ray_misses() {
         Vector::from_vector(0.0, 1.0, 0.0),
     );
 
-    assert!(w.color_at(&r).is_none());
+    assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_none());
 }
 
 #[test]
@@ -192,7 +194,7 @@ fn the_color_when_a_ray_hits() {
     );
 
     assert_abs_diff!(
-        w.color_at(&r).unwrap(),
+        w.color_at(&r, DEFAULT_RECURSION_DEPTH).unwrap(),
         Color::new(0.38066, 0.47583, 0.2855)
     );
 }
@@ -220,7 +222,7 @@ fn the_color_with_an_intersection_behind_the_ray() {
         Vector::from_vector(0.0, 0.0, -1.0),
     );
 
-    assert_abs_diff!(w.color_at(&r).unwrap(), expected);
+    assert_abs_diff!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).unwrap(), expected);
 }
 
 #[test]

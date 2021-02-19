@@ -114,8 +114,11 @@ impl World {
         }
     }
 
-    /// Computes the color at the specified interference point.
-    pub fn shade_hit(&self, interference: &Interference) -> Option<Color> {
+    /// Recursively computes the color at the specified interference point.
+    ///
+    /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
+    /// reached.
+    pub fn shade_hit(&self, interference: &Interference, remaining: u32) -> Option<Color> {
         let obj = self.get(interference.handle)?;
         let light = self.light()?;
 
@@ -128,28 +131,36 @@ impl World {
             light.casts_shadows && self.is_in_shadow(&interference.over_point),
         );
 
-        let reflected = self.reflected_color(interference)?;
+        let reflected = self.reflected_color(interference, remaining)?;
 
         Some(surface + reflected)
     }
 
-    /// Computes the reflected color at the specified interference point.
-    pub fn reflected_color(&self, interference: &Interference) -> Option<Color> {
+    /// Recursively computes the reflected color at the specified interference point.
+    ///
+    /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
+    /// reached.
+    pub fn reflected_color(&self, interference: &Interference, remaining: u32) -> Option<Color> {
         let obj = self.get(interference.handle)?;
         let reflective = obj.material().reflective;
 
-        if reflective != 0.0 {
-            let r = Ray::new(interference.over_point, interference.reflect);
-            let c = self.color_at(&r)?;
-            Some(c * reflective)
-        } else {
+        if remaining == 0 {
+            None
+        } else if reflective == 0.0 {
             Some(Color::BLACK)
+        } else {
+            let r = Ray::new(interference.over_point, interference.reflect);
+            let c = self.color_at(&r, remaining - 1)?;
+            Some(c * reflective)
         }
     }
 
-    /// Computes the color at the intersection between an object and a ray.
-    pub fn color_at(&self, ray: &Ray) -> Option<Color> {
-        self.shade_hit(&self.interferences_with_ray(ray).hit()?)
+    /// Recursively computes the color at the intersection between an object and a ray.
+    ///
+    /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
+    /// reached.
+    pub fn color_at(&self, ray: &Ray, remaining: u32) -> Option<Color> {
+        self.shade_hit(&self.interferences_with_ray(ray).hit()?, remaining)
     }
 
     /// Checks whether the given point lies in shadow of the light source.

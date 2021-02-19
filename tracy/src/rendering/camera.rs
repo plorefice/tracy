@@ -4,12 +4,16 @@ use crate::{
     rendering::Canvas,
 };
 
+/// Default recursion depth when computing reflections.
+pub const DEFAULT_RECURSION_DEPTH: u32 = 5;
+
 /// A perspective 3D camera.
 #[derive(Debug, Clone)]
 pub struct Camera {
     size: (u32, u32),
     fov: f32,
     transform: MatrixN,
+    recursion_limit: u32,
 
     // Derived parameters
     pixel_size: f32,
@@ -31,6 +35,7 @@ impl Camera {
             size: (hsize, vsize),
             fov,
             transform,
+            recursion_limit: DEFAULT_RECURSION_DEPTH,
             pixel_size: 0.0,
             half_width: 0.0,
             half_height: 0.0,
@@ -98,7 +103,9 @@ impl Camera {
         for y in 0..self.vertical_size() {
             for x in 0..self.horizontal_size() {
                 let ray = self.ray_to(x, y);
-                let color = world.color_at(&ray).unwrap_or_default();
+                let color = world
+                    .color_at(&ray, self.recursion_limit)
+                    .unwrap_or_default();
                 canvas.put(x, y, color);
             }
         }

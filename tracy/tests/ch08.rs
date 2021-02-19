@@ -1,3 +1,4 @@
+use rendering::DEFAULT_RECURSION_DEPTH;
 use tracy::{
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Object, Ray, World},
@@ -82,7 +83,7 @@ fn shade_hit_is_given_an_intersection_in_shadow() {
         .find(|i| (i.toi - 4.0).abs() < EPSILON)
         .unwrap();
 
-    let c = w.shade_hit(&interference).unwrap();
+    let c = w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap();
     assert_abs_diff!(c, Color::new(0.1, 0.1, 0.1));
 }
 

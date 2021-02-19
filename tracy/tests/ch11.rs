@@ -3,7 +3,7 @@ use std::f32::consts::{FRAC_1_SQRT_2, SQRT_2};
 use tracy::{
     math::{MatrixN, Point, Vector, EPSILON},
     query::{Object, Ray, World},
-    rendering::{Color, Material},
+    rendering::{Color, Material, PointLight, DEFAULT_RECURSION_DEPTH},
     shape::Plane,
 };
 pub use utils::*;
@@ -52,7 +52,10 @@ fn the_reflected_color_for_a_nonreflective_material() {
         .find(|i| (i.toi - 1.0).abs() < EPSILON)
         .unwrap();
 
-    assert_eq!(w.reflected_color(&interference), Some(Color::BLACK));
+    assert_eq!(
+        w.reflected_color(&interference, DEFAULT_RECURSION_DEPTH),
+        Some(Color::BLACK)
+    );
 }
 
 #[test]
@@ -79,7 +82,8 @@ fn the_reflected_color_for_a_reflective_material() {
         .unwrap();
 
     assert_abs_diff!(
-        w.reflected_color(&interference).unwrap(),
+        w.reflected_color(&interference, DEFAULT_RECURSION_DEPTH)
+            .unwrap(),
         Color::new(0.19032, 0.2379, 0.14274)
     );
 }
@@ -108,7 +112,65 @@ fn shade_hit_with_a_reflective_material() {
         .unwrap();
 
     assert_abs_diff!(
-        w.shade_hit(&interference).unwrap(),
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
         Color::new(0.87677, 0.92436, 0.82918)
     );
+}
+
+#[test]
+fn color_at_with_mutually_reflective_surfaces() {
+    let mut w = World::new();
+
+    w.set_light(PointLight::default());
+
+    w.add(Object::new_with_material(
+        Plane,
+        MatrixN::from_translation(0.0, -1.0, 0.0),
+        Material {
+            reflective: 1.0,
+            ..Default::default()
+        },
+    ));
+
+    w.add(Object::new_with_material(
+        Plane,
+        MatrixN::from_translation(0.0, 1.0, 0.0),
+        Material {
+            reflective: 1.0,
+            ..Default::default()
+        },
+    ));
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, 0.0),
+        Vector::from_vector(0.0, 1.0, 0.0),
+    );
+
+    assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_none());
+}
+
+#[test]
+fn the_reflected_color_at_the_maximum_recursive_depth() {
+    let mut w = World::default();
+
+    w.add(Object::new_with_material(
+        Plane,
+        MatrixN::from_translation(0.0, -1.0, 0.0),
+        Material {
+            reflective: 0.5,
+            ..Default::default()
+        },
+    ));
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -3.0),
+        Vector::from_vector(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - SQRT_2).abs() < EPSILON)
+        .unwrap();
+
+    assert!(w.reflected_color(&interference, 0).is_none());
 }
