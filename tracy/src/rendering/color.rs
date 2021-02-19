@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 /// A color in RGB format.
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
@@ -53,50 +53,155 @@ impl Color {
     }
 }
 
-impl Add for Color {
-    type Output = Self;
+macro_rules! impl_ref_bin_op {
+    (impl $imp:ident, $method:ident for $t:ty, $u:ty) => {
+        impl<'a> $imp<$u> for &'a $t {
+            type Output = <$t as $imp<$u>>::Output;
 
-    fn add(self, rhs: Self) -> Self::Output {
-        Self::Output {
-            r: self.r + rhs.r,
-            g: self.g + rhs.g,
-            b: self.b + rhs.b,
+            #[inline]
+            fn $method(self, other: $u) -> <$t as $imp<$u>>::Output {
+                $imp::$method(*self, other)
+            }
         }
+
+        impl<'a> $imp<&'a $u> for $t {
+            type Output = <$t as $imp<$u>>::Output;
+
+            #[inline]
+            fn $method(self, other: &'a $u) -> <$t as $imp<$u>>::Output {
+                $imp::$method(self, *other)
+            }
+        }
+
+        impl<'a, 'b> $imp<&'a $u> for &'b $t {
+            type Output = <$t as $imp<$u>>::Output;
+
+            #[inline]
+            fn $method(self, other: &'a $u) -> <$t as $imp<$u>>::Output {
+                $imp::$method(*self, *other)
+            }
+        }
+    };
+}
+
+macro_rules! impl_ops {
+    ($($t:ty)*) => ($(
+        impl Add for $t {
+            type Output = Self;
+
+            fn add(self, rhs: Self) -> Self::Output {
+                Self::Output {
+                    r: self.r + rhs.r,
+                    g: self.g + rhs.g,
+                    b: self.b + rhs.b,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Add, add for $t, $t);
+
+        impl Sub for $t {
+            type Output = Self;
+
+            fn sub(self, rhs: Self) -> Self::Output {
+                Self::Output {
+                    r: self.r - rhs.r,
+                    g: self.g - rhs.g,
+                    b: self.b - rhs.b,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Sub, sub for $t, $t);
+
+        impl Mul for $t {
+            type Output = $t;
+
+            fn mul(self, rhs: Self) -> Self::Output {
+                Self::Output {
+                    r: self.r * rhs.r,
+                    g: self.g * rhs.g,
+                    b: self.b * rhs.b,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Mul, mul for $t, $t);
+
+        impl Div for $t {
+            type Output = $t;
+
+            fn div(self, rhs: Self) -> Self::Output {
+                Self::Output {
+                    r: self.r / rhs.r,
+                    g: self.g / rhs.g,
+                    b: self.b / rhs.b,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Div, div for $t, $t);
+
+        impl Mul<f32> for $t {
+            type Output = $t;
+
+            fn mul(self, rhs: f32) -> Self::Output {
+                Self::Output {
+                    r: rhs * self.r,
+                    g: rhs * self.g,
+                    b: rhs * self.b,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Mul, mul for $t, f32);
+
+        impl Div<f32> for $t {
+            type Output = $t;
+
+            fn div(self, rhs: f32) -> Self::Output {
+                Self::Output {
+                    r: self.r / rhs,
+                    g: self.g / rhs,
+                    b: self.b / rhs,
+                }
+            }
+        }
+
+        impl_ref_bin_op!(impl Div, div for $t, f32);
+    )*)
+}
+
+impl_ops!(Color);
+
+impl AddAssign for Color {
+    fn add_assign(&mut self, rhs: Self) {
+        self.r += rhs.r;
+        self.g += rhs.g;
+        self.b += rhs.b;
     }
 }
 
-impl Sub for Color {
-    type Output = Self;
-
-    fn sub(self, rhs: Self) -> Self::Output {
-        Self::Output {
-            r: self.r - rhs.r,
-            g: self.g - rhs.g,
-            b: self.b - rhs.b,
-        }
+impl SubAssign for Color {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.r -= rhs.r;
+        self.g -= rhs.g;
+        self.b -= rhs.b;
     }
 }
 
-impl Mul<f32> for Color {
-    type Output = Self;
-
-    fn mul(self, rhs: f32) -> Self::Output {
-        Self::Output {
-            r: self.r * rhs,
-            g: self.g * rhs,
-            b: self.b * rhs,
-        }
+impl MulAssign<f32> for Color {
+    fn mul_assign(&mut self, rhs: f32) {
+        self.r *= rhs;
+        self.g *= rhs;
+        self.b *= rhs;
     }
 }
 
-impl Mul for Color {
-    type Output = Self;
-
-    fn mul(self, rhs: Self) -> Self::Output {
-        Self::Output {
-            r: self.r * rhs.r,
-            g: self.g * rhs.g,
-            b: self.b * rhs.b,
-        }
+impl DivAssign<f32> for Color {
+    fn div_assign(&mut self, rhs: f32) {
+        self.r /= rhs;
+        self.g /= rhs;
+        self.b /= rhs;
     }
 }

@@ -11,16 +11,16 @@ mod utils;
 #[test]
 fn creating_a_stripe_pattern() {
     let _ = Pattern::Stripes {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 }
 
 #[test]
 fn a_stripe_pattern_is_constant_in_y() {
     let pattern = Pattern::Stripes {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for y in 0..=2 {
@@ -34,8 +34,8 @@ fn a_stripe_pattern_is_constant_in_y() {
 #[test]
 fn a_stripe_pattern_is_constant_in_z() {
     let pattern = Pattern::Stripes {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for z in 0..=2 {
@@ -49,8 +49,8 @@ fn a_stripe_pattern_is_constant_in_z() {
 #[test]
 fn a_stripe_pattern_alternates_in_x() {
     let pattern = Pattern::Stripes {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for (x, exp) in &[
@@ -72,8 +72,8 @@ fn lighting_with_a_pattern_applied() {
         MatrixN::identity(4),
         Material {
             pattern: Pattern::Stripes {
-                ca: Color::WHITE,
-                cb: Color::BLACK,
+                a: Box::new(Color::WHITE.into()),
+                b: Box::new(Color::BLACK.into()),
             },
             ambient: 1.0,
             diffuse: 0.0,
@@ -119,8 +119,8 @@ fn stripes_with_an_object_transformation() {
         MatrixN::from_scale(2.0, 2.0, 2.0),
         Material {
             pattern: Pattern::Stripes {
-                ca: Color::WHITE,
-                cb: Color::BLACK,
+                a: Box::new(Color::WHITE.into()),
+                b: Box::new(Color::BLACK.into()),
             },
             ambient: 1.0,
             diffuse: 0.0,
@@ -148,8 +148,8 @@ fn stripes_with_a_pattern_transformation() {
         MatrixN::identity(4),
         Material {
             pattern: Pattern::Stripes {
-                ca: Color::WHITE,
-                cb: Color::BLACK,
+                a: Box::new(Color::WHITE.into()),
+                b: Box::new(Color::BLACK.into()),
             },
             transform: MatrixN::from_scale(2.0, 2.0, 2.0),
             ambient: 1.0,
@@ -178,8 +178,8 @@ fn stripes_with_both_an_object_and_a_pattern_transformation() {
         MatrixN::from_scale(2.0, 2.0, 2.0),
         Material {
             pattern: Pattern::Stripes {
-                ca: Color::WHITE,
-                cb: Color::BLACK,
+                a: Box::new(Color::WHITE.into()),
+                b: Box::new(Color::BLACK.into()),
             },
             transform: MatrixN::from_translation(0.5, 0.0, 0.0),
             ambient: 1.0,
@@ -204,8 +204,8 @@ fn stripes_with_both_an_object_and_a_pattern_transformation() {
 #[test]
 fn a_linear_gradient_linearly_interpolates_between_colors() {
     let pattern = Pattern::LinearGradient {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Color::WHITE,
+        b: Color::BLACK,
     };
 
     for &(x, exp) in &[
@@ -221,8 +221,8 @@ fn a_linear_gradient_linearly_interpolates_between_colors() {
 #[test]
 fn a_radial_gradient_linearly_interpolates_in_both_x_and_z() {
     let pattern = Pattern::RadialGradient {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Color::WHITE,
+        b: Color::BLACK,
     };
 
     for &(p, exp) in &[
@@ -238,8 +238,8 @@ fn a_radial_gradient_linearly_interpolates_in_both_x_and_z() {
 #[test]
 fn a_ring_should_extend_in_both_x_and_z() {
     let pattern = Pattern::Rings {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for &(p, exp) in &[
@@ -255,8 +255,8 @@ fn a_ring_should_extend_in_both_x_and_z() {
 #[test]
 fn checkers_should_repeat_in_x() {
     let pattern = Pattern::Checkers {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for &(x, exp) in &[
@@ -271,8 +271,8 @@ fn checkers_should_repeat_in_x() {
 #[test]
 fn checkers_should_repeat_in_y() {
     let pattern = Pattern::Checkers {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for &(y, exp) in &[
@@ -287,8 +287,8 @@ fn checkers_should_repeat_in_y() {
 #[test]
 fn checkers_should_repeat_in_z() {
     let pattern = Pattern::Checkers {
-        ca: Color::WHITE,
-        cb: Color::BLACK,
+        a: Box::new(Color::WHITE.into()),
+        b: Box::new(Color::BLACK.into()),
     };
 
     for &(z, exp) in &[

@@ -38,8 +38,8 @@ impl Scene for Patterns {
             MatrixN::identity(4),
             Material {
                 pattern: Pattern::Checkers {
-                    ca: Color::new(0.5, 0.5, 0.5),
-                    cb: Color::new(0.2, 0.2, 0.2),
+                    a: Box::new(Color::new(0.5, 0.5, 0.5).into()),
+                    b: Box::new(Color::new(0.2, 0.2, 0.2).into()),
                 },
                 transform: MatrixN::from_translation(0.0, 0.01, 0.0),
                 specular: 0.0,
@@ -53,8 +53,8 @@ impl Scene for Patterns {
             MatrixN::from_translation(0.0, 0.0, 2.0) * MatrixN::from_rotation_x(PI / 2.0),
             Material {
                 pattern: Pattern::Stripes {
-                    ca: Color::new(0.5, 0.5, 0.5),
-                    cb: Color::new(0.2, 0.2, 0.2),
+                    a: Box::new(Color::new(0.5, 0.5, 0.5).into()),
+                    b: Box::new(Color::new(0.2, 0.2, 0.2).into()),
                 },
                 transform: MatrixN::from_rotation_y(PI / 4.0),
                 specular: 0.0,
@@ -68,8 +68,8 @@ impl Scene for Patterns {
             MatrixN::from_translation(-1.0, 1.0, 0.0),
             Material {
                 pattern: Pattern::Rings {
-                    ca: Color::new(0.0, 0.8, 0.0),
-                    cb: Color::new(0.0, 0.5, 0.0),
+                    a: Box::new(Color::new(0.0, 0.8, 0.0).into()),
+                    b: Box::new(Color::new(0.0, 0.5, 0.0).into()),
                 },
                 transform: MatrixN::from_rotation_x(-PI / 4.0)
                     * MatrixN::from_rotation_y(PI / 3.0)
@@ -85,8 +85,8 @@ impl Scene for Patterns {
             MatrixN::from_translation(1.0, 0.5, -1.0) * MatrixN::from_scale(0.5, 0.5, 0.5),
             Material {
                 pattern: Pattern::LinearGradient {
-                    ca: Color::new(0.8, 0.0, 0.0),
-                    cb: Color::new(0.0, 0.8, 0.0),
+                    a: Color::new(0.8, 0.0, 0.0),
+                    b: Color::new(0.0, 0.8, 0.0),
                 },
                 transform: MatrixN::from_translation(1.0, 0.0, 0.0)
                     * MatrixN::from_scale(2.0, 2.0, 2.0),
@@ -101,8 +101,8 @@ impl Scene for Patterns {
             MatrixN::from_translation(0.0, 0.4, -2.0) * MatrixN::from_scale(0.4, 0.4, 0.4),
             Material {
                 pattern: Pattern::RadialGradient {
-                    ca: Color::new(0.0, 0.8, 1.0),
-                    cb: Color::new(0.0, 0.5, 0.7),
+                    a: Color::new(0.0, 0.8, 1.0),
+                    b: Color::new(0.0, 0.5, 0.7),
                 },
                 transform: MatrixN::from_rotation_y(PI / 4.0)
                     * MatrixN::from_rotation_x(-PI / 2.0)
