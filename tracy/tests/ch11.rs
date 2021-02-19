@@ -351,3 +351,77 @@ fn shade_hit_with_a_transparent_material() {
         Color::new(0.93642, 0.68642, 0.68642)
     );
 }
+
+#[test]
+fn the_schlick_approximation_under_total_internal_reflection() {
+    let mut w = World::new();
+    w.add(glass_sphere());
+
+    let r = Ray::new(Point3::new(0.0, 0.0, FRAC_1_SQRT_2), Vec3::unit_y());
+
+    let interferences = w.interferences_with_ray(&r).nth(1).unwrap();
+
+    assert_f32!(interferences.schlick(), 1.0);
+}
+
+#[test]
+fn the_schlick_approximation_with_a_perpendicular_viewing_angle() {
+    let mut w = World::new();
+    w.add(glass_sphere());
+
+    let r = Ray::new(Point3::default(), Vec3::unit_y());
+
+    let interferences = w.interferences_with_ray(&r).nth(1).unwrap();
+
+    assert_f32!(interferences.schlick(), 0.04);
+}
+
+#[test]
+fn the_schlick_approximation_with_small_angle_and_n2_greater_than_n1() {
+    let mut w = World::new();
+    w.add(glass_sphere());
+
+    let r = Ray::new(Point3::new(0.0, 0.99, -2.0), Vec3::unit_z());
+
+    let interferences = w.interferences_with_ray(&r).next().unwrap();
+
+    assert_f32!(interferences.schlick(), 0.48873);
+}
+
+#[test]
+fn shade_hit_with_a_reflective_transparent_material() {
+    let mut w = World::default();
+
+    w.add(Object::new_with_material(
+        Plane,
+        Matrix::from_translation(0.0, -1.0, 0.0),
+        Material {
+            reflective: 0.5,
+            transparency: 0.5,
+            refractive_index: 1.5,
+            ..Default::default()
+        },
+    ));
+
+    w.add(Object::new_with_material(
+        Sphere,
+        Matrix::from_translation(0.0, -3.5, -0.5),
+        Material {
+            pattern: Pattern::new(Color::new(1.0, 0.0, 0.0).into()),
+            ambient: 0.5,
+            ..Default::default()
+        },
+    ));
+
+    let r = Ray::new(
+        Point3::new(0.0, 0.0, -3.0),
+        Vec3::new(0.0, -FRAC_1_SQRT_2, FRAC_1_SQRT_2),
+    );
+
+    let interference = w.interferences_with_ray(&r).next().unwrap();
+
+    assert_abs_diff!(
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
+        Color::new(0.93391, 0.69643, 0.69243)
+    );
+}

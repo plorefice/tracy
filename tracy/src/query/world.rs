@@ -136,7 +136,13 @@ impl World {
         let reflected = self.reflected_color(interference, remaining)?;
         let refracted = self.refracted_color(interference, remaining)?;
 
-        Some(surface + reflected + refracted)
+        let m = obj.material();
+        if m.reflective > 0.0 && m.transparency > 0.0 {
+            let reflectance = interference.schlick();
+            Some(surface + reflected * reflectance + refracted * (1.0 - reflectance))
+        } else {
+            Some(surface + reflected + refracted)
+        }
     }
 
     /// Recursively computes the reflected color at the specified interference point.
@@ -218,7 +224,7 @@ impl World {
 }
 
 /// An intersection between a world object and a ray.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Interference {
     /// A handle to the object that was hit by the ray.
     pub handle: ObjectHandle,
@@ -242,6 +248,27 @@ pub struct Interference {
     pub n1: f32,
     /// Refractive index of the material being entered by this intersection.
     pub n2: f32,
+}
+
+impl Interference {
+    /// Computes the reflectance at this intersection.
+    pub fn schlick(&self) -> f32 {
+        let mut cos = self.eye.dot(&self.normal);
+
+        if self.n1 > self.n2 {
+            let n = self.n1 / self.n2;
+            let sin2_t = n.powi(2) * (1.0 - cos.powi(2));
+
+            if sin2_t > 1.0 {
+                return 1.0;
+            }
+
+            cos = (1.0 - sin2_t).sqrt();
+        }
+
+        let r0 = ((self.n1 - self.n2) / (self.n1 + self.n2)).powi(2);
+        r0 + (1.0 - r0) * (1.0 - cos).powi(5)
+    }
 }
 
 /// Iterator over all the objects in the world that intersect a specific ray.
