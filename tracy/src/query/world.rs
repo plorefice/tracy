@@ -6,7 +6,7 @@ use std::{
 use itertools::Itertools;
 
 use crate::{
-    math::{MatrixN, Point, EPSILON},
+    math::{MatrixN, Point, Vector, EPSILON},
     rendering::{self, Color, Material, Pattern, PointLight},
     shape::Sphere,
 };
@@ -166,9 +166,11 @@ pub struct Interference {
     /// The point slightly above the intersection point along its normal.
     pub over_point: Point,
     /// The vector from the intersection point towards the camera.
-    pub eye: Point,
+    pub eye: Vector,
     /// The normal vector to the intesection point.
-    pub normal: Point,
+    pub normal: Vector,
+    /// The reflected ray after this interference.
+    pub reflect: Vector,
     /// Whether this intersection occurred on the object's inside.
     pub inside: bool,
 }
@@ -195,6 +197,7 @@ impl Iterator for InterferencesWithRay<'_> {
             let eye = -self.ray.dir;
             let inside = i.normal.dot(&eye) < 0.;
             let normal = if inside { -i.normal } else { i.normal };
+            let reflect = self.ray.dir.reflect(&normal);
             let point = self.ray.point_at(i.toi);
 
             Interference {
@@ -204,6 +207,7 @@ impl Iterator for InterferencesWithRay<'_> {
                 over_point: point + normal * EPSILON,
                 eye,
                 normal,
+                reflect,
                 inside,
             }
         })
