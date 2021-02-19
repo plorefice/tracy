@@ -129,6 +129,17 @@ impl World {
         ))
     }
 
+    /// Computes the reflected color at the specified interference point.
+    pub fn reflected_color(&self, interference: &Interference) -> Option<Color> {
+        let obj = self.get(interference.handle)?;
+
+        if obj.material().reflective == 0.0 {
+            Some(Color::BLACK)
+        } else {
+            todo!("implement reflection")
+        }
+    }
+
     /// Computes the color at the intersection between an object and a ray.
     pub fn color_at(&self, ray: &Ray) -> Option<Color> {
         self.shade_hit(&self.interferences_with_ray(ray).hit()?)
