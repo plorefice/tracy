@@ -45,6 +45,11 @@ impl Vec3 {
         Self { x, y, z }
     }
 
+    /// Creates the zero vector.
+    pub fn zero() -> Self {
+        Self::default()
+    }
+
     /// Creates the unit `x` vector, ie. `(1, 0, 0)`.
     pub fn unit_x() -> Self {
         Self::new(1.0, 0.0, 0.0)
