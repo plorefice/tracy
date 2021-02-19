@@ -230,3 +230,25 @@ fn finding_n1_and_n2_at_various_intersections() {
         assert_f32!(x.n2, n2);
     }
 }
+
+#[test]
+fn the_under_point_is_offset_below_the_surface() {
+    let mut w = World::new();
+
+    let mut s = glass_sphere();
+    s.set_transform(MatrixN::from_translation(0.0, 0.0, 1.0));
+    w.add(s);
+
+    let r = Ray::new(
+        Point::from_point(0.0, 0.0, -5.0),
+        Vector::from_vector(0.0, 0.0, 1.0),
+    );
+
+    let interference = w
+        .interferences_with_ray(&r)
+        .find(|i| (i.toi - 5.0).abs() < EPSILON)
+        .unwrap();
+
+    assert!(interference.under_point.z > EPSILON / 2.0);
+    assert!(interference.point.z < interference.under_point.z);
+}

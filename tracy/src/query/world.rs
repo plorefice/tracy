@@ -196,6 +196,8 @@ pub struct Interference {
     pub point: Point,
     /// The point slightly above the intersection point along its normal.
     pub over_point: Point,
+    /// The point slightly below the intersection point along its normal.
+    pub under_point: Point,
     /// The vector from the intersection point towards the camera.
     pub eye: Vector,
     /// The normal vector to the intesection point.
@@ -259,6 +261,7 @@ impl Iterator for InterferencesWithRay<'_, '_> {
                 toi: i.toi,
                 point,
                 over_point: point + normal * EPSILON,
+                under_point: point - normal * EPSILON,
                 eye,
                 normal,
                 reflect,
