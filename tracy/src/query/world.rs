@@ -119,14 +119,18 @@ impl World {
         let obj = self.get(interference.handle)?;
         let light = self.light()?;
 
-        Some(rendering::phong_lighting(
+        let surface = rendering::phong_lighting(
             obj,
             light,
             &interference.point,
             &interference.eye,
             &interference.normal,
             light.casts_shadows && self.is_in_shadow(&interference.over_point),
-        ))
+        );
+
+        let reflected = self.reflected_color(interference)?;
+
+        Some(surface + reflected)
     }
 
     /// Computes the reflected color at the specified interference point.
