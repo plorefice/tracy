@@ -52,12 +52,13 @@ impl Scene for PhongSphere {
             Sphere,
             MatrixN::identity(4),
             Material {
-                pattern: Pattern::Solid(Color::new(self.color[0], self.color[1], self.color[2])),
+                pattern: Pattern::new(
+                    Color::new(self.color[0], self.color[1], self.color[2]).into(),
+                ),
                 ambient: self.ambient,
                 diffuse: self.diffuse,
                 specular: self.specular,
                 shininess: self.shininess,
-                ..Default::default()
             },
         ));
 

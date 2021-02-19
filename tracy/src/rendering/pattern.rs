@@ -1,10 +1,17 @@
-use crate::math::Point;
+use crate::math::{MatrixN, Point};
 
 use super::Color;
 
-/// Nestable colored patterns.
+/// A nestable, colored pattern.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Pattern {
+pub struct Pattern {
+    kind: PatternKind,
+    transform: MatrixN,
+}
+
+/// Different kinds of patterns.
+#[derive(Debug, Clone, PartialEq)]
+pub enum PatternKind {
     /// A single solid color.
     Solid(Color),
     /// Two repeating, equally spaced pattern stripes.
@@ -34,6 +41,13 @@ pub enum Pattern {
         /// The second alternating color.
         b: Box<Pattern>,
     },
+    /// Average of two patterns.
+    Blended {
+        /// The first blended pattern.
+        a: Box<Pattern>,
+        /// The second blended pattern.
+        b: Box<Pattern>,
+    },
     /// Linear gradient between two colors.
     ///
     /// The pattern is constant in the `y` and `z` coordinates, with gradient stops at each integer
@@ -56,40 +70,63 @@ pub enum Pattern {
     },
 }
 
-impl From<Color> for Pattern {
+impl From<Color> for PatternKind {
     fn from(c: Color) -> Self {
         Self::Solid(c)
     }
 }
 
 impl Pattern {
-    /// Returns the color of `self` at `p`.
+    /// Create a new pattern with an identity trasformation applied.
+    pub fn new(kind: PatternKind) -> Self {
+        Self::new_with_transform(kind, MatrixN::identity(4))
+    }
+
+    /// Creates a new pattern with an applied transformation.
+    pub fn new_with_transform(kind: PatternKind, transform: MatrixN) -> Self {
+        Self { kind, transform }
+    }
+
+    /// Returns the pattern kind of `self`.
+    pub fn kind(&self) -> &PatternKind {
+        &self.kind
+    }
+
+    /// Returns the transformation applied to `self`.
+    pub fn transform(&self) -> &MatrixN {
+        &self.transform
+    }
+
+    /// Returns the color of `self` at object-space coordinates `p`.
     pub fn color_at(&self, p: &Point) -> Color {
-        match self {
-            &Self::Solid(c) => c,
-            Self::Stripes { a, b } => {
+        let p = self.transform.inverse().unwrap() * p;
+
+        match &self.kind {
+            &PatternKind::Solid(c) => c,
+            PatternKind::Stripes { a, b } => {
                 if (p.x.floor() as i32) % 2 == 0 {
-                    a.color_at(p)
+                    a.color_at(&p)
                 } else {
-                    b.color_at(p)
+                    b.color_at(&p)
                 }
             }
-            Self::Rings { a, b } => {
+            PatternKind::Rings { a, b } => {
                 if (p.x.powi(2) + p.z.powi(2)).sqrt().floor() as i32 % 2 == 0 {
-                    a.color_at(p)
+                    a.color_at(&p)
                 } else {
-                    b.color_at(p)
+                    b.color_at(&p)
                 }
             }
-            Self::Checkers { a, b } => {
+            PatternKind::Checkers { a, b } => {
                 if (p.x.floor() + p.y.floor() + p.z.floor()) as i32 % 2 == 0 {
-                    a.color_at(p)
+                    a.color_at(&p)
                 } else {
-                    b.color_at(p)
+                    b.color_at(&p)
                 }
             }
-            Self::LinearGradient { a, b } => a + (b - a) * (p.x - p.x.floor()),
-            Self::RadialGradient { a, b } => {
+            PatternKind::Blended { a, b } => (a.color_at(&p) + b.color_at(&p)) / 2.0,
+            PatternKind::LinearGradient { a, b } => a + (b - a) * (p.x - p.x.floor()),
+            PatternKind::RadialGradient { a, b } => {
                 let dist = (p.x.powi(2) + p.z.powi(2)).sqrt();
                 a + (b - a) * (dist - dist.floor())
             }

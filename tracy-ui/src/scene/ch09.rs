@@ -35,7 +35,7 @@ impl Scene for PlaneShape {
         let mut world = World::new();
 
         let floor_mat = Material {
-            pattern: Pattern::Solid(Color::new(1.0, 0.9, 0.9)),
+            pattern: Pattern::new(Color::new(1.0, 0.9, 0.9).into()),
             specular: 0.0,
             ..Default::default()
         };
@@ -52,7 +52,7 @@ impl Scene for PlaneShape {
             Sphere,
             MatrixN::from_translation(-0.5, 1.0, 0.5),
             Material {
-                pattern: Pattern::Solid(Color::new(0.1, 1.0, 0.5)),
+                pattern: Pattern::new(Color::new(0.1, 1.0, 0.5).into()),
                 diffuse: 0.7,
                 specular: 0.3,
                 ..Default::default()
@@ -64,7 +64,7 @@ impl Scene for PlaneShape {
             Sphere,
             MatrixN::from_translation(1.5, 0.5, -0.5) * MatrixN::from_scale(0.5, 0.5, 0.5),
             Material {
-                pattern: Pattern::Solid(Color::new(0.5, 1.0, 0.1)),
+                pattern: Pattern::new(Color::new(0.5, 1.0, 0.1).into()),
                 diffuse: 0.7,
                 specular: 0.3,
                 ..Default::default()
@@ -76,7 +76,7 @@ impl Scene for PlaneShape {
             Sphere,
             MatrixN::from_translation(-1.5, 0.33, -0.75) * MatrixN::from_scale(0.33, 0.33, 0.33),
             Material {
-                pattern: Pattern::Solid(Color::new(1.0, 0.8, 0.1)),
+                pattern: Pattern::new(Color::new(1.0, 0.8, 0.1).into()),
                 diffuse: 0.7,
                 specular: 0.3,
                 ..Default::default()

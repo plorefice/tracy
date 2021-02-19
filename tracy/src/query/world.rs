@@ -27,7 +27,7 @@ pub struct World {
 impl Default for World {
     fn default() -> Self {
         let mat = Material {
-            pattern: Pattern::Solid(Color::new(0.8, 1.0, 0.6)),
+            pattern: Pattern::new(Color::new(0.8, 1.0, 0.6).into()),
             diffuse: 0.7,
             specular: 0.2,
             ..Default::default()
