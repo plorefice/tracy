@@ -11,6 +11,8 @@ imgui = "0.7.0"
 imgui-wgpu = "0.14.0"
 imgui-winit-support = "0.7.0"
 lazy_static = "1.4.0"
+serde = "1.0"
+serde_yaml = "0.8"
 tracy = {path = "../tracy"}
 wgpu = "0.7"
 winit = "0.24.0"

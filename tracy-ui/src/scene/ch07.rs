@@ -1,11 +1,9 @@
-use std::f32::consts::{FRAC_PI_2, FRAC_PI_4};
+use std::fs::File;
 
 use imgui::*;
 use tracy::{
-    math::{Matrix, Point3, Vec3},
-    query::{Object, World},
-    rendering::{Camera, Canvas, Color, Material, Pattern, PointLight},
-    shape::Sphere,
+    query::World,
+    rendering::{Canvas, ScenePrefab},
 };
 
 use super::Scene;
@@ -32,94 +30,21 @@ impl Scene for ThreeSpheres {
     }
 
     fn render(&self, width: u32, height: u32) -> Canvas {
+        let scene: ScenePrefab = serde_yaml::from_reader(
+            File::open("scenes/ch07.yml").expect("Could not open scene file"),
+        )
+        .expect("Could not load scene prefab");
+
         let mut world = World::new();
 
-        let floor_mat = Material {
-            pattern: Pattern::new(Color::new(1.0, 0.9, 0.9).into()),
-            specular: 0.0,
-            ..Default::default()
-        };
+        for obj in scene.objects.into_iter() {
+            world.add(obj);
+        }
 
-        // Floor
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::from_scale(10.0, 0.01, 10.0),
-            floor_mat.clone(),
-        ));
+        world.set_light(scene.light);
 
-        // Left wall
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::from_translation(0.0, 0.0, 5.0)
-                * Matrix::from_rotation_y(-FRAC_PI_4)
-                * Matrix::from_rotation_x(FRAC_PI_2)
-                * Matrix::from_scale(10.0, 0.1, 10.0),
-            floor_mat.clone(),
-        ));
-
-        // Right wall
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::from_translation(0.0, 0.0, 5.0)
-                * Matrix::from_rotation_y(FRAC_PI_4)
-                * Matrix::from_rotation_x(FRAC_PI_2)
-                * Matrix::from_scale(10.0, 0.1, 10.0),
-            floor_mat,
-        ));
-
-        // Middle sphere
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::from_translation(-0.5, 1.0, 0.5),
-            Material {
-                pattern: Pattern::new(Color::new(0.1, 1.0, 0.5).into()),
-                diffuse: 0.7,
-                specular: 0.3,
-                ..Default::default()
-            },
-        ));
-
-        // Right sphere
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::from_translation(1.5, 0.5, -0.5) * Matrix::from_scale(0.5, 0.5, 0.5),
-            Material {
-                pattern: Pattern::new(Color::new(0.5, 1.0, 0.1).into()),
-                diffuse: 0.7,
-                specular: 0.3,
-                ..Default::default()
-            },
-        ));
-
-        // Left sphere
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::from_translation(-1.5, 0.33, -0.75) * Matrix::from_scale(0.33, 0.33, 0.33),
-            Material {
-                pattern: Pattern::new(Color::new(1.0, 0.8, 0.1).into()),
-                diffuse: 0.7,
-                specular: 0.3,
-                ..Default::default()
-            },
-        ));
-
-        world.set_light(PointLight {
-            position: Point3::new(-10.0, 10.0, -10.0),
-            casts_shadows: false,
-            ..Default::default()
-        });
-
-        let camera = Camera::new_with_transform(
-            width,
-            height,
-            self.fov.to_radians(),
-            Matrix::look_at(
-                Point3::new(0.0, 1.5, -5.0),
-                Point3::new(0.0, 1.0, 0.0),
-                Vec3::unit_y(),
-            ),
-        );
-
+        let mut camera = scene.camera.build();
+        camera.set_size(width, height);
         camera.render(&world)
     }
 
