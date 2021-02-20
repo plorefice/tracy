@@ -82,6 +82,12 @@ impl Camera {
         self.size.1
     }
 
+    /// Updates this camera's screen size.
+    pub fn set_size(&mut self, hsize: u32, vsize: u32) {
+        self.size = (hsize, vsize);
+        self.update();
+    }
+
     /// Returns the camera's field of view.
     pub fn fov(&self) -> f32 {
         self.fov
