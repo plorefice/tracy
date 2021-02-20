@@ -3,7 +3,8 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 /// A color in RGB format.
 #[cfg_attr(
     feature = "serde-support",
-    derive(serde::Serialize, serde::Deserialize)
+    derive(serde::Serialize, serde::Deserialize),
+    serde(from = "[f32; 3]")
 )]
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Color {

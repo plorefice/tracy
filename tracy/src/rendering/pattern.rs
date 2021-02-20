@@ -3,13 +3,23 @@ use crate::math::{Matrix, Point3};
 use super::Color;
 
 /// A nestable, colored pattern.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pattern {
     kind: PatternKind,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     transform: Matrix,
 }
 
 /// Different kinds of patterns.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(rename_all = "snake_case")
+)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum PatternKind {
     /// A single solid color.
@@ -104,5 +114,85 @@ impl Pattern {
             }
             PatternKind::Test => Color::new(p.x, p.y, p.z),
         }
+    }
+}
+
+#[cfg(all(feature = "serde-support", test))]
+mod tests {
+    use serde_test::{assert_de_tokens, Token};
+
+    use super::*;
+
+    #[test]
+    fn deserialize_complex_pattern() {
+        let p = Pattern::new(PatternKind::Blended(
+            Box::new(Pattern::new(Color::WHITE.into())),
+            Box::new(Pattern::new(Color::BLACK.into())),
+        ));
+
+        /*
+          pattern:
+            kind:
+              blended:
+                - kind:
+                    solid: [1, 1, 1]
+                - kind:
+                    solid: [0, 0, 0]
+        */
+
+        assert_de_tokens(
+            &p,
+            &[
+                // outer pattern
+                Token::Struct {
+                    name: "Pattern",
+                    len: 1,
+                },
+                Token::Str("kind"),
+                // outer blended pattern
+                Token::Enum {
+                    name: "PatternKind",
+                },
+                Token::Str("blended"),
+                Token::Seq { len: Some(2) },
+                // first Solid start
+                Token::Struct {
+                    name: "Pattern",
+                    len: 1,
+                },
+                Token::Str("kind"),
+                Token::Enum {
+                    name: "PatternKind",
+                },
+                Token::Str("solid"),
+                Token::Seq { len: Some(2) },
+                Token::F32(1.0),
+                Token::F32(1.0),
+                Token::F32(1.0),
+                Token::SeqEnd,
+                Token::StructEnd,
+                // first Solid end
+                // second Solid start
+                Token::Struct {
+                    name: "Pattern",
+                    len: 1,
+                },
+                Token::Str("kind"),
+                Token::Enum {
+                    name: "PatternKind",
+                },
+                Token::Str("solid"),
+                Token::Seq { len: Some(2) },
+                Token::F32(0.0),
+                Token::F32(0.0),
+                Token::F32(0.0),
+                Token::SeqEnd,
+                Token::StructEnd,
+                // second Solid end
+                Token::SeqEnd,
+                // outer Blended end
+                Token::StructEnd,
+            ],
+        );
     }
 }
