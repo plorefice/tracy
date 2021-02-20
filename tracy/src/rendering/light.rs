@@ -7,6 +7,11 @@ use crate::{
 };
 
 /// A point light source.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(default)
+)]
 #[derive(Debug, Clone, PartialEq)]
 pub struct PointLight {
     /// Position of the light source in the world.
