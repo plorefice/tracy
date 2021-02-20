@@ -1,6 +1,11 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 /// A color in RGB format.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(from = "[f32; 3]")
+)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Color {
     /// The red component of this color.
@@ -203,5 +208,28 @@ impl DivAssign<f32> for Color {
         self.r /= rhs;
         self.g /= rhs;
         self.b /= rhs;
+    }
+}
+
+#[cfg(all(feature = "serde-support", test))]
+mod tests {
+    use serde_test::{assert_de_tokens, Token};
+
+    use super::*;
+
+    #[test]
+    fn deserialize_from_vec() {
+        let c = Color::new(0.2, 0.3, 0.4);
+
+        assert_de_tokens(
+            &c,
+            &[
+                Token::Seq { len: Some(3) },
+                Token::F32(0.2),
+                Token::F32(0.3),
+                Token::F32(0.4),
+                Token::SeqEnd,
+            ],
+        );
     }
 }

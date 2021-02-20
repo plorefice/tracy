@@ -6,9 +6,14 @@ use crate::{
 use super::Shape;
 
 /// A plane extending on `xz`.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[derive(Debug, Clone)]
 pub struct Plane;
 
+#[cfg_attr(feature = "serde-support", typetag::serde)]
 impl Shape for Plane {}
 
 impl RayCast for Plane {

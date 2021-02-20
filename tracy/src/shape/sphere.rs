@@ -8,9 +8,14 @@ use crate::{
 use super::Shape;
 
 /// The unit sphere.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[derive(Debug, Clone)]
 pub struct Sphere;
 
+#[cfg_attr(feature = "serde-support", typetag::serde)]
 impl Shape for Sphere {}
 
 impl RayCast for Sphere {

@@ -4,11 +4,22 @@ edition = "2018"
 name = "tracy"
 version = "0.1.0"
 
+[features]
+default = ["serde-support"]
+serde-support = ["serde", "typetag"]
+
 [dependencies]
 itertools = "0.10.0"
+typetag = {version = "0.1.7", optional = true}
+
+[dependencies.serde]
+features = ["derive"]
+optional = true
+version = "1.0.123"
 
 [dev-dependencies]
 criterion = "0.3.4"
+serde_test = "1.0.123"
 
 [[bench]]
 harness = false

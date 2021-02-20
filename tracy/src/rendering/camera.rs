@@ -1,5 +1,5 @@
 use crate::{
-    math::{Matrix, Point3},
+    math::{Matrix, Point3, Vec3},
     query::{Ray, World},
     rendering::Canvas,
 };
@@ -8,7 +8,7 @@ use crate::{
 pub const DEFAULT_RECURSION_DEPTH: u32 = 5;
 
 /// A perspective 3D camera.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Camera {
     size: (u32, u32),
     fov: f32,
@@ -19,6 +19,33 @@ pub struct Camera {
     pixel_size: f32,
     half_width: f32,
     half_height: f32,
+}
+
+/// Prefab for a [`Camera`].
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CameraPrefab {
+    /// The width of this camera's canvas.
+    pub width: u32,
+    /// The height of this camera's canvas.
+    pub height: u32,
+    /// The field of view espressed in degrees.
+    pub fov: f32,
+    /// The location of the observer's eye.
+    pub from: Point3,
+    /// The observed point.
+    pub to: Point3,
+    /// The up vector of the camera.
+    pub up: Vec3,
+}
+
+impl From<CameraPrefab> for Camera {
+    fn from(prefab: CameraPrefab) -> Self {
+        prefab.build()
+    }
 }
 
 impl Camera {
@@ -126,5 +153,97 @@ impl Camera {
         };
 
         self.pixel_size = self.half_width * 2.0 / self.horizontal_size() as f32;
+    }
+}
+
+impl CameraPrefab {
+    /// Builds a `Camera` from this prefab.
+    pub fn build(self) -> Camera {
+        Camera::new_with_transform(
+            self.width,
+            self.height,
+            self.fov.to_radians(),
+            Matrix::look_at(self.from, self.to, self.up),
+        )
+    }
+}
+
+#[cfg(all(feature = "serde-support", test))]
+mod tests {
+    use serde_test::{assert_de_tokens, Token};
+
+    use super::*;
+
+    #[test]
+    fn prefab_to_camera() {
+        let expected = Camera::new_with_transform(
+            640,
+            480,
+            60.0_f32.to_radians(),
+            Matrix::look_at(
+                (1.0, 2.0, 3.0).into(),
+                (4.0, 5.0, 6.0).into(),
+                Vec3::unit_y(),
+            ),
+        );
+
+        let result = CameraPrefab {
+            width: 640,
+            height: 480,
+            fov: 60.0,
+            from: (1.0, 2.0, 3.0).into(),
+            to: (4.0, 5.0, 6.0).into(),
+            up: (0.0, 1.0, 0.0).into(),
+        }
+        .build();
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn deserialize() {
+        let prefab = CameraPrefab {
+            width: 640,
+            height: 480,
+            fov: 60.0,
+            from: (1.0, 2.0, 3.0).into(),
+            to: (4.0, 5.0, 6.0).into(),
+            up: (0.0, 1.0, 0.0).into(),
+        };
+
+        assert_de_tokens(
+            &prefab,
+            &[
+                Token::Struct {
+                    name: "CameraPrefab",
+                    len: 6,
+                },
+                Token::Str("width"),
+                Token::U32(640),
+                Token::Str("height"),
+                Token::U32(480),
+                Token::Str("fov"),
+                Token::F32(60.0),
+                Token::Str("from"),
+                Token::Seq { len: Some(3) },
+                Token::F32(1.0),
+                Token::F32(2.0),
+                Token::F32(3.0),
+                Token::SeqEnd,
+                Token::Str("to"),
+                Token::Seq { len: Some(3) },
+                Token::F32(4.0),
+                Token::F32(5.0),
+                Token::F32(6.0),
+                Token::SeqEnd,
+                Token::Str("up"),
+                Token::Seq { len: Some(3) },
+                Token::F32(0.0),
+                Token::F32(1.0),
+                Token::F32(0.0),
+                Token::SeqEnd,
+                Token::StructEnd,
+            ],
+        );
     }
 }
