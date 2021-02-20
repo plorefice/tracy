@@ -56,10 +56,10 @@ impl Patterns {
             Matrix::identity(4),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::Checkers {
-                        a: Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
-                        b: Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
-                    },
+                    PatternKind::Checkers(
+                        Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
+                        Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
+                    ),
                     Matrix::from_translation(0.0, 0.01, 0.0),
                 ),
                 specular: 0.0,
@@ -73,10 +73,10 @@ impl Patterns {
             Matrix::from_translation(0.0, 0.0, 2.0) * Matrix::from_rotation_x(PI / 2.0),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::Stripes {
-                        a: Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
-                        b: Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
-                    },
+                    PatternKind::Stripes(
+                        Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
+                        Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
+                    ),
                     Matrix::from_rotation_y(PI / 4.0),
                 ),
                 specular: 0.0,
@@ -90,10 +90,10 @@ impl Patterns {
             Matrix::from_translation(-1.0, 1.0, 0.0),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::Rings {
-                        a: Box::new(Pattern::new(Color::new(0.0, 0.8, 0.0).into())),
-                        b: Box::new(Pattern::new(Color::new(0.0, 0.5, 0.0).into())),
-                    },
+                    PatternKind::Rings(
+                        Box::new(Pattern::new(Color::new(0.0, 0.8, 0.0).into())),
+                        Box::new(Pattern::new(Color::new(0.0, 0.5, 0.0).into())),
+                    ),
                     Matrix::from_rotation_x(-PI / 4.0)
                         * Matrix::from_rotation_y(PI / 3.0)
                         * Matrix::from_scale(0.22, 0.22, 0.22),
@@ -109,10 +109,10 @@ impl Patterns {
             Matrix::from_translation(1.0, 0.5, -1.0) * Matrix::from_scale(0.5, 0.5, 0.5),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::LinearGradient {
-                        a: Color::new(0.8, 0.0, 0.0),
-                        b: Color::new(0.0, 0.8, 0.0),
-                    },
+                    PatternKind::LinearGradient(
+                        Color::new(0.8, 0.0, 0.0),
+                        Color::new(0.0, 0.8, 0.0),
+                    ),
                     Matrix::from_translation(1.0, 0.0, 0.0) * Matrix::from_scale(2.0, 2.0, 2.0),
                 ),
                 specular: 0.0,
@@ -126,10 +126,10 @@ impl Patterns {
             Matrix::from_translation(0.0, 0.4, -2.0) * Matrix::from_scale(0.4, 0.4, 0.4),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::RadialGradient {
-                        a: Color::new(0.0, 0.8, 1.0),
-                        b: Color::new(0.0, 0.5, 0.7),
-                    },
+                    PatternKind::RadialGradient(
+                        Color::new(0.0, 0.8, 1.0),
+                        Color::new(0.0, 0.5, 0.7),
+                    ),
                     Matrix::from_rotation_y(PI / 4.0)
                         * Matrix::from_rotation_x(-PI / 2.0)
                         * Matrix::from_scale(0.21, 0.21, 0.21),
@@ -146,18 +146,18 @@ impl Patterns {
         let (mut world, camera) = self.setup_scene(width, height);
 
         let p1 = Pattern::new_with_transform(
-            PatternKind::Stripes {
-                a: Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
-                b: Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
-            },
+            PatternKind::Stripes(
+                Box::new(Pattern::new(Color::new(0.5, 0.5, 0.5).into())),
+                Box::new(Pattern::new(Color::new(0.2, 0.2, 0.2).into())),
+            ),
             Matrix::from_rotation_y(PI / 4.) * Matrix::from_scale(0.25, 0.25, 0.25),
         );
 
         let p2 = Pattern::new_with_transform(
-            PatternKind::Stripes {
-                a: Box::new(Pattern::new(Color::new(0.0, 0.3, 0.0).into())),
-                b: Box::new(Pattern::new(Color::new(0.0, 0.0, 0.3).into())),
-            },
+            PatternKind::Stripes(
+                Box::new(Pattern::new(Color::new(0.0, 0.3, 0.0).into())),
+                Box::new(Pattern::new(Color::new(0.0, 0.0, 0.3).into())),
+            ),
             Matrix::from_rotation_y(-PI / 4.) * Matrix::from_scale(0.25, 0.25, 0.25),
         );
 
@@ -167,10 +167,7 @@ impl Patterns {
             Matrix::identity(4),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::Checkers {
-                        a: Box::new(p1),
-                        b: Box::new(p2),
-                    },
+                    PatternKind::Checkers(Box::new(p1), Box::new(p2)),
                     Matrix::from_translation(0.0, 0.01, 0.0),
                 ),
                 specular: 0.0,
@@ -185,18 +182,18 @@ impl Patterns {
         let (mut world, camera) = self.setup_scene(width, height);
 
         let p1 = Pattern::new_with_transform(
-            PatternKind::Stripes {
-                a: Box::new(Pattern::new(Color::WHITE.into())),
-                b: Box::new(Pattern::new(Color::new(0.0, 0.7, 0.0).into())),
-            },
+            PatternKind::Stripes(
+                Box::new(Pattern::new(Color::WHITE.into())),
+                Box::new(Pattern::new(Color::new(0.0, 0.7, 0.0).into())),
+            ),
             Matrix::from_rotation_y(PI / 4.) * Matrix::from_scale(0.5, 0.5, 0.5),
         );
 
         let p2 = Pattern::new_with_transform(
-            PatternKind::Stripes {
-                a: Box::new(Pattern::new(Color::WHITE.into())),
-                b: Box::new(Pattern::new(Color::new(0.0, 0.7, 0.0).into())),
-            },
+            PatternKind::Stripes(
+                Box::new(Pattern::new(Color::WHITE.into())),
+                Box::new(Pattern::new(Color::new(0.0, 0.7, 0.0).into())),
+            ),
             Matrix::from_rotation_y(-PI / 4.) * Matrix::from_scale(0.5, 0.5, 0.5),
         );
 
@@ -206,10 +203,7 @@ impl Patterns {
             Matrix::identity(4),
             Material {
                 pattern: Pattern::new_with_transform(
-                    PatternKind::Blended {
-                        a: Box::new(p1),
-                        b: Box::new(p2),
-                    },
+                    PatternKind::Blended(Box::new(p1), Box::new(p2)),
                     Matrix::from_translation(0.0, 0.01, 0.0),
                 ),
                 specular: 0.0,
