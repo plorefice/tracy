@@ -3,6 +3,11 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 
 /// A point in 3D space.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(from = "[f32; 3]")
+)]
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Point3 {
     /// The `x` component of this point.
@@ -14,6 +19,11 @@ pub struct Point3 {
 }
 
 /// A vector in 3D space.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(from = "[f32; 3]")
+)]
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Vec3 {
     /// The `x` component of this vector.
