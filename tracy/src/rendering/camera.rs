@@ -93,6 +93,12 @@ impl Camera {
         self.fov
     }
 
+    /// Updates this camera's field of view.
+    pub fn set_fov(&mut self, fov: f32) {
+        self.fov = fov;
+        self.update();
+    }
+
     /// Updates this camera's view transform.
     pub fn view_transform(&self) -> &Matrix {
         &self.transform

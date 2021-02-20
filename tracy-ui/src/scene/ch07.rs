@@ -43,6 +43,8 @@ impl Scene for ThreeSpheres {
 
         let mut camera = scene.camera.build();
         camera.set_size(width, height);
+        camera.set_fov(self.fov.to_radians());
+
         Ok(camera.render(&world))
     }
 
