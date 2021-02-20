@@ -8,6 +8,7 @@ use std::{
 use super::{Point3, Vec3};
 
 /// A NxN, column-major matrix.
+#[cfg_attr(feature = "serde-support", derive(serde::Serialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Matrix {
     data: [f32; 16],
@@ -507,5 +508,317 @@ fn do_inverse4(m: &Matrix, out: &mut Matrix) -> bool {
         true
     } else {
         false
+    }
+}
+
+#[cfg(feature = "serde-support")]
+impl<'de> serde::Deserialize<'de> for Matrix {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use std::fmt;
+
+        use serde::de::{self, SeqAccess};
+
+        enum Isometry {
+            RotateX(f32),
+            RotateY(f32),
+            RotateZ(f32),
+            Translate { x: f32, y: f32, z: f32 },
+            Scale { x: f32, y: f32, z: f32 },
+        }
+
+        impl<'de> serde::Deserialize<'de> for Isometry {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                #[derive(Debug, serde::Deserialize)]
+                #[serde(rename_all = "lowercase")]
+                enum IsometryKind {
+                    #[serde(rename = "rotate-x")]
+                    RotateX,
+                    #[serde(rename = "rotate-y")]
+                    RotateY,
+                    #[serde(rename = "rotate-z")]
+                    RotateZ,
+                    Translate,
+                    Scale,
+                }
+
+                struct IsometryVisitor;
+
+                impl<'de> de::Visitor<'de> for IsometryVisitor {
+                    type Value = Isometry;
+
+                    fn expecting(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+                        fmt.write_str("Isometry")
+                    }
+
+                    fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
+                    where
+                        V: SeqAccess<'de>,
+                    {
+                        let kind: IsometryKind = seq
+                            .next_element()?
+                            .ok_or_else(|| de::Error::invalid_length(0, &self))?;
+
+                        match kind {
+                            IsometryKind::RotateX => {
+                                let angle = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+
+                                Ok(Isometry::RotateX(angle))
+                            }
+                            IsometryKind::RotateY => {
+                                let angle = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+
+                                Ok(Isometry::RotateY(angle))
+                            }
+                            IsometryKind::RotateZ => {
+                                let angle = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+
+                                Ok(Isometry::RotateZ(angle))
+                            }
+                            IsometryKind::Translate => {
+                                let x = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+
+                                let y = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(2, &self))?;
+
+                                let z = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(3, &self))?;
+
+                                Ok(Isometry::Translate { x, y, z })
+                            }
+                            IsometryKind::Scale => {
+                                let x = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(1, &self))?;
+
+                                let y = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(2, &self))?;
+
+                                let z = seq
+                                    .next_element()?
+                                    .ok_or_else(|| de::Error::invalid_length(3, &self))?;
+
+                                Ok(Isometry::Scale { x, y, z })
+                            }
+                        }
+                    }
+                }
+
+                deserializer.deserialize_seq(IsometryVisitor)
+            }
+        }
+
+        struct MatrixVisitor;
+
+        impl<'de> de::Visitor<'de> for MatrixVisitor {
+            type Value = Matrix;
+
+            fn expecting(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+                fmt.write_str("Matrix")
+            }
+
+            fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
+            where
+                V: SeqAccess<'de>,
+            {
+                let mut m = Matrix::identity(4);
+
+                while let Some(isometry) = seq.next_element()? {
+                    match isometry {
+                        Isometry::RotateX(angle) => m = Matrix::from_rotation_x(angle) * m,
+                        Isometry::RotateY(angle) => m = Matrix::from_rotation_y(angle) * m,
+                        Isometry::RotateZ(angle) => m = Matrix::from_rotation_z(angle) * m,
+                        Isometry::Translate { x, y, z } => {
+                            m = Matrix::from_translation(x, y, z) * m
+                        }
+                        Isometry::Scale { x, y, z } => m = Matrix::from_scale(x, y, z) * m,
+                    }
+                }
+
+                Ok(m)
+            }
+        }
+
+        deserializer.deserialize_seq(MatrixVisitor)
+    }
+}
+
+#[cfg(all(feature = "serde-support", test))]
+mod tests {
+    use std::f32::consts::PI;
+
+    use serde::Deserialize;
+    use serde_test::{assert_de_tokens, Deserializer, Token};
+
+    use super::*;
+
+    #[test]
+    fn deserialize_scale() {
+        let m = Matrix::from_scale(1.0, 2.0, 3.0);
+
+        assert_de_tokens(
+            &m,
+            &[
+                Token::Seq { len: Some(1) },
+                Token::Seq { len: Some(4) },
+                Token::Enum {
+                    name: "IsometryKind",
+                },
+                Token::UnitVariant {
+                    name: "IsometryKind",
+                    variant: "scale",
+                },
+                Token::F32(1.0),
+                Token::F32(2.0),
+                Token::F32(3.0),
+                Token::SeqEnd,
+                Token::SeqEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn deserialize_translation() {
+        let m = Matrix::from_translation(1.0, 2.0, 3.0);
+
+        assert_de_tokens(
+            &m,
+            &[
+                Token::Seq { len: Some(1) },
+                Token::Seq { len: Some(4) },
+                Token::Enum {
+                    name: "IsometryKind",
+                },
+                Token::UnitVariant {
+                    name: "IsometryKind",
+                    variant: "translate",
+                },
+                Token::F32(1.0),
+                Token::F32(2.0),
+                Token::F32(3.0),
+                Token::SeqEnd,
+                Token::SeqEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn deserialize_rotations() {
+        for (m, angle, kind) in &[
+            (Matrix::from_rotation_x(PI), PI, "rotate-x"),
+            (Matrix::from_rotation_y(PI), PI, "rotate-y"),
+            (Matrix::from_rotation_z(PI), PI, "rotate-z"),
+        ] {
+            assert_de_tokens(
+                m,
+                &[
+                    Token::Seq { len: Some(1) },
+                    Token::Seq { len: Some(2) },
+                    Token::Enum {
+                        name: "IsometryKind",
+                    },
+                    Token::UnitVariant {
+                        name: "IsometryKind",
+                        variant: kind,
+                    },
+                    Token::F32(*angle),
+                    Token::SeqEnd,
+                    Token::SeqEnd,
+                ],
+            );
+        }
+    }
+
+    #[test]
+    fn deserialize_complex() {
+        let exp = Matrix::from_rotation_x(PI)
+            * Matrix::from_rotation_y(PI / 2.0)
+            * Matrix::from_rotation_z(PI / 3.0)
+            * Matrix::from_translation(2.0, 3.0, 4.0)
+            * Matrix::from_scale(0.2, 0.3, 0.4);
+
+        let mut de = Deserializer::new(&[
+            Token::Seq { len: Some(5) },
+            // #1: scale
+            Token::Seq { len: Some(4) },
+            Token::Enum {
+                name: "IsometryKind",
+            },
+            Token::UnitVariant {
+                name: "IsometryKind",
+                variant: "scale",
+            },
+            Token::F32(0.2),
+            Token::F32(0.3),
+            Token::F32(0.4),
+            Token::SeqEnd,
+            // #2: translate
+            Token::Seq { len: Some(4) },
+            Token::Enum {
+                name: "IsometryKind",
+            },
+            Token::UnitVariant {
+                name: "IsometryKind",
+                variant: "translate",
+            },
+            Token::F32(2.0),
+            Token::F32(3.0),
+            Token::F32(4.0),
+            Token::SeqEnd,
+            // #3: rotate-z
+            Token::Seq { len: Some(2) },
+            Token::Enum {
+                name: "IsometryKind",
+            },
+            Token::UnitVariant {
+                name: "IsometryKind",
+                variant: "rotate-z",
+            },
+            Token::F32(PI / 3.0),
+            Token::SeqEnd,
+            // #4: rotate-y
+            Token::Seq { len: Some(2) },
+            Token::Enum {
+                name: "IsometryKind",
+            },
+            Token::UnitVariant {
+                name: "IsometryKind",
+                variant: "rotate-y",
+            },
+            Token::F32(PI / 2.0),
+            Token::SeqEnd,
+            // #5: rotate-x
+            Token::Seq { len: Some(2) },
+            Token::Enum {
+                name: "IsometryKind",
+            },
+            Token::UnitVariant {
+                name: "IsometryKind",
+                variant: "rotate-x",
+            },
+            Token::F32(PI),
+            Token::SeqEnd,
+            Token::SeqEnd,
+        ]);
+
+        let res = Matrix::deserialize(&mut de).unwrap();
+
+        assert!(exp.abs_diff_eq(&res, crate::math::EPSILON));
     }
 }
