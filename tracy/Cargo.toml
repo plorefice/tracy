@@ -6,10 +6,11 @@ version = "0.1.0"
 
 [features]
 default = ["serde-support"]
-serde-support = ["serde"]
+serde-support = ["serde", "typetag"]
 
 [dependencies]
 itertools = "0.10.0"
+typetag = {version = "0.1.7", optional = true}
 
 [dependencies.serde]
 features = ["derive"]

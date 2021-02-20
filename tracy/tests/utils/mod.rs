@@ -8,11 +8,17 @@ use tracy::{
 };
 
 /// A fake shape to test the [`Shape`] abstractions.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[derive(Debug)]
 pub struct TestShape {
+    #[cfg_attr(feature = "serde-support", serde(skip))]
     pub saved_ray: Mutex<Option<Ray>>,
 }
 
+#[typetag::serde]
 impl Shape for TestShape {}
 
 impl RayCast for TestShape {

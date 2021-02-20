@@ -3,10 +3,15 @@ use crate::{math::Matrix, rendering::Material, shape::Shape};
 use super::{Ray, RayIntersections};
 
 /// An object that can be positioned in a scene.
+#[cfg_attr(
+    feature = "serde-support",
+    derive(serde::Serialize, serde::Deserialize)
+)]
 #[derive(Debug)]
 pub struct Object {
     shape: Box<dyn Shape>,
     material: Material,
+    #[cfg_attr(feature = "serde-support", serde(default))]
     transform: Matrix,
 }
 
@@ -59,5 +64,36 @@ impl Object {
     pub fn interferences_with_ray(&self, ray: &Ray) -> RayIntersections {
         self.shape()
             .intersections_in_world_space(self.transform(), ray)
+    }
+}
+
+#[cfg(all(feature = "serde-support", test))]
+mod tests {
+    use serde::Deserialize;
+    use serde_test::{Deserializer, Token};
+
+    use super::*;
+
+    #[test]
+    fn deserialize_oject() {
+        let mut de = Deserializer::new(&[
+            Token::Struct {
+                name: "Object",
+                len: 2,
+            },
+            Token::Str("shape"),
+            Token::Enum { name: "Shape" },
+            Token::Str("Plane"),
+            Token::UnitStruct { name: "Plane" },
+            Token::Str("material"),
+            Token::Struct {
+                name: "Material",
+                len: 0,
+            },
+            Token::StructEnd,
+            Token::StructEnd,
+        ]);
+
+        Object::deserialize(&mut de).expect("Could not deserialize Object");
     }
 }

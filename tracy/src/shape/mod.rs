@@ -11,4 +11,5 @@ pub use sphere::*;
 use crate::query::{AsAny, RayCast};
 
 /// Traits common to all shapes.
+#[cfg_attr(feature = "serde-support", typetag::serde)]
 pub trait Shape: 'static + Debug + RayCast + AsAny {}
