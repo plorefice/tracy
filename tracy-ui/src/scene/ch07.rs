@@ -1,5 +1,6 @@
 use std::fs::File;
 
+use anyhow::Result;
 use imgui::*;
 use tracy::{
     query::World,
@@ -29,11 +30,8 @@ impl Scene for ThreeSpheres {
         "Camera pointed at three spheres in a room.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Canvas {
-        let scene: ScenePrefab = serde_yaml::from_reader(
-            File::open("scenes/ch07.yml").expect("Could not open scene file"),
-        )
-        .expect("Could not load scene prefab");
+    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
+        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch07.yml")?)?;
 
         let mut world = World::new();
 
@@ -45,7 +43,7 @@ impl Scene for ThreeSpheres {
 
         let mut camera = scene.camera.build();
         camera.set_size(width, height);
-        camera.render(&world)
+        Ok(camera.render(&world))
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {

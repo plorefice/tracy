@@ -1,3 +1,4 @@
+use anyhow::Result;
 use imgui::*;
 use tracy::{
     math::{Point3, Vec3},
@@ -27,7 +28,7 @@ impl Scene for Trajectory {
         "Visualization of a projectile's trajectory in 2D space.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
         let mut canvas = Canvas::new(width, height);
 
         let mut pos = Point3::new(0., 1., 0.);
@@ -49,7 +50,7 @@ impl Scene for Trajectory {
             vel = vel + gravity + wind;
         }
 
-        canvas
+        Ok(canvas)
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {

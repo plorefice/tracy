@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use anyhow::Result;
 use imgui::*;
 use tracy::{
     math::{Matrix, Point3, Vec3},
@@ -31,7 +32,7 @@ impl Scene for PlaneShape {
         "Three little spheres sitting on a plane.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
         let mut world = World::new();
 
         let floor_mat = Material {
@@ -99,7 +100,7 @@ impl Scene for PlaneShape {
             ),
         );
 
-        camera.render(&world)
+        Ok(camera.render(&world))
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {

@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use anyhow::Result;
 use imgui::*;
 use tracy::{
     math::{Matrix, Point3},
@@ -21,7 +22,7 @@ impl Scene for Clock {
         "12-hour analog clock built using matrix transformations.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
         let mut canvas = Canvas::new(width, height);
 
         let (wf, hf) = (width as f32, height as f32);
@@ -36,7 +37,7 @@ impl Scene for Clock {
             canvas.put(pos.x as u32, pos.y as u32, Color::WHITE);
         }
 
-        canvas
+        Ok(canvas)
     }
 
     fn draw(&mut self, _: &Ui) -> bool {

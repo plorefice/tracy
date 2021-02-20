@@ -1,5 +1,6 @@
 //! Generators for each chapter's exercises.
 
+use anyhow::Result;
 use imgui::Ui;
 use tracy::rendering::Canvas;
 
@@ -16,7 +17,7 @@ mod ch10;
 pub trait Scene {
     fn name(&self) -> String;
     fn description(&self) -> String;
-    fn render(&self, width: u32, height: u32) -> Canvas;
+    fn render(&self, width: u32, height: u32) -> Result<Canvas>;
     fn draw(&mut self, ui: &Ui) -> bool;
 }
 

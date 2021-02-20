@@ -318,7 +318,9 @@ impl SceneManager {
         let width = self.canvas_size[0] as u32;
         let height = self.canvas_size[1] as u32;
 
-        let canvas = scene.render(width, height);
+        let canvas = scene
+            .render(width, height)
+            .unwrap_or_else(|e| panic!("Could not render scene \"{}\": {}", scene.name(), e));
 
         let raw_data = canvas
             .iter()
@@ -356,8 +358,11 @@ impl SceneManager {
         let width = self.canvas_size[0] as u32;
         let height = self.canvas_size[1] as u32;
 
-        let buf = scene
+        let canvas = scene
             .render(width, height)
+            .unwrap_or_else(|e| panic!("Could not render scene \"{}\": {}", scene.name(), e));
+
+        let buf = canvas
             .iter()
             .flat_map(|p| {
                 let (r, g, b) = p.to_rgb888();

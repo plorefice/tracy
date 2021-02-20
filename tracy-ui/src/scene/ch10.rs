@@ -1,5 +1,6 @@
 use std::f32::consts::PI;
 
+use anyhow::Result;
 use imgui::*;
 use tracy::{
     math::{Matrix, Point3, Vec3},
@@ -224,13 +225,13 @@ impl Scene for Patterns {
         "All four patterns in a scene.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Canvas {
-        match self.selection {
+    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
+        Ok(match self.selection {
             0 => self.render_basic(width, height),
             1 => self.render_nested(width, height),
             2 => self.render_blended(width, height),
             _ => unreachable!(),
-        }
+        })
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {

@@ -1,5 +1,6 @@
 use std::f32;
 
+use anyhow::Result;
 use imgui::*;
 use tracy::{
     math::{Matrix, Point3},
@@ -42,7 +43,7 @@ impl Scene for PhongSphere {
         "Rendering of a sphere using Phong shading.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Canvas {
+    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
         let mut canvas = Canvas::new(width, height);
         let mut world = World::new();
 
@@ -94,7 +95,7 @@ impl Scene for PhongSphere {
             }
         }
 
-        canvas
+        Ok(canvas)
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {
