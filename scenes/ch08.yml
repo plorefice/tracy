@@ -38,8 +38,8 @@ objects:
     material: *floor_material
     transform:
       - [ scale, 10, 0.1, 10 ]
-      - [ rotate-x, 1.5707963268 ]
-      - [ rotate-y, -0.7853981634 ]
+      - [ rotate-x, 90 ]
+      - [ rotate-y, -45 ]
       - [ translate, 0, 0, 5 ]
 
   # ========================================
@@ -50,8 +50,8 @@ objects:
     material: *floor_material
     transform:
       - [ scale, 10, 0.1, 10 ]
-      - [ rotate-x, 1.5707963268 ]
-      - [ rotate-y, 0.7853981634 ]
+      - [ rotate-x, 90 ]
+      - [ rotate-y, 45 ]
       - [ translate, 0, 0, 5 ]
 
   # ========================================

@@ -11,7 +11,7 @@ definitions:
               solid: [0, 0.7, 0]
       transform:
         - [ scale, 0.5, 0.5, 0.5 ]
-        - [ rotate-y, 0.7853981634 ]
+        - [ rotate-y, 45 ]
 
   # ========================================
   # pattern of second blend component
@@ -25,7 +25,7 @@ definitions:
               solid: [0, 0.7, 0]
       transform:
         - [ scale, 0.5, 0.5, 0.5 ]
-        - [ rotate-y, -0.7853981634 ]
+        - [ rotate-y, -45 ]
 
 camera: 
   width: 512

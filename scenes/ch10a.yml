@@ -33,7 +33,7 @@ objects:
   - shape:
       Plane:
     transform:
-      - [ rotate-x, 1.5707963268 ]
+      - [ rotate-x, 90 ]
       - [ translate, 0, 0, 2 ]
     material:
       pattern:
@@ -44,7 +44,7 @@ objects:
             - kind:
                 solid: [0.2, 0.2, 0.2]
         transform:
-          - [ rotate-y, 0.7853981634 ]
+          - [ rotate-y, 45 ]
       specular: 0
 
   # ========================================
@@ -64,8 +64,8 @@ objects:
                 solid: [0, 0.5, 0]
         transform:
           - [ scale, 0.22, 0.22, 0.22 ]
-          - [ rotate-y, 1.0471975512 ]
-          - [ rotate-x, -0.7853981634 ]
+          - [ rotate-y, 60 ]
+          - [ rotate-x, -45 ]
       specular: 0
 
   # ========================================
@@ -103,6 +103,6 @@ objects:
             - [0, 0.5, 0.7]
         transform:
           - [ scale, 0.21, 0.21, 0.21 ]
-          - [ rotate-x, -1.0471975512 ]
-          - [ rotate-y, 0.7853981634 ]
+          - [ rotate-x, -60 ]
+          - [ rotate-y, 45 ]
       specular: 0

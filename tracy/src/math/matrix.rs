@@ -647,9 +647,15 @@ impl<'de> serde::Deserialize<'de> for Matrix {
 
                 while let Some(isometry) = seq.next_element()? {
                     match isometry {
-                        Isometry::RotateX(angle) => m = Matrix::from_rotation_x(angle) * m,
-                        Isometry::RotateY(angle) => m = Matrix::from_rotation_y(angle) * m,
-                        Isometry::RotateZ(angle) => m = Matrix::from_rotation_z(angle) * m,
+                        Isometry::RotateX(angle) => {
+                            m = Matrix::from_rotation_x(angle.to_radians()) * m
+                        }
+                        Isometry::RotateY(angle) => {
+                            m = Matrix::from_rotation_y(angle.to_radians()) * m
+                        }
+                        Isometry::RotateZ(angle) => {
+                            m = Matrix::from_rotation_z(angle.to_radians()) * m
+                        }
                         Isometry::Translate { x, y, z } => {
                             m = Matrix::from_translation(x, y, z) * m
                         }
@@ -727,9 +733,9 @@ mod tests {
     #[test]
     fn deserialize_rotations() {
         for (m, angle, kind) in &[
-            (Matrix::from_rotation_x(PI), PI, "rotate-x"),
-            (Matrix::from_rotation_y(PI), PI, "rotate-y"),
-            (Matrix::from_rotation_z(PI), PI, "rotate-z"),
+            (Matrix::from_rotation_x(PI), 180.0, "rotate-x"),
+            (Matrix::from_rotation_y(PI), 180.0, "rotate-y"),
+            (Matrix::from_rotation_z(PI), 180.0, "rotate-z"),
         ] {
             assert_de_tokens(
                 m,
@@ -796,7 +802,7 @@ mod tests {
                 name: "IsometryKind",
                 variant: "rotate-z",
             },
-            Token::F32(PI / 3.0),
+            Token::F32(60.0),
             Token::SeqEnd,
             // #4: rotate-y
             Token::Seq { len: Some(2) },
@@ -807,7 +813,7 @@ mod tests {
                 name: "IsometryKind",
                 variant: "rotate-y",
             },
-            Token::F32(PI / 2.0),
+            Token::F32(90.0),
             Token::SeqEnd,
             // #5: rotate-x
             Token::Seq { len: Some(2) },
@@ -818,7 +824,7 @@ mod tests {
                 name: "IsometryKind",
                 variant: "rotate-x",
             },
-            Token::F32(PI),
+            Token::F32(180.0),
             Token::SeqEnd,
             Token::SeqEnd,
         ]);
