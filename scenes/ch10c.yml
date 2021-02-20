@@ -1,0 +1,55 @@
+definitions:
+  # ========================================
+  # pattern of first blend component
+  # ========================================
+  - material: &p1
+      kind:
+        stripes:
+          - kind:
+              solid: [1, 1, 1]
+          - kind:
+              solid: [0, 0.7, 0]
+      transform:
+        - [ scale, 0.5, 0.5, 0.5 ]
+        - [ rotate-y, 0.7853981634 ]
+
+  # ========================================
+  # pattern of second blend component
+  # ========================================
+  - material: &p2
+      kind:
+        stripes:
+          - kind:
+              solid: [1, 1, 1]
+          - kind:
+              solid: [0, 0.7, 0]
+      transform:
+        - [ scale, 0.5, 0.5, 0.5 ]
+        - [ rotate-y, -0.7853981634 ]
+
+camera: 
+  width: 512
+  height: 512
+  fov: 60
+  from: [ 0, 1.5, -4 ]
+  to: [ 0, 0.5, 0 ]
+  up: [ 0, 1, 0 ]
+
+light:
+  position: [ -10, 10, -10 ]
+
+objects:
+  # ========================================
+  # floor
+  # ========================================
+  - shape:
+      Plane:
+    material:
+      pattern:
+        kind:
+          blended:
+            - *p1
+            - *p2
+        transform:
+          - [ translate, 0, 0.01, 0 ]
+      specular: 0

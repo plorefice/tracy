@@ -1,0 +1,55 @@
+definitions:
+  # ========================================
+  # pattern of even checker squares
+  # ========================================
+  - material: &p1
+      kind:
+        stripes:
+          - kind:
+              solid: [0.5, 0.5, 0.5]
+          - kind:
+              solid: [0.2, 0.2, 0.2]
+      transform:
+        - [ scale, 0.25, 0.25, 0.25 ]
+        - [ rotate-y, 0.7853981634 ]
+
+  # ========================================
+  # pattern of odd checker squares
+  # ========================================
+  - material: &p2
+      kind:
+        stripes:
+          - kind:
+              solid: [0, 0.3, 0]
+          - kind:
+              solid: [0, 0, 0.3]
+      transform:
+        - [ scale, 0.25, 0.25, 0.25 ]
+        - [ rotate-y, -0.7853981634 ]
+
+camera: 
+  width: 512
+  height: 512
+  fov: 60
+  from: [ 0, 1.5, -4 ]
+  to: [ 0, 0.5, 0 ]
+  up: [ 0, 1, 0 ]
+
+light:
+  position: [ -10, 10, -10 ]
+
+objects:
+  # ========================================
+  # floor
+  # ========================================
+  - shape:
+      Plane:
+    material:
+      pattern:
+        kind:
+          checkers:
+            - *p1
+            - *p2
+        transform:
+          - [ translate, 0, 0.01, 0 ]
+      specular: 0

@@ -1,0 +1,108 @@
+camera: 
+  width: 512
+  height: 512
+  fov: 60
+  from: [ 0, 1.5, -4 ]
+  to: [ 0, 0.5, 0 ]
+  up: [ 0, 1, 0 ]
+
+light:
+  position: [ -10, 10, -10 ]
+
+objects:
+  # ========================================
+  # floor
+  # ========================================
+  - shape:
+      Plane:
+    material:
+      pattern:
+        kind:
+          checkers:
+            - kind:
+                solid: [0.5, 0.5, 0.5]
+            - kind:
+                solid: [0.2, 0.2, 0.2]
+        transform:
+          - [ translate, 0, 0.01, 0 ]
+      specular: 0
+
+  # ========================================
+  # wall
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ rotate-x, 1.5707963268 ]
+      - [ translate, 0, 0, 2 ]
+    material:
+      pattern:
+        kind:
+          stripes:
+            - kind:
+                solid: [0.5, 0.5, 0.5]
+            - kind:
+                solid: [0.2, 0.2, 0.2]
+        transform:
+          - [ rotate-y, 0.7853981634 ]
+      specular: 0
+
+  # ========================================
+  # left sphere
+  # ========================================
+  - shape:
+      Sphere:
+    transform:
+      - [ translate, -1, 1, 0 ]
+    material:
+      pattern:
+        kind:
+          rings:
+            - kind:
+                solid: [0, 0.8, 0]
+            - kind:
+                solid: [0, 0.5, 0]
+        transform:
+          - [ scale, 0.22, 0.22, 0.22 ]
+          - [ rotate-y, 1.0471975512 ]
+          - [ rotate-x, -0.7853981634 ]
+      specular: 0
+
+  # ========================================
+  # right sphere
+  # ========================================
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.5, 0.5, 0.5 ]
+      - [ translate, 1, 0.5, -1 ]
+    material:
+      pattern:
+        kind:
+          linear_gradient:
+            - [0.8, 0, 0]
+            - [0, 0.8, 0]
+        transform:
+          - [ scale, 2, 2, 2 ]
+          - [ translate, 1, 0, 0 ]
+      specular: 0
+
+  # ========================================
+  # middle sphere
+  # ========================================
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.4, 0.4, 0.4 ]
+      - [ translate, 0, 0.4, -2 ]
+    material:
+      pattern:
+        kind:
+          radial_gradient:
+            - [0, 0.8, 1]
+            - [0, 0.5, 0.7]
+        transform:
+          - [ scale, 0.21, 0.21, 0.21 ]
+          - [ rotate-x, -1.0471975512 ]
+          - [ rotate-y, 0.7853981634 ]
+      specular: 0
