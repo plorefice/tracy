@@ -15,6 +15,12 @@ pub struct Matrix {
     order: usize,
 }
 
+impl Default for Matrix {
+    fn default() -> Self {
+        Self::identity(4)
+    }
+}
+
 impl Matrix {
     /// Creates a matrix of order `n` filled with zeros.
     pub fn zeros(n: usize) -> Self {
