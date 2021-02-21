@@ -24,7 +24,7 @@ pub trait Scene {
 
 /// Traits shared by all the renderable scenes.
 pub trait Streamer {
-    fn stream(&self, width: u32, height: u32) -> Stream;
+    fn stream(&mut self, width: u32, height: u32) -> Stream;
 }
 
 /// Returns a list of all the available scenes.

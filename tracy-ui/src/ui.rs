@@ -17,6 +17,9 @@ use winit::{
 
 use crate::scene::{self, Scene};
 
+const DEFAULT_WIDTH: u32 = 512;
+const DEFAULT_HEIGHT: u32 = 512;
+
 pub struct TracyUi {
     event_loop: EventLoop<()>,
     scene_mgr: SceneManager,
@@ -34,6 +37,8 @@ struct UiContext {
 struct UiState {
     render_scene: Option<usize>,
     save_scene: Option<usize>,
+    canvas_width: u32,
+    canvas_height: u32,
 }
 
 struct GfxBackend {
@@ -47,7 +52,6 @@ struct GfxBackend {
 
 struct SceneManager {
     scenes: Vec<Box<dyn Scene>>,
-    canvas_size: [f32; 2],
     current_scene_id: usize,
 }
 
@@ -126,7 +130,6 @@ impl TracyUi {
             event_loop,
             scene_mgr: SceneManager {
                 scenes: scene::get_scene_list(),
-                canvas_size: [400.0, 200.0],
                 current_scene_id: 0,
             },
             ctx: UiContext {
@@ -165,11 +168,11 @@ impl TracyUi {
         };
 
         let mut current_stream: Option<Stream> = None;
-        let streamers: Vec<Box<dyn Streamer>> =
+        let mut streamers: Vec<Box<dyn Streamer>> =
             vec![Box::new(scene::ch11::Reflections::new().unwrap())];
 
         // Event loop
-        event_loop.run_return(|event, _, control_flow| {
+        event_loop.run_return(move |event, _, control_flow| {
             *control_flow = ControlFlow::Poll;
 
             match event {
@@ -222,8 +225,8 @@ impl TracyUi {
                     if let Some(ref mut stream) = current_stream {
                         if stream.advance() {
                             gfx.render_to_texture(
-                                scene_mgr.canvas_size[0] as u32,
-                                scene_mgr.canvas_size[1] as u32,
+                                state.canvas_width,
+                                state.canvas_height,
                                 stream.canvas(),
                             )
                         } else {
@@ -233,18 +236,30 @@ impl TracyUi {
 
                     // New render triggered/forced
                     if let Some(_id) = state.render_scene {
-                        current_stream = Some(streamers[0].stream(
-                            scene_mgr.canvas_size[0] as u32,
-                            scene_mgr.canvas_size[1] as u32,
-                        ));
+                        // SAFETY: because of some lifetime fuckery that I don't fully understand,
+                        // the closure we are in has an anonymous lifetime different from the one
+                        // on `Stream`, and AFAIK it cannot be changed. As a result of this, items
+                        // borrowed from `streamers` cannot fulfill both lifetimes, despite them
+                        // living (supposedly) longer than this closure. Anyway, make the borrow
+                        // checker happy by transmuting the lifetime to one it can accept.
+                        let stream = unsafe {
+                            std::mem::transmute::<
+                                &'_ mut Box<dyn Streamer>,
+                                &'_ mut Box<dyn Streamer>,
+                            >(&mut streamers[0])
+                        };
+
+                        current_stream =
+                            Some(stream.stream(state.canvas_width, state.canvas_height));
                     }
 
                     // Image save requested
                     if let Some(id) = state.save_scene {
-                        scene_mgr.save_current_scene(&format!(
-                            "{}.png",
-                            scene_mgr.scenes.get(id).unwrap().name()
-                        ));
+                        scene_mgr.save_current_scene(
+                            state.canvas_width,
+                            state.canvas_height,
+                            &format!("{}.png", scene_mgr.scenes.get(id).unwrap().name()),
+                        );
                     }
 
                     let mut encoder: wgpu::CommandEncoder = gfx
@@ -293,24 +308,24 @@ impl UiState {
         scene_mgr: &mut SceneManager,
         texture: Option<im::TextureId>,
     ) {
-        self.draw_canvas(ui, scene_mgr, texture);
+        self.draw_canvas(ui, texture);
         self.draw_scene_picker(ui, scene_mgr);
     }
 
-    fn draw_canvas(&self, ui: &im::Ui, scene_mgr: &SceneManager, texture: Option<im::TextureId>) {
+    fn draw_canvas(&mut self, ui: &im::Ui, texture: Option<im::TextureId>) {
         im::Window::new(im_str!("Canvas"))
-            .content_size(scene_mgr.canvas_size)
+            .size(
+                [DEFAULT_WIDTH as f32, DEFAULT_HEIGHT as f32],
+                im::Condition::FirstUseEver,
+            )
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                if let Some(tid) = texture {
-                    // // Track canvas size changes
-                    // let size = ui.content_region_avail();
-                    // if size[0] == 0.0 || size[1] == 0.0 {
-                    let size = scene_mgr.canvas_size;
-                    // } else {
-                    //     self.canvas_size = size;
-                    // }
+                // Track canvas size changes
+                let size = ui.content_region_avail();
+                self.canvas_width = size[0] as u32;
+                self.canvas_height = size[1] as u32;
 
+                if let Some(tid) = texture {
                     im::Image::new(tid, size).build(&ui);
                 }
             });
@@ -351,13 +366,11 @@ impl UiState {
 }
 
 impl SceneManager {
-    fn save_current_scene<P>(&self, path: P)
+    fn save_current_scene<P>(&self, width: u32, height: u32, path: P)
     where
         P: AsRef<Path>,
     {
         let scene = self.scenes.get(self.current_scene_id).unwrap();
-        let width = self.canvas_size[0] as u32;
-        let height = self.canvas_size[1] as u32;
 
         let canvas = scene
             .render(width, height)

@@ -65,7 +65,8 @@ impl Scene for Reflections {
 }
 
 impl Streamer for Reflections {
-    fn stream(&self, _: u32, _: u32) -> Stream {
+    fn stream(&mut self, width: u32, height: u32) -> Stream {
+        self.camera.set_size(width, height);
         self.camera.stream(&self.world)
     }
 }
