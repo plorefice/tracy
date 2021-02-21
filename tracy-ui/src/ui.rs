@@ -274,14 +274,8 @@ impl SceneManager {
                     let mut size = ui.content_region_avail();
                     if size[0] == 0.0 || size[1] == 0.0 {
                         size = self.canvas_size;
-                    }
-
-                    // If canvas size has changed, force a redraw
-                    if (size[0] - self.canvas_size[0]).abs() >= 1.0
-                        || (size[1] - self.canvas_size[1]).abs() >= 1.0
-                    {
+                    } else {
                         self.canvas_size = size;
-                        self.render_current_scene(gfx);
                     }
 
                     im::Image::new(id, size).build(&ui);
