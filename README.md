@@ -52,3 +52,9 @@
 
   ![Chapter 10: Patterns](images/chapter10.png)
 </details>
+
+<details>
+  <summary><strong>Chapter 11: Reflection and Refraction</strong></summary>
+
+  ![Chapter 11: Reflection and Refraction](images/chapter11.png)
+</details>
