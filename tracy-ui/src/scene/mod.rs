@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use imgui::Ui;
-use tracy::rendering::Canvas;
+use tracy::rendering::{Canvas, Stream};
 
 mod ch02;
 mod ch04;
@@ -12,7 +12,7 @@ mod ch07;
 mod ch08;
 mod ch09;
 mod ch10;
-mod ch11;
+pub mod ch11;
 
 /// Traits shared by all the renderable scenes.
 pub trait Scene {
@@ -20,6 +20,11 @@ pub trait Scene {
     fn description(&self) -> String;
     fn render(&self, width: u32, height: u32) -> Result<Canvas>;
     fn draw(&mut self, ui: &Ui) -> bool;
+}
+
+/// Traits shared by all the renderable scenes.
+pub trait Streamer {
+    fn stream(&self, width: u32, height: u32) -> Stream;
 }
 
 /// Returns a list of all the available scenes.
@@ -33,6 +38,6 @@ pub fn get_scene_list() -> Vec<Box<dyn Scene>> {
         Box::new(ch08::ShadowSpheres::default()),
         Box::new(ch09::PlaneShape::default()),
         Box::new(ch10::Patterns::default()),
-        Box::new(ch11::Reflections::default()),
+        Box::new(ch11::Reflections::new().unwrap()),
     ]
 }

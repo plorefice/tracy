@@ -46,6 +46,12 @@ impl Canvas {
         self.grid.iter_mut()
     }
 
+    /// Return the `i`-th scanline of this canvas.
+    pub fn scanline(&self, i: u32) -> Option<&[Color]> {
+        self.grid
+            .get((i * self.width) as usize..((i + 1) * self.width) as usize)
+    }
+
     /// Sets the pixel at position `(x,y)` to the specified color.
     ///
     /// # Panics

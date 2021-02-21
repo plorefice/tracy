@@ -152,6 +152,16 @@ impl Camera {
         canvas
     }
 
+    /// Renders `world` through this camera line-by-line.
+    pub fn stream<'a, 'b>(&'a self, world: &'b World) -> Stream<'a, 'b> {
+        Stream {
+            camera: self,
+            world,
+            canvas: Canvas::new(self.horizontal_size(), self.vertical_size()),
+            current_line: 0,
+        }
+    }
+
     fn update(&mut self) {
         let half_view = (self.fov / 2.0).tan();
         let aspect_ratio = self.horizontal_size() as f32 / self.vertical_size() as f32;
@@ -165,6 +175,42 @@ impl Camera {
         };
 
         self.pixel_size = self.half_width * 2.0 / self.horizontal_size() as f32;
+    }
+}
+
+/// Streaming iterator over the scanlines produced by [`Camera::render`].
+#[derive(Debug)]
+pub struct Stream<'a, 'b> {
+    camera: &'a Camera,
+    world: &'b World,
+    canvas: Canvas,
+    current_line: u32,
+}
+
+impl<'a, 'b> Stream<'a, 'b> {
+    /// Returns the canvas associated to this stream.
+    pub fn canvas(&self) -> &Canvas {
+        &self.canvas
+    }
+
+    /// Computes and return the next scanline, returning `true` if more processing is needed.
+    pub fn advance(&mut self) -> bool {
+        if self.current_line >= self.camera.vertical_size() {
+            return false;
+        }
+
+        for x in 0..self.camera.horizontal_size() {
+            let ray = self.camera.ray_to(x, self.current_line);
+            let color = self
+                .world
+                .color_at(&ray, self.camera.recursion_limit)
+                .unwrap_or_default();
+
+            self.canvas.put(x, self.current_line, color);
+        }
+
+        self.current_line += 1;
+        true
     }
 }
 

@@ -5,10 +5,13 @@ use image::{ImageBuffer, Rgb};
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use imgui_winit_support::WinitPlatform;
+use scene::Streamer;
+use tracy::rendering::Stream;
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
+    platform::run_return::EventLoopExtRunReturn,
     window::Window,
 };
 
@@ -117,7 +120,7 @@ impl TracyUi {
             event_loop,
             scene_mgr: SceneManager {
                 scenes: scene::get_scene_list(),
-                canvas_size: [512.0, 512.0],
+                canvas_size: [400.0, 200.0],
                 current_scene_id: 0,
             },
             ctx: UiContext {
@@ -139,7 +142,7 @@ impl TracyUi {
     /// Loops forever or until the user closes the window.
     pub fn run(self) {
         let TracyUi {
-            event_loop,
+            mut event_loop,
             mut scene_mgr,
             mut ctx,
             mut gfx,
@@ -155,11 +158,12 @@ impl TracyUi {
             a: 1.0,
         };
 
-        // Set up a default scene
-        scene_mgr.render_current_scene(&mut gfx);
+        let mut current_stream = None;
+        let streamers: Vec<Box<dyn Streamer>> =
+            vec![Box::new(scene::ch11::Reflections::new().unwrap())];
 
         // Event loop
-        event_loop.run(move |event, _, control_flow| {
+        event_loop.run_return(|event, _, control_flow| {
             *control_flow = ControlFlow::Poll;
 
             match event {
@@ -205,7 +209,7 @@ impl TracyUi {
 
                     let ui = ctx.imgui.frame();
 
-                    scene_mgr.draw_ui(&ui, &mut gfx);
+                    scene_mgr.draw_ui(&ui, &streamers[..], &mut current_stream, &mut gfx);
 
                     let mut encoder: wgpu::CommandEncoder = gfx
                         .device
@@ -247,12 +251,28 @@ impl TracyUi {
 }
 
 impl SceneManager {
-    fn draw_ui(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
+    fn draw_ui<'a>(
+        &mut self,
+        ui: &im::Ui,
+        streamers: &'a [Box<dyn Streamer>],
+        stream: &mut Option<Stream<'a, 'a>>,
+        gfx: &mut GfxBackend,
+    ) {
         self.draw_canvas(ui, gfx);
-        self.draw_scene_picker(ui, gfx);
+        self.draw_scene_picker(ui, streamers, stream, gfx);
+
+        if stream.is_some() {
+            self.render_current_scene(streamers, stream, gfx);
+        }
     }
 
-    fn draw_scene_picker(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
+    fn draw_scene_picker<'a>(
+        &mut self,
+        ui: &im::Ui,
+        streamers: &'a [Box<dyn Streamer>],
+        stream: &mut Option<Stream<'a, 'a>>,
+        gfx: &mut GfxBackend,
+    ) {
         let window = im::Window::new(im_str!("Scenarios"));
 
         window
@@ -260,30 +280,38 @@ impl SceneManager {
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 for scene_id in 0..self.scenes.len() {
-                    self.draw_scene_entry(ui, scene_id, gfx);
+                    self.draw_scene_entry(ui, scene_id, streamers, stream, gfx);
                 }
             });
     }
 
     fn draw_canvas(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
         im::Window::new(im_str!("Canvas"))
+            .content_size(self.canvas_size)
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 if let Some(id) = gfx.texture_id {
-                    // Track canvas size changes
-                    let mut size = ui.content_region_avail();
-                    if size[0] == 0.0 || size[1] == 0.0 {
-                        size = self.canvas_size;
-                    } else {
-                        self.canvas_size = size;
-                    }
+                    // // Track canvas size changes
+                    // let mut size = ui.content_region_avail();
+                    // if size[0] == 0.0 || size[1] == 0.0 {
+                    let size = self.canvas_size;
+                    // } else {
+                    //     self.canvas_size = size;
+                    // }
 
                     im::Image::new(id, size).build(&ui);
                 }
             });
     }
 
-    fn draw_scene_entry(&mut self, ui: &im::Ui, id: usize, gfx: &mut GfxBackend) {
+    fn draw_scene_entry<'a>(
+        &mut self,
+        ui: &im::Ui,
+        id: usize,
+        streamers: &'a [Box<dyn Streamer>],
+        stream: &mut Option<Stream<'a, 'a>>,
+        gfx: &mut GfxBackend,
+    ) {
         let scene = self.scenes.get_mut(id).unwrap();
         let name = scene.name();
 
@@ -298,7 +326,7 @@ impl SceneManager {
 
             if redraw || force {
                 self.current_scene_id = id;
-                self.render_current_scene(gfx);
+                self.render_current_scene(streamers, stream, gfx);
             }
 
             if save {
@@ -307,40 +335,52 @@ impl SceneManager {
         }
     }
 
-    fn render_current_scene(&mut self, gfx: &mut GfxBackend) {
-        let scene = self.scenes.get(self.current_scene_id).unwrap();
+    fn render_current_scene<'a>(
+        &self,
+        streamers: &'a [Box<dyn Streamer>],
+        current_stream: &mut Option<Stream<'a, 'a>>,
+        gfx: &mut GfxBackend,
+    ) {
         let width = self.canvas_size[0] as u32;
         let height = self.canvas_size[1] as u32;
 
-        let canvas = scene
-            .render(width, height)
-            .unwrap_or_else(|e| panic!("Could not render scene \"{}\": {}", scene.name(), e));
+        match current_stream {
+            Some(stream) => {
+                if stream.advance() {
+                    let raw_data = stream
+                        .canvas()
+                        .iter()
+                        .flat_map(|c| {
+                            let (r, g, b) = c.to_rgb888();
+                            vec![b, g, r, 255]
+                        })
+                        .collect::<Vec<_>>();
 
-        let raw_data = canvas
-            .iter()
-            .flat_map(|c| {
-                let (r, g, b) = c.to_rgb888();
-                vec![b, g, r, 255]
-            })
-            .collect::<Vec<_>>();
+                    let texture_config = TextureConfig {
+                        size: wgpu::Extent3d {
+                            width,
+                            height,
+                            ..Default::default()
+                        },
+                        label: Some("canvas"),
+                        ..Default::default()
+                    };
 
-        let texture_config = TextureConfig {
-            size: wgpu::Extent3d {
-                width,
-                height,
-                ..Default::default()
-            },
-            label: Some("canvas"),
-            ..Default::default()
-        };
+                    let texture = Texture::new(&gfx.device, &gfx.renderer, texture_config);
+                    texture.write(&gfx.queue, &raw_data, width, height);
 
-        let texture = Texture::new(&gfx.device, &gfx.renderer, texture_config);
-        texture.write(&gfx.queue, &raw_data, width, height);
-
-        if let Some(id) = gfx.texture_id {
-            gfx.renderer.textures.replace(id, texture);
-        } else {
-            gfx.texture_id = Some(gfx.renderer.textures.insert(texture));
+                    if let Some(id) = gfx.texture_id {
+                        gfx.renderer.textures.replace(id, texture);
+                    } else {
+                        gfx.texture_id = Some(gfx.renderer.textures.insert(texture));
+                    }
+                } else {
+                    *current_stream = None;
+                }
+            }
+            None => {
+                *current_stream = Some(streamers[0].stream(width, height));
+            }
         }
     }
 

@@ -4,14 +4,34 @@ use anyhow::Result;
 use imgui::*;
 use tracy::{
     query::World,
-    rendering::{Canvas, ScenePrefab},
+    rendering::{Camera, Canvas, ScenePrefab, Stream},
 };
 
-use super::Scene;
+use super::{Scene, Streamer};
 
 /// A rendering of the final scene from Chapter 11.
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Reflections;
+#[derive(Debug)]
+pub struct Reflections {
+    world: World,
+    camera: Camera,
+}
+
+impl Reflections {
+    pub fn new() -> Result<Self> {
+        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch11.yml")?)?;
+
+        let mut world = World::new();
+        world.set_light(scene.light);
+        for obj in scene.objects.into_iter() {
+            world.add(obj);
+        }
+
+        Ok(Self {
+            world,
+            camera: scene.camera.build(),
+        })
+    }
+}
 
 impl Scene for Reflections {
     fn name(&self) -> String {
@@ -41,5 +61,11 @@ impl Scene for Reflections {
 
     fn draw(&mut self, _: &Ui) -> bool {
         false
+    }
+}
+
+impl Streamer for Reflections {
+    fn stream(&self, _: u32, _: u32) -> Stream {
+        self.camera.stream(&self.world)
     }
 }
