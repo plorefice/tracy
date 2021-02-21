@@ -39,6 +39,7 @@ struct UiState {
     save_scene: Option<usize>,
     canvas_width: u32,
     canvas_height: u32,
+    freeze_canvas_size: bool,
 }
 
 struct GfxBackend {
@@ -218,7 +219,11 @@ impl TracyUi {
 
                     let ui = ctx.imgui.frame();
 
-                    let mut state = UiState::default();
+                    let mut state = UiState {
+                        freeze_canvas_size: current_stream.is_some(),
+                        ..UiState::default()
+                    };
+
                     state.draw_ui(&ui, &mut scene_mgr, gfx.texture_id);
 
                     // Render next frame if a rendering is in progress
@@ -318,6 +323,7 @@ impl UiState {
                 [DEFAULT_WIDTH as f32, DEFAULT_HEIGHT as f32],
                 im::Condition::FirstUseEver,
             )
+            .resizable(!self.freeze_canvas_size)
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 // Track canvas size changes
