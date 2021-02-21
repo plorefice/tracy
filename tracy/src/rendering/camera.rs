@@ -139,29 +139,12 @@ impl Camera {
 
     /// Renders `world` to a canvas through this camera.
     pub fn render(&self, world: &World) -> Canvas {
-        let mut canvas = Canvas::new(self.horizontal_size(), self.vertical_size());
-
-        for y in 0..self.vertical_size() {
-            for x in 0..self.horizontal_size() {
-                let ray = self.ray_to(x, y);
-                let color = world
-                    .color_at(&ray, self.recursion_limit)
-                    .unwrap_or_default();
-                canvas.put(x, y, color);
-            }
-        }
-
-        canvas
+        Stream::new(self, world).finalize()
     }
 
     /// Renders `world` through this camera line-by-line.
     pub fn stream<'a, 'b>(&'a self, world: &'b World) -> Stream<'a, 'b> {
-        Stream {
-            camera: self,
-            world,
-            canvas: Canvas::new(self.horizontal_size(), self.vertical_size()),
-            current_line: 0,
-        }
+        Stream::new(self, world)
     }
 
     fn update(&mut self) {
@@ -186,10 +169,22 @@ pub struct Stream<'a, 'b> {
     camera: &'a Camera,
     world: &'b World,
     canvas: Canvas,
+    threads: usize,
     current_line: u32,
 }
 
 impl<'a, 'b> Stream<'a, 'b> {
+    /// Creates a new stream that will render `world` as seen by `camera`.
+    pub fn new(camera: &'a Camera, world: &'b World) -> Self {
+        Self {
+            camera,
+            world,
+            canvas: Canvas::new(camera.horizontal_size(), camera.vertical_size()),
+            threads: num_cpus::get(),
+            current_line: 0,
+        }
+    }
+
     /// Returns the canvas associated to this stream.
     pub fn canvas(&self) -> &Canvas {
         &self.canvas
@@ -210,7 +205,7 @@ impl<'a, 'b> Stream<'a, 'b> {
         let y = self.current_line;
 
         self.canvas
-            .scanlines_mut(self.current_line as usize, 8)
+            .scanlines_mut(self.current_line as usize, self.threads)
             .enumerate()
             .par_bridge()
             .for_each(|(i, line)| {
@@ -224,7 +219,7 @@ impl<'a, 'b> Stream<'a, 'b> {
                 }
             });
 
-        self.current_line += 8;
+        self.current_line += self.threads as u32;
         true
     }
 

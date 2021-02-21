@@ -10,6 +10,7 @@ serde-support = ["serde", "typetag"]
 
 [dependencies]
 itertools = "0.10.0"
+num_cpus = "1.13"
 rayon = "1.5"
 typetag = {version = "0.1.7", optional = true}
 
