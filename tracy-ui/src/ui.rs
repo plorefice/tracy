@@ -6,7 +6,7 @@ use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use imgui_winit_support::WinitPlatform;
 use scene::Streamer;
-use tracy::rendering::Stream;
+use tracy::rendering::{Canvas, Stream};
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::{Event, WindowEvent},
@@ -158,7 +158,7 @@ impl TracyUi {
             a: 1.0,
         };
 
-        let mut current_stream = None;
+        let mut current_stream: Option<Stream> = None;
         let streamers: Vec<Box<dyn Streamer>> =
             vec![Box::new(scene::ch11::Reflections::new().unwrap())];
 
@@ -207,9 +207,22 @@ impl TracyUi {
                         .prepare_frame(ctx.imgui.io_mut(), &ctx.window)
                         .expect("Failed to prepare frame");
 
+                    // Render next frame if a rendering is in progress
+                    if let Some(ref mut stream) = current_stream {
+                        if stream.advance() {
+                            gfx.render_to_texture(
+                                scene_mgr.canvas_size[0] as u32,
+                                scene_mgr.canvas_size[1] as u32,
+                                stream.canvas(),
+                            )
+                        } else {
+                            current_stream = None;
+                        }
+                    }
+
                     let ui = ctx.imgui.frame();
 
-                    scene_mgr.draw_ui(&ui, &streamers[..], &mut current_stream, &mut gfx);
+                    scene_mgr.draw_ui(&ui, &streamers[..], &mut current_stream, gfx.texture_id);
 
                     let mut encoder: wgpu::CommandEncoder = gfx
                         .device
@@ -256,14 +269,10 @@ impl SceneManager {
         ui: &im::Ui,
         streamers: &'a [Box<dyn Streamer>],
         stream: &mut Option<Stream<'a, 'a>>,
-        gfx: &mut GfxBackend,
+        texture: Option<im::TextureId>,
     ) {
-        self.draw_canvas(ui, gfx);
-        self.draw_scene_picker(ui, streamers, stream, gfx);
-
-        if stream.is_some() {
-            self.render_current_scene(streamers, stream, gfx);
-        }
+        self.draw_canvas(ui, texture);
+        self.draw_scene_picker(ui, streamers, stream);
     }
 
     fn draw_scene_picker<'a>(
@@ -271,7 +280,6 @@ impl SceneManager {
         ui: &im::Ui,
         streamers: &'a [Box<dyn Streamer>],
         stream: &mut Option<Stream<'a, 'a>>,
-        gfx: &mut GfxBackend,
     ) {
         let window = im::Window::new(im_str!("Scenarios"));
 
@@ -280,17 +288,17 @@ impl SceneManager {
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 for scene_id in 0..self.scenes.len() {
-                    self.draw_scene_entry(ui, scene_id, streamers, stream, gfx);
+                    self.draw_scene_entry(ui, scene_id, streamers, stream);
                 }
             });
     }
 
-    fn draw_canvas(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
+    fn draw_canvas(&mut self, ui: &im::Ui, texture: Option<im::TextureId>) {
         im::Window::new(im_str!("Canvas"))
             .content_size(self.canvas_size)
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                if let Some(id) = gfx.texture_id {
+                if let Some(tid) = texture {
                     // // Track canvas size changes
                     // let mut size = ui.content_region_avail();
                     // if size[0] == 0.0 || size[1] == 0.0 {
@@ -299,7 +307,7 @@ impl SceneManager {
                     //     self.canvas_size = size;
                     // }
 
-                    im::Image::new(id, size).build(&ui);
+                    im::Image::new(tid, size).build(&ui);
                 }
             });
     }
@@ -310,7 +318,6 @@ impl SceneManager {
         id: usize,
         streamers: &'a [Box<dyn Streamer>],
         stream: &mut Option<Stream<'a, 'a>>,
-        gfx: &mut GfxBackend,
     ) {
         let scene = self.scenes.get_mut(id).unwrap();
         let name = scene.name();
@@ -326,60 +333,13 @@ impl SceneManager {
 
             if redraw || force {
                 self.current_scene_id = id;
-                self.render_current_scene(streamers, stream, gfx);
+                *stream = Some(
+                    streamers[0].stream(self.canvas_size[0] as u32, self.canvas_size[1] as u32),
+                );
             }
 
             if save {
                 self.save_current_scene(&format!("{}.png", name));
-            }
-        }
-    }
-
-    fn render_current_scene<'a>(
-        &self,
-        streamers: &'a [Box<dyn Streamer>],
-        current_stream: &mut Option<Stream<'a, 'a>>,
-        gfx: &mut GfxBackend,
-    ) {
-        let width = self.canvas_size[0] as u32;
-        let height = self.canvas_size[1] as u32;
-
-        match current_stream {
-            Some(stream) => {
-                if stream.advance() {
-                    let raw_data = stream
-                        .canvas()
-                        .iter()
-                        .flat_map(|c| {
-                            let (r, g, b) = c.to_rgb888();
-                            vec![b, g, r, 255]
-                        })
-                        .collect::<Vec<_>>();
-
-                    let texture_config = TextureConfig {
-                        size: wgpu::Extent3d {
-                            width,
-                            height,
-                            ..Default::default()
-                        },
-                        label: Some("canvas"),
-                        ..Default::default()
-                    };
-
-                    let texture = Texture::new(&gfx.device, &gfx.renderer, texture_config);
-                    texture.write(&gfx.queue, &raw_data, width, height);
-
-                    if let Some(id) = gfx.texture_id {
-                        gfx.renderer.textures.replace(id, texture);
-                    } else {
-                        gfx.texture_id = Some(gfx.renderer.textures.insert(texture));
-                    }
-                } else {
-                    *current_stream = None;
-                }
-            }
-            None => {
-                *current_stream = Some(streamers[0].stream(width, height));
             }
         }
     }
@@ -408,5 +368,36 @@ impl SceneManager {
             .unwrap()
             .save(path)
             .unwrap();
+    }
+}
+
+impl GfxBackend {
+    fn render_to_texture(&mut self, width: u32, height: u32, canvas: &Canvas) {
+        let raw_data = canvas
+            .iter()
+            .flat_map(|c| {
+                let (r, g, b) = c.to_rgb888();
+                vec![b, g, r, 255]
+            })
+            .collect::<Vec<_>>();
+
+        let texture_config = TextureConfig {
+            size: wgpu::Extent3d {
+                width,
+                height,
+                ..Default::default()
+            },
+            label: Some("canvas"),
+            ..Default::default()
+        };
+
+        let texture = Texture::new(&self.device, &self.renderer, texture_config);
+        texture.write(&self.queue, &raw_data, width, height);
+
+        if let Some(id) = self.texture_id {
+            self.renderer.textures.replace(id, texture);
+        } else {
+            self.texture_id = Some(self.renderer.textures.insert(texture));
+        }
     }
 }
