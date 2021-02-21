@@ -58,3 +58,9 @@
 
   ![Chapter 11: Reflection and Refraction](images/chapter11.png)
 </details>
+
+<details>
+  <summary><strong>Chapter 12: Cubes</strong></summary>
+
+  ![Chapter 12: Cubes](images/chapter12.png)
+</details>
