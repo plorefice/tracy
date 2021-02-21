@@ -1,0 +1,23 @@
+camera: 
+  width: 512
+  height: 512
+  fov: 60
+  from: [ 0, 0, -2.5 ]
+  to: [ 0, 0, 0 ]
+  up: [ 0, 1, 0 ]
+
+light:
+  position: [ -10, 10, -10 ]
+  casts_shadows: false
+
+objects:
+  - shape:
+      Sphere:
+    material:
+      pattern:
+        kind:
+          solid: [1, 0, 0]
+      ambient: 1
+      diffuse: 0
+      specular: 0
+      shininess: 0

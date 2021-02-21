@@ -4,7 +4,7 @@ use anyhow::Result;
 use imgui::Ui;
 use tracy::rendering::Stream;
 
-// mod ch05;
+mod ch05;
 mod ch06;
 mod ch07;
 mod ch08;
@@ -23,7 +23,7 @@ pub trait Scene {
 /// Returns a list of all the available scenes.
 pub fn get_scene_list() -> Result<Vec<Box<dyn Scene>>> {
     Ok(vec![
-        // Box::new(ch05::FlatSphere::default()),
+        Box::new(ch05::FlatSphere::new()?),
         Box::new(ch06::PhongSphere::new()?),
         Box::new(ch07::ThreeSpheres::new()?),
         Box::new(ch08::ShadowSpheres::new()?),
