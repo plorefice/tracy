@@ -212,7 +212,7 @@ impl World {
             let direction = v.normalize();
 
             let r = Ray::new(*point, direction);
-            if let Some(hit) = self.interferences_with_ray(&r).hit() {
+            if let Some(hit) = self.interferences_with_ray(&r).hit_with_shadow() {
                 return hit.toi < distance;
             }
         }
@@ -285,6 +285,13 @@ impl<'a> InterferencesWithRay<'a, '_> {
     /// Returns the first intersection to have hit an object in the world.
     pub fn hit(mut self) -> Option<Interference> {
         self.find(|i| i.toi >= 0.)
+    }
+
+    /// Returns the first intersection to have hit an object in the world which casts a shadow.
+    pub fn hit_with_shadow(mut self) -> Option<Interference> {
+        let world = self.world;
+
+        self.find(|i| i.toi >= 0. && world.get(i.handle).unwrap().casts_shadow())
     }
 
     /// Returns the refractive index of the last entered object, or `None` if no objects have been

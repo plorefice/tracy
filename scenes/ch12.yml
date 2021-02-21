@@ -141,6 +141,7 @@ objects:
       - [ scale, 0.25, 0.25, 0.25 ]
       - [ rotate-y, 11.5 ]
       - [ translate, 0, 3.45001, 0 ]
+    casts_shadow: false
     material:
       pattern:
         kind:

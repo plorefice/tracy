@@ -13,6 +13,11 @@ pub struct Object {
     material: Material,
     #[cfg_attr(feature = "serde-support", serde(default))]
     transform: Matrix,
+    #[cfg_attr(
+        feature = "serde-support",
+        serde(default = "Object::default_casts_shadow")
+    )]
+    casts_shadow: bool,
 }
 
 impl Object {
@@ -27,7 +32,13 @@ impl Object {
             shape: Box::new(shape),
             material,
             transform,
+            casts_shadow: Self::default_casts_shadow(),
         }
+    }
+
+    /// TODO: remove me when serde will support default expressions.
+    fn default_casts_shadow() -> bool {
+        true
     }
 
     /// Returns the shape of this object.
@@ -58,6 +69,11 @@ impl Object {
     /// Changes the transform of this object.
     pub fn set_transform(&mut self, transform: Matrix) {
         self.transform = transform;
+    }
+
+    /// Returns whether this object will produce a shadow.
+    pub fn casts_shadow(&self) -> bool {
+        self.casts_shadow
     }
 
     /// Computes the intersections between this object and a ray.
