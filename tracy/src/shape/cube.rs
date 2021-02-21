@@ -21,29 +21,39 @@ impl Shape for Cube {}
 impl RayCast for Cube {
     fn intersections_in_local_space(&self, ray: &Ray) -> RayIntersections {
         let (xtmin, xtmax) = check_axis(ray.origin.x, ray.dir.x);
-        let (ytmin, ytmax) = check_axis(ray.origin.y, ray.dir.y);
-        let (ztmin, ztmax) = check_axis(ray.origin.z, ray.dir.z);
 
-        let tmin = xtmin.max(ytmin).max(ztmin);
-        let tmax = xtmax.min(ytmax).min(ztmax);
+        if xtmin < xtmax {
+            let (ytmin, ytmax) = check_axis(ray.origin.y, ray.dir.y);
 
-        RayIntersections::from(
-            if tmin > tmax {
-                vec![]
-            } else {
-                vec![
-                    RayIntersection {
-                        toi: tmin,
-                        normal: normal_at(&ray.point_at(tmin)),
-                    },
-                    RayIntersection {
-                        toi: tmax,
-                        normal: normal_at(&ray.point_at(tmax)),
-                    },
-                ]
+            if ytmin < ytmax {
+                let (ztmin, ztmax) = check_axis(ray.origin.z, ray.dir.z);
+
+                if ztmin < ztmax {
+                    let tmin = xtmin.max(ytmin).max(ztmin);
+                    let tmax = xtmax.min(ytmax).min(ztmax);
+
+                    return RayIntersections::from(
+                        if tmin > tmax {
+                            vec![]
+                        } else {
+                            vec![
+                                RayIntersection {
+                                    toi: tmin,
+                                    normal: normal_at(&ray.point_at(tmin)),
+                                },
+                                RayIntersection {
+                                    toi: tmax,
+                                    normal: normal_at(&ray.point_at(tmax)),
+                                },
+                            ]
+                        }
+                        .into_iter(),
+                    );
+                }
             }
-            .into_iter(),
-        )
+        }
+
+        RayIntersections::from(vec![].into_iter())
     }
 }
 
