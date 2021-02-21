@@ -1,4 +1,7 @@
-use std::{path::Path, time::Instant};
+use std::{
+    path::Path,
+    time::{Duration, Instant},
+};
 
 use futures::executor::block_on;
 use image::{ImageBuffer, Rgb};
@@ -18,6 +21,8 @@ use crate::scene::{self, Scene};
 
 const DEFAULT_WIDTH: u32 = 512;
 const DEFAULT_HEIGHT: u32 = 512;
+
+const MAX_RENDER_BATCH_DURATION: Duration = Duration::from_millis(50);
 
 pub struct TracyUi {
     event_loop: EventLoop<()>,
@@ -193,6 +198,7 @@ impl TracyUi {
                     ctx.imgui.io_mut().update_delta_time(now - last_frame);
                     last_frame = now;
 
+                    // Prepare next frame
                     let frame = match gfx.swap_chain.get_current_frame() {
                         Ok(frame) => frame,
                         Err(e) => {
@@ -205,31 +211,17 @@ impl TracyUi {
                         .prepare_frame(ctx.imgui.io_mut(), &ctx.window)
                         .expect("Failed to prepare frame");
 
+                    // Draw UI and capture user's input
                     let ui = ctx.imgui.frame();
-
                     let mut state = UiState {
                         freeze_canvas_size: current_render.is_some(),
                         ..UiState::default()
                     };
-
                     state.draw_ui(&ui, &mut scenes[..], gfx.texture_id);
 
                     // User has stopped the rendering
                     if state.stop_rendering {
                         current_render = None;
-                    }
-
-                    // Render next frame if a rendering is in progress
-                    if let Some(ref mut stream) = current_render {
-                        if stream.advance() {
-                            gfx.render_to_texture(
-                                state.canvas_width,
-                                state.canvas_height,
-                                stream.canvas(),
-                            )
-                        } else {
-                            current_render = None;
-                        }
                     }
 
                     // New render triggered/forced
@@ -250,6 +242,27 @@ impl TracyUi {
                             Some(scene.render(state.canvas_width, state.canvas_height));
                     }
 
+                    // Render next batch of frames if a rendering is in progress
+                    if let Some(ref mut stream) = current_render {
+                        let mut render = false;
+
+                        // Render for MAX_RENDER_BATCH_DURATION or until we are done
+                        let start = Instant::now();
+                        while start.elapsed() <= MAX_RENDER_BATCH_DURATION && stream.advance() {
+                            render = true;
+                        }
+
+                        if render {
+                            gfx.render_to_texture(
+                                state.canvas_width,
+                                state.canvas_height,
+                                stream.canvas(),
+                            )
+                        } else {
+                            current_render = None;
+                        }
+                    }
+
                     // Image save requested
                     if let Some(id) = state.save_scene {
                         let path = format!("{}.png", scenes.get(id).unwrap().name());
@@ -262,6 +275,7 @@ impl TracyUi {
                         );
                     }
 
+                    // Finalize frame rendering
                     let mut encoder: wgpu::CommandEncoder = gfx
                         .device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
