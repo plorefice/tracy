@@ -4,7 +4,7 @@ use tracy::{
     math::Matrix,
     query::{Object, Ray, RayCast, RayIntersection, RayIntersections},
     rendering::Material,
-    shape::{Plane, Shape, Sphere},
+    shape::{Cube, Plane, Shape, Sphere},
 };
 
 /// A fake shape to test the [`Shape`] abstractions.
@@ -77,6 +77,11 @@ pub fn glass_sphere() -> Object {
 /// Creates a default plane.
 pub fn plane() -> Object {
     Object::new(Plane, Matrix::identity(4))
+}
+
+/// Creates a default unit cube centered in the origin.
+pub fn cube() -> Object {
+    Object::new(Cube, Matrix::identity(4))
 }
 
 /// Creates a test shape centered in the origin.
