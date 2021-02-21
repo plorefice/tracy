@@ -30,6 +30,12 @@ struct UiContext {
     platform: WinitPlatform,
 }
 
+#[derive(Default)]
+struct UiState {
+    render_scene: Option<usize>,
+    save_scene: Option<usize>,
+}
+
 struct GfxBackend {
     queue: wgpu::Queue,
     device: wgpu::Device,
@@ -207,6 +213,11 @@ impl TracyUi {
                         .prepare_frame(ctx.imgui.io_mut(), &ctx.window)
                         .expect("Failed to prepare frame");
 
+                    let ui = ctx.imgui.frame();
+
+                    let mut state = UiState::default();
+                    state.draw_ui(&ui, &mut scene_mgr, gfx.texture_id);
+
                     // Render next frame if a rendering is in progress
                     if let Some(ref mut stream) = current_stream {
                         if stream.advance() {
@@ -220,9 +231,21 @@ impl TracyUi {
                         }
                     }
 
-                    let ui = ctx.imgui.frame();
+                    // New render triggered/forced
+                    if let Some(_id) = state.render_scene {
+                        current_stream = Some(streamers[0].stream(
+                            scene_mgr.canvas_size[0] as u32,
+                            scene_mgr.canvas_size[1] as u32,
+                        ));
+                    }
 
-                    scene_mgr.draw_ui(&ui, &streamers[..], &mut current_stream, gfx.texture_id);
+                    // Image save requested
+                    if let Some(id) = state.save_scene {
+                        scene_mgr.save_current_scene(&format!(
+                            "{}.png",
+                            scene_mgr.scenes.get(id).unwrap().name()
+                        ));
+                    }
 
                     let mut encoder: wgpu::CommandEncoder = gfx
                         .device
@@ -263,46 +286,27 @@ impl TracyUi {
     }
 }
 
-impl SceneManager {
-    fn draw_ui<'a>(
+impl UiState {
+    fn draw_ui(
         &mut self,
         ui: &im::Ui,
-        streamers: &'a [Box<dyn Streamer>],
-        stream: &mut Option<Stream<'a, 'a>>,
+        scene_mgr: &mut SceneManager,
         texture: Option<im::TextureId>,
     ) {
-        self.draw_canvas(ui, texture);
-        self.draw_scene_picker(ui, streamers, stream);
+        self.draw_canvas(ui, scene_mgr, texture);
+        self.draw_scene_picker(ui, scene_mgr);
     }
 
-    fn draw_scene_picker<'a>(
-        &mut self,
-        ui: &im::Ui,
-        streamers: &'a [Box<dyn Streamer>],
-        stream: &mut Option<Stream<'a, 'a>>,
-    ) {
-        let window = im::Window::new(im_str!("Scenarios"));
-
-        window
-            .size([432., 512.], im::Condition::FirstUseEver)
-            .position([800., 48.], im::Condition::FirstUseEver)
-            .build(&ui, || {
-                for scene_id in 0..self.scenes.len() {
-                    self.draw_scene_entry(ui, scene_id, streamers, stream);
-                }
-            });
-    }
-
-    fn draw_canvas(&mut self, ui: &im::Ui, texture: Option<im::TextureId>) {
+    fn draw_canvas(&self, ui: &im::Ui, scene_mgr: &SceneManager, texture: Option<im::TextureId>) {
         im::Window::new(im_str!("Canvas"))
-            .content_size(self.canvas_size)
+            .content_size(scene_mgr.canvas_size)
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
                 if let Some(tid) = texture {
                     // // Track canvas size changes
-                    // let mut size = ui.content_region_avail();
+                    // let size = ui.content_region_avail();
                     // if size[0] == 0.0 || size[1] == 0.0 {
-                    let size = self.canvas_size;
+                    let size = scene_mgr.canvas_size;
                     // } else {
                     //     self.canvas_size = size;
                     // }
@@ -312,14 +316,19 @@ impl SceneManager {
             });
     }
 
-    fn draw_scene_entry<'a>(
-        &mut self,
-        ui: &im::Ui,
-        id: usize,
-        streamers: &'a [Box<dyn Streamer>],
-        stream: &mut Option<Stream<'a, 'a>>,
-    ) {
-        let scene = self.scenes.get_mut(id).unwrap();
+    fn draw_scene_picker(&mut self, ui: &im::Ui, scene_mgr: &mut SceneManager) {
+        im::Window::new(im_str!("Scenarios"))
+            .size([432., 512.], im::Condition::FirstUseEver)
+            .position([800., 48.], im::Condition::FirstUseEver)
+            .build(&ui, || {
+                for scene_id in 0..scene_mgr.scenes.len() {
+                    self.draw_scene_entry(ui, scene_mgr, scene_id);
+                }
+            });
+    }
+
+    fn draw_scene_entry(&mut self, ui: &im::Ui, scene_mgr: &mut SceneManager, scene_id: usize) {
+        let scene = scene_mgr.scenes.get_mut(scene_id).unwrap();
         let name = scene.name();
 
         if im::CollapsingHeader::new(&im::ImString::new(&name)).build(&ui) {
@@ -332,18 +341,16 @@ impl SceneManager {
             let save = ui.button(&im_str!("Save as PNG##{}", name), [0., 0.]);
 
             if redraw || force {
-                self.current_scene_id = id;
-                *stream = Some(
-                    streamers[0].stream(self.canvas_size[0] as u32, self.canvas_size[1] as u32),
-                );
+                self.render_scene = Some(scene_id);
             }
-
             if save {
-                self.save_current_scene(&format!("{}.png", name));
+                self.save_scene = Some(scene_id);
             }
         }
     }
+}
 
+impl SceneManager {
     fn save_current_scene<P>(&self, path: P)
     where
         P: AsRef<Path>,
