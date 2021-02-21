@@ -2,37 +2,33 @@
 
 use anyhow::Result;
 use imgui::Ui;
-use tracy::rendering::Canvas;
+use tracy::rendering::Stream;
 
-mod ch02;
-mod ch04;
 mod ch05;
 mod ch06;
 mod ch07;
 mod ch08;
 mod ch09;
 mod ch10;
-mod ch11;
+pub mod ch11;
 
 /// Traits shared by all the renderable scenes.
 pub trait Scene {
     fn name(&self) -> String;
     fn description(&self) -> String;
-    fn render(&self, width: u32, height: u32) -> Result<Canvas>;
+    fn render(&mut self, width: u32, height: u32) -> Stream;
     fn draw(&mut self, ui: &Ui) -> bool;
 }
 
 /// Returns a list of all the available scenes.
-pub fn get_scene_list() -> Vec<Box<dyn Scene>> {
-    vec![
-        Box::new(ch02::Trajectory::default()),
-        Box::new(ch04::Clock::default()),
-        Box::new(ch05::FlatSphere::default()),
-        Box::new(ch06::PhongSphere::default()),
-        Box::new(ch07::ThreeSpheres::default()),
-        Box::new(ch08::ShadowSpheres::default()),
-        Box::new(ch09::PlaneShape::default()),
-        Box::new(ch10::Patterns::default()),
-        Box::new(ch11::Reflections::default()),
-    ]
+pub fn get_scene_list() -> Result<Vec<Box<dyn Scene>>> {
+    Ok(vec![
+        Box::new(ch05::FlatSphere::new()?),
+        Box::new(ch06::PhongSphere::new()?),
+        Box::new(ch07::ThreeSpheres::new()?),
+        Box::new(ch08::ShadowSpheres::new()?),
+        Box::new(ch09::PlaneShape::new()?),
+        Box::new(ch10::Patterns::new()?),
+        Box::new(ch11::Reflections::new()?),
+    ])
 }

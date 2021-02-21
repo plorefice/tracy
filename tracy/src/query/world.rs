@@ -88,6 +88,11 @@ impl World {
         self.light.as_ref()
     }
 
+    /// Returns a mutable reference to this world's light.
+    pub fn light_mut(&mut self) -> Option<&mut PointLight> {
+        self.light.as_mut()
+    }
+
     /// Updates this world's light.
     pub fn set_light(&mut self, light: PointLight) {
         self.light = Some(light);

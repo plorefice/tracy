@@ -1,22 +1,31 @@
-use std::{path::Path, time::Instant};
+use std::{
+    path::Path,
+    time::{Duration, Instant},
+};
 
 use futures::executor::block_on;
 use image::{ImageBuffer, Rgb};
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use imgui_winit_support::WinitPlatform;
+use tracy::rendering::{Canvas, Stream};
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
+    platform::run_return::EventLoopExtRunReturn,
     window::Window,
 };
 
 use crate::scene::{self, Scene};
 
+const DEFAULT_WIDTH: u32 = 512;
+const DEFAULT_HEIGHT: u32 = 512;
+
+const MAX_RENDER_BATCH_DURATION: Duration = Duration::from_millis(50);
+
 pub struct TracyUi {
     event_loop: EventLoop<()>,
-    scene_mgr: SceneManager,
     ctx: UiContext,
     gfx: GfxBackend,
 }
@@ -36,10 +45,14 @@ struct GfxBackend {
     texture_id: Option<im::TextureId>,
 }
 
-struct SceneManager {
-    scenes: Vec<Box<dyn Scene>>,
-    canvas_size: [f32; 2],
-    current_scene_id: usize,
+#[derive(Default)]
+struct UiState {
+    render_scene: Option<usize>,
+    save_scene: Option<usize>,
+    canvas_width: u32,
+    canvas_height: u32,
+    stop_rendering: bool,
+    freeze_canvas_size: bool,
 }
 
 impl TracyUi {
@@ -115,11 +128,6 @@ impl TracyUi {
         // Build UI structure
         Self {
             event_loop,
-            scene_mgr: SceneManager {
-                scenes: scene::get_scene_list(),
-                canvas_size: [512.0, 512.0],
-                current_scene_id: 0,
-            },
             ctx: UiContext {
                 platform,
                 window,
@@ -139,11 +147,13 @@ impl TracyUi {
     /// Loops forever or until the user closes the window.
     pub fn run(self) {
         let TracyUi {
-            event_loop,
-            mut scene_mgr,
+            mut event_loop,
             mut ctx,
             mut gfx,
         } = self;
+
+        let mut scenes = scene::get_scene_list().unwrap();
+        let mut current_render: Option<Stream> = None;
 
         let mut last_frame = Instant::now();
         let mut last_cursor = None;
@@ -155,11 +165,8 @@ impl TracyUi {
             a: 1.0,
         };
 
-        // Set up a default scene
-        scene_mgr.render_current_scene(&mut gfx);
-
         // Event loop
-        event_loop.run(move |event, _, control_flow| {
+        event_loop.run_return(move |event, _, control_flow| {
             *control_flow = ControlFlow::Poll;
 
             match event {
@@ -191,6 +198,7 @@ impl TracyUi {
                     ctx.imgui.io_mut().update_delta_time(now - last_frame);
                     last_frame = now;
 
+                    // Prepare next frame
                     let frame = match gfx.swap_chain.get_current_frame() {
                         Ok(frame) => frame,
                         Err(e) => {
@@ -203,10 +211,71 @@ impl TracyUi {
                         .prepare_frame(ctx.imgui.io_mut(), &ctx.window)
                         .expect("Failed to prepare frame");
 
+                    // Draw UI and capture user's input
                     let ui = ctx.imgui.frame();
+                    let mut state = UiState {
+                        freeze_canvas_size: current_render.is_some(),
+                        ..UiState::default()
+                    };
+                    state.draw_ui(&ui, &mut scenes[..], gfx.texture_id);
 
-                    scene_mgr.draw_ui(&ui, &mut gfx);
+                    // User has stopped the rendering
+                    if state.stop_rendering {
+                        current_render = None;
+                    }
 
+                    // New render triggered/forced
+                    if let Some(id) = state.render_scene {
+                        // SAFETY: because of some lifetime fuckery that I don't fully understand,
+                        // the closure we are in has an anonymous lifetime different from the one
+                        // on `Stream`, and AFAIK it cannot be changed. As a result of this, items
+                        // borrowed from `scenes` cannot fulfill both lifetimes, despite them
+                        // living (supposedly) longer than this closure. Anyway, make the borrow
+                        // checker happy by transmuting the lifetime to one it can accept.
+                        let scene = unsafe {
+                            std::mem::transmute::<&'_ mut Box<dyn Scene>, &'_ mut Box<dyn Scene>>(
+                                &mut scenes[id],
+                            )
+                        };
+
+                        current_render =
+                            Some(scene.render(state.canvas_width, state.canvas_height));
+                    }
+
+                    // Render next batch of frames if a rendering is in progress
+                    if let Some(ref mut stream) = current_render {
+                        let mut render = false;
+
+                        // Render for MAX_RENDER_BATCH_DURATION or until we are done
+                        let start = Instant::now();
+                        while start.elapsed() <= MAX_RENDER_BATCH_DURATION && stream.advance() {
+                            render = true;
+                        }
+
+                        if render {
+                            gfx.render_to_texture(
+                                state.canvas_width,
+                                state.canvas_height,
+                                stream.canvas(),
+                            )
+                        } else {
+                            current_render = None;
+                        }
+                    }
+
+                    // Image save requested
+                    if let Some(id) = state.save_scene {
+                        let path = format!("{}.png", scenes.get(id).unwrap().name());
+
+                        save_current_scene(
+                            &mut scenes[id],
+                            state.canvas_width,
+                            state.canvas_height,
+                            &path,
+                        );
+                    }
+
+                    // Finalize frame rendering
                     let mut encoder: wgpu::CommandEncoder = gfx
                         .device
                         .create_command_encoder(&wgpu::CommandEncoderDescriptor { label: None });
@@ -246,45 +315,53 @@ impl TracyUi {
     }
 }
 
-impl SceneManager {
-    fn draw_ui(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
-        self.draw_canvas(ui, gfx);
-        self.draw_scene_picker(ui, gfx);
+impl UiState {
+    fn draw_ui(
+        &mut self,
+        ui: &im::Ui,
+        scenes: &mut [Box<dyn Scene>],
+        texture: Option<im::TextureId>,
+    ) {
+        self.draw_canvas(ui, texture);
+        self.draw_scene_picker(ui, scenes);
     }
 
-    fn draw_scene_picker(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
-        let window = im::Window::new(im_str!("Scenarios"));
+    fn draw_canvas(&mut self, ui: &im::Ui, texture: Option<im::TextureId>) {
+        im::Window::new(im_str!("Canvas"))
+            .size(
+                [DEFAULT_WIDTH as f32, DEFAULT_HEIGHT as f32],
+                im::Condition::FirstUseEver,
+            )
+            .resizable(!self.freeze_canvas_size)
+            .position([48., 48.], im::Condition::FirstUseEver)
+            .build(&ui, || {
+                self.stop_rendering = ui.button(im_str!("Stop rendering"), [0., 0.]);
+                ui.separator();
 
-        window
+                // Track canvas size changes
+                let size = ui.content_region_avail();
+                self.canvas_width = size[0] as u32;
+                self.canvas_height = size[1] as u32;
+
+                if let Some(tid) = texture {
+                    im::Image::new(tid, size).build(&ui);
+                }
+            });
+    }
+
+    fn draw_scene_picker(&mut self, ui: &im::Ui, scenes: &mut [Box<dyn Scene>]) {
+        im::Window::new(im_str!("Scenarios"))
             .size([432., 512.], im::Condition::FirstUseEver)
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                for scene_id in 0..self.scenes.len() {
-                    self.draw_scene_entry(ui, scene_id, gfx);
+                for scene_id in 0..scenes.len() {
+                    self.draw_scene_entry(ui, scenes, scene_id);
                 }
             });
     }
 
-    fn draw_canvas(&mut self, ui: &im::Ui, gfx: &mut GfxBackend) {
-        im::Window::new(im_str!("Canvas"))
-            .position([48., 48.], im::Condition::FirstUseEver)
-            .build(&ui, || {
-                if let Some(id) = gfx.texture_id {
-                    // Track canvas size changes
-                    let mut size = ui.content_region_avail();
-                    if size[0] == 0.0 || size[1] == 0.0 {
-                        size = self.canvas_size;
-                    } else {
-                        self.canvas_size = size;
-                    }
-
-                    im::Image::new(id, size).build(&ui);
-                }
-            });
-    }
-
-    fn draw_scene_entry(&mut self, ui: &im::Ui, id: usize, gfx: &mut GfxBackend) {
-        let scene = self.scenes.get_mut(id).unwrap();
+    fn draw_scene_entry(&mut self, ui: &im::Ui, scenes: &mut [Box<dyn Scene>], scene_id: usize) {
+        let scene = scenes.get_mut(scene_id).unwrap();
         let name = scene.name();
 
         if im::CollapsingHeader::new(&im::ImString::new(&name)).build(&ui) {
@@ -297,25 +374,17 @@ impl SceneManager {
             let save = ui.button(&im_str!("Save as PNG##{}", name), [0., 0.]);
 
             if redraw || force {
-                self.current_scene_id = id;
-                self.render_current_scene(gfx);
+                self.render_scene = Some(scene_id);
             }
-
             if save {
-                self.save_current_scene(&format!("{}.png", name));
+                self.save_scene = Some(scene_id);
             }
         }
     }
+}
 
-    fn render_current_scene(&mut self, gfx: &mut GfxBackend) {
-        let scene = self.scenes.get(self.current_scene_id).unwrap();
-        let width = self.canvas_size[0] as u32;
-        let height = self.canvas_size[1] as u32;
-
-        let canvas = scene
-            .render(width, height)
-            .unwrap_or_else(|e| panic!("Could not render scene \"{}\": {}", scene.name(), e));
-
+impl GfxBackend {
+    fn render_to_texture(&mut self, width: u32, height: u32, canvas: &Canvas) {
         let raw_data = canvas
             .iter()
             .flat_map(|c| {
@@ -334,39 +403,33 @@ impl SceneManager {
             ..Default::default()
         };
 
-        let texture = Texture::new(&gfx.device, &gfx.renderer, texture_config);
-        texture.write(&gfx.queue, &raw_data, width, height);
+        let texture = Texture::new(&self.device, &self.renderer, texture_config);
+        texture.write(&self.queue, &raw_data, width, height);
 
-        if let Some(id) = gfx.texture_id {
-            gfx.renderer.textures.replace(id, texture);
+        if let Some(id) = self.texture_id {
+            self.renderer.textures.replace(id, texture);
         } else {
-            gfx.texture_id = Some(gfx.renderer.textures.insert(texture));
+            self.texture_id = Some(self.renderer.textures.insert(texture));
         }
     }
+}
 
-    fn save_current_scene<P>(&self, path: P)
-    where
-        P: AsRef<Path>,
-    {
-        let scene = self.scenes.get(self.current_scene_id).unwrap();
-        let width = self.canvas_size[0] as u32;
-        let height = self.canvas_size[1] as u32;
+fn save_current_scene<P>(scene: &mut Box<dyn Scene>, width: u32, height: u32, path: P)
+where
+    P: AsRef<Path>,
+{
+    let canvas = scene.render(width, height).finalize();
 
-        let canvas = scene
-            .render(width, height)
-            .unwrap_or_else(|e| panic!("Could not render scene \"{}\": {}", scene.name(), e));
+    let buf = canvas
+        .iter()
+        .flat_map(|p| {
+            let (r, g, b) = p.to_rgb888();
+            vec![r, g, b]
+        })
+        .collect::<Vec<u8>>();
 
-        let buf = canvas
-            .iter()
-            .flat_map(|p| {
-                let (r, g, b) = p.to_rgb888();
-                vec![r, g, b]
-            })
-            .collect::<Vec<u8>>();
-
-        ImageBuffer::<Rgb<u8>, _>::from_vec(width, height, buf)
-            .unwrap()
-            .save(path)
-            .unwrap();
-    }
+    ImageBuffer::<Rgb<u8>, _>::from_vec(width, height, buf)
+        .unwrap()
+        .save(path)
+        .unwrap();
 }
