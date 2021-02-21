@@ -212,6 +212,12 @@ impl<'a, 'b> Stream<'a, 'b> {
         self.current_line += 1;
         true
     }
+
+    /// Finish rendering this stream and return the final canvas.
+    pub fn finalize(mut self) -> Canvas {
+        while self.advance() {}
+        self.canvas
+    }
 }
 
 impl CameraPrefab {

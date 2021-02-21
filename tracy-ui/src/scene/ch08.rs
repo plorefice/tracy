@@ -4,24 +4,36 @@ use anyhow::Result;
 use imgui::*;
 use tracy::{
     query::World,
-    rendering::{Canvas, PointLight, ScenePrefab},
+    rendering::{Camera, ScenePrefab, Stream},
 };
 
 use super::Scene;
 
 /// A rendering of the final scene from Chapter 8.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct ShadowSpheres {
+    world: World,
+    camera: Camera,
     fov: f32,
     cast_shadows: bool,
 }
 
-impl Default for ShadowSpheres {
-    fn default() -> Self {
-        Self {
+impl ShadowSpheres {
+    pub fn new() -> Result<Self> {
+        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch08.yml")?)?;
+
+        let mut world = World::new();
+        world.set_light(scene.light);
+        for obj in scene.objects.into_iter() {
+            world.add(obj);
+        }
+
+        Ok(Self {
+            world,
+            camera: scene.camera.build(),
             fov: 60.0,
             cast_shadows: true,
-        }
+        })
     }
 }
 
@@ -34,25 +46,12 @@ impl Scene for ShadowSpheres {
         "The three spheres in a room cast shadows now.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch08.yml")?)?;
+    fn render(&mut self, width: u32, height: u32) -> Stream {
+        self.world.light_mut().unwrap().casts_shadows = self.cast_shadows;
 
-        let mut world = World::new();
-
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
-
-        world.set_light(PointLight {
-            casts_shadows: self.cast_shadows,
-            ..scene.light
-        });
-
-        let mut camera = scene.camera.build();
-        camera.set_size(width, height);
-        camera.set_fov(self.fov.to_radians());
-
-        Ok(camera.render(&world))
+        self.camera.set_size(width, height);
+        self.camera.set_fov(self.fov.to_radians());
+        self.camera.stream(&self.world)
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {

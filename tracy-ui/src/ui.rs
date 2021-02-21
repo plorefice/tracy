@@ -5,7 +5,6 @@ use image::{ImageBuffer, Rgb};
 use imgui::{self as im, im_str};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use imgui_winit_support::WinitPlatform;
-use scene::Streamer;
 use tracy::rendering::{Canvas, Stream};
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
@@ -22,7 +21,6 @@ const DEFAULT_HEIGHT: u32 = 512;
 
 pub struct TracyUi {
     event_loop: EventLoop<()>,
-    scene_mgr: SceneManager,
     ctx: UiContext,
     gfx: GfxBackend,
 }
@@ -31,16 +29,6 @@ struct UiContext {
     imgui: im::Context,
     window: Window,
     platform: WinitPlatform,
-}
-
-#[derive(Default)]
-struct UiState {
-    render_scene: Option<usize>,
-    save_scene: Option<usize>,
-    canvas_width: u32,
-    canvas_height: u32,
-    stop_rendering: bool,
-    freeze_canvas_size: bool,
 }
 
 struct GfxBackend {
@@ -52,9 +40,14 @@ struct GfxBackend {
     texture_id: Option<im::TextureId>,
 }
 
-struct SceneManager {
-    scenes: Vec<Box<dyn Scene>>,
-    current_scene_id: usize,
+#[derive(Default)]
+struct UiState {
+    render_scene: Option<usize>,
+    save_scene: Option<usize>,
+    canvas_width: u32,
+    canvas_height: u32,
+    stop_rendering: bool,
+    freeze_canvas_size: bool,
 }
 
 impl TracyUi {
@@ -130,10 +123,6 @@ impl TracyUi {
         // Build UI structure
         Self {
             event_loop,
-            scene_mgr: SceneManager {
-                scenes: scene::get_scene_list(),
-                current_scene_id: 0,
-            },
             ctx: UiContext {
                 platform,
                 window,
@@ -154,10 +143,12 @@ impl TracyUi {
     pub fn run(self) {
         let TracyUi {
             mut event_loop,
-            mut scene_mgr,
             mut ctx,
             mut gfx,
         } = self;
+
+        let mut scenes = scene::get_scene_list().unwrap();
+        let mut current_render: Option<Stream> = None;
 
         let mut last_frame = Instant::now();
         let mut last_cursor = None;
@@ -168,10 +159,6 @@ impl TracyUi {
             b: 0.3,
             a: 1.0,
         };
-
-        let mut current_stream: Option<Stream> = None;
-        let mut streamers: Vec<Box<dyn Streamer>> =
-            vec![Box::new(scene::ch11::Reflections::new().unwrap())];
 
         // Event loop
         event_loop.run_return(move |event, _, control_flow| {
@@ -221,19 +208,19 @@ impl TracyUi {
                     let ui = ctx.imgui.frame();
 
                     let mut state = UiState {
-                        freeze_canvas_size: current_stream.is_some(),
+                        freeze_canvas_size: current_render.is_some(),
                         ..UiState::default()
                     };
 
-                    state.draw_ui(&ui, &mut scene_mgr, gfx.texture_id);
+                    state.draw_ui(&ui, &mut scenes[..], gfx.texture_id);
 
                     // User has stopped the rendering
                     if state.stop_rendering {
-                        current_stream = None;
+                        current_render = None;
                     }
 
                     // Render next frame if a rendering is in progress
-                    if let Some(ref mut stream) = current_stream {
+                    if let Some(ref mut stream) = current_render {
                         if stream.advance() {
                             gfx.render_to_texture(
                                 state.canvas_width,
@@ -241,35 +228,37 @@ impl TracyUi {
                                 stream.canvas(),
                             )
                         } else {
-                            current_stream = None;
+                            current_render = None;
                         }
                     }
 
                     // New render triggered/forced
-                    if let Some(_id) = state.render_scene {
+                    if let Some(id) = state.render_scene {
                         // SAFETY: because of some lifetime fuckery that I don't fully understand,
                         // the closure we are in has an anonymous lifetime different from the one
                         // on `Stream`, and AFAIK it cannot be changed. As a result of this, items
-                        // borrowed from `streamers` cannot fulfill both lifetimes, despite them
+                        // borrowed from `scenes` cannot fulfill both lifetimes, despite them
                         // living (supposedly) longer than this closure. Anyway, make the borrow
                         // checker happy by transmuting the lifetime to one it can accept.
-                        let stream = unsafe {
-                            std::mem::transmute::<
-                                &'_ mut Box<dyn Streamer>,
-                                &'_ mut Box<dyn Streamer>,
-                            >(&mut streamers[0])
+                        let scene = unsafe {
+                            std::mem::transmute::<&'_ mut Box<dyn Scene>, &'_ mut Box<dyn Scene>>(
+                                &mut scenes[id],
+                            )
                         };
 
-                        current_stream =
-                            Some(stream.stream(state.canvas_width, state.canvas_height));
+                        current_render =
+                            Some(scene.render(state.canvas_width, state.canvas_height));
                     }
 
                     // Image save requested
                     if let Some(id) = state.save_scene {
-                        scene_mgr.save_current_scene(
+                        let path = format!("{}.png", scenes.get(id).unwrap().name());
+
+                        save_current_scene(
+                            &mut scenes[id],
                             state.canvas_width,
                             state.canvas_height,
-                            &format!("{}.png", scene_mgr.scenes.get(id).unwrap().name()),
+                            &path,
                         );
                     }
 
@@ -316,11 +305,11 @@ impl UiState {
     fn draw_ui(
         &mut self,
         ui: &im::Ui,
-        scene_mgr: &mut SceneManager,
+        scenes: &mut [Box<dyn Scene>],
         texture: Option<im::TextureId>,
     ) {
         self.draw_canvas(ui, texture);
-        self.draw_scene_picker(ui, scene_mgr);
+        self.draw_scene_picker(ui, scenes);
     }
 
     fn draw_canvas(&mut self, ui: &im::Ui, texture: Option<im::TextureId>) {
@@ -346,19 +335,19 @@ impl UiState {
             });
     }
 
-    fn draw_scene_picker(&mut self, ui: &im::Ui, scene_mgr: &mut SceneManager) {
+    fn draw_scene_picker(&mut self, ui: &im::Ui, scenes: &mut [Box<dyn Scene>]) {
         im::Window::new(im_str!("Scenarios"))
             .size([432., 512.], im::Condition::FirstUseEver)
             .position([800., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
-                for scene_id in 0..scene_mgr.scenes.len() {
-                    self.draw_scene_entry(ui, scene_mgr, scene_id);
+                for scene_id in 0..scenes.len() {
+                    self.draw_scene_entry(ui, scenes, scene_id);
                 }
             });
     }
 
-    fn draw_scene_entry(&mut self, ui: &im::Ui, scene_mgr: &mut SceneManager, scene_id: usize) {
-        let scene = scene_mgr.scenes.get_mut(scene_id).unwrap();
+    fn draw_scene_entry(&mut self, ui: &im::Ui, scenes: &mut [Box<dyn Scene>], scene_id: usize) {
+        let scene = scenes.get_mut(scene_id).unwrap();
         let name = scene.name();
 
         if im::CollapsingHeader::new(&im::ImString::new(&name)).build(&ui) {
@@ -377,32 +366,6 @@ impl UiState {
                 self.save_scene = Some(scene_id);
             }
         }
-    }
-}
-
-impl SceneManager {
-    fn save_current_scene<P>(&self, width: u32, height: u32, path: P)
-    where
-        P: AsRef<Path>,
-    {
-        let scene = self.scenes.get(self.current_scene_id).unwrap();
-
-        let canvas = scene
-            .render(width, height)
-            .unwrap_or_else(|e| panic!("Could not render scene \"{}\": {}", scene.name(), e));
-
-        let buf = canvas
-            .iter()
-            .flat_map(|p| {
-                let (r, g, b) = p.to_rgb888();
-                vec![r, g, b]
-            })
-            .collect::<Vec<u8>>();
-
-        ImageBuffer::<Rgb<u8>, _>::from_vec(width, height, buf)
-            .unwrap()
-            .save(path)
-            .unwrap();
     }
 }
 
@@ -435,4 +398,24 @@ impl GfxBackend {
             self.texture_id = Some(self.renderer.textures.insert(texture));
         }
     }
+}
+
+fn save_current_scene<P>(scene: &mut Box<dyn Scene>, width: u32, height: u32, path: P)
+where
+    P: AsRef<Path>,
+{
+    let canvas = scene.render(width, height).finalize();
+
+    let buf = canvas
+        .iter()
+        .flat_map(|p| {
+            let (r, g, b) = p.to_rgb888();
+            vec![r, g, b]
+        })
+        .collect::<Vec<u8>>();
+
+    ImageBuffer::<Rgb<u8>, _>::from_vec(width, height, buf)
+        .unwrap()
+        .save(path)
+        .unwrap();
 }
