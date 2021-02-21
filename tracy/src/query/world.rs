@@ -153,9 +153,7 @@ impl World {
         let obj = self.get(interference.handle)?;
         let reflective = obj.material().reflective;
 
-        if remaining == 0 {
-            None
-        } else if reflective == 0.0 {
+        if remaining == 0 || reflective == 0.0 {
             Some(Color::BLACK)
         } else {
             let r = Ray::new(interference.over_point, interference.reflect);
@@ -172,9 +170,7 @@ impl World {
         let obj = self.get(interference.handle)?;
         let transparency = obj.material().transparency;
 
-        if remaining == 0 {
-            None
-        } else if transparency == 0.0 {
+        if remaining == 0 || transparency == 0.0 {
             Some(Color::BLACK)
         } else {
             let n_ratio = interference.n1 / interference.n2;

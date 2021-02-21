@@ -140,7 +140,7 @@ fn color_at_with_mutually_reflective_surfaces() {
 
     let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::unit_y());
 
-    assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_none());
+    assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_some());
 }
 
 #[test]
@@ -166,7 +166,7 @@ fn the_reflected_color_at_the_maximum_recursive_depth() {
         .find(|i| (i.toi - SQRT_2).abs() < EPSILON)
         .unwrap();
 
-    assert!(w.reflected_color(&interference, 0).is_none());
+    assert_eq!(w.reflected_color(&interference, 0), Some(Color::BLACK));
 }
 
 #[test]
@@ -272,7 +272,7 @@ fn the_refracted_color_at_the_maximum_recursive_depth() {
         .find(|i| (i.toi - 4.0).abs() < EPSILON)
         .unwrap();
 
-    assert!(w.refracted_color(&interference, 0).is_none());
+    assert_eq!(w.refracted_color(&interference, 0), Some(Color::BLACK));
 }
 
 #[test]
