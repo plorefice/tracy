@@ -1,0 +1,203 @@
+definitions:
+  - material: &wall_material
+      pattern:
+        kind:
+          stripes:
+            - kind:
+                solid: [0.45, 0.45, 0.45]
+            - kind:
+                solid: [0.55, 0.55, 0.55]
+        transform:
+          - [ scale, 0.25, 0.25, 0.25 ]
+          - [ rotate-y, 90 ]
+      ambient: 0
+      diffuse: 0.4
+      specular: 0
+      reflective: 0.3
+
+camera:
+  width: 400
+  height: 200
+  fov: 66
+  from: [-2.6, 1.5, -3.9]
+  to: [-0.6, 1, -0.8]
+  up: [0, 1, 0]
+
+light:
+  position: [-4.9, 4.9, -1]
+
+objects:
+  # ========================================
+  # checkered floor
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ rotate-y, 18 ]
+    material:
+      pattern:
+        kind:
+          checkers:
+            - kind:
+                solid: [0.35, 0.35, 0.35]
+            - kind:
+                solid: [0.65, 0.65, 0.65]
+        transform:
+          - [ translate, 0, 0.01, 0 ]
+      specular: 0
+      reflective: 0.4
+
+  # ========================================
+  # ceiling
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ translate, 0, 5, 0 ]
+    material:
+      pattern:
+        kind:
+          solid: [0.8, 0.8, 0.8]
+      ambient: 0.3
+      specular: 0
+
+  # ========================================
+  # west wall
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ rotate-y, 90 ] # orient texture
+      - [ rotate-z, 90 ] # rotate to vertical
+      - [ translate, -5, 0, 0 ]
+    material: *wall_material
+
+  # ========================================
+  # east wall
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ rotate-y, 90 ] # orient texture
+      - [ rotate-z, 90 ] # rotate to vertical
+      - [ translate, 5, 0, 0 ]
+    material: *wall_material
+
+  # ========================================
+  # north wall
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ rotate-x, 90 ] # rotate to vertical
+      - [ translate, 0, 0, 5 ]
+    material: *wall_material
+
+  # ========================================
+  # south wall
+  # ========================================
+  - shape:
+      Plane:
+    transform:
+      - [ rotate-x, 90 ] # rotate to vertical
+      - [ translate, 0, 0, -5 ]
+    material: *wall_material
+
+  # ========================================
+  # backgorund balls
+  # ========================================
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.4, 0.4, 0.4 ]
+      - [ translate, 4.6, 0.4, 1 ]
+    material:
+      pattern:
+        kind:
+          solid: [0.8, 0.5, 0.3]
+      shininess: 50
+
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.3, 0.3, 0.3 ]
+      - [ translate, 4.7, 0.3, 0.4 ]
+    material:
+      pattern:
+        kind:
+          solid: [0.9, 0.4, 0.5]
+      shininess: 50
+
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.5, 0.5, 0.5 ]
+      - [ translate, -1, 0.5, 4.5 ]
+    material:
+      pattern:
+        kind:
+          solid: [0.4, 0.9, 0.6]
+      shininess: 50
+
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.3, 0.3, 0.3 ]
+      - [ translate, -1.7, 0.3, 4.7 ]
+    material:
+      pattern:
+        kind:
+          solid: [0.4, 0.6, 0.9]
+      shininess: 50
+
+  # ========================================
+  # foreground balls
+  # ========================================
+
+  # red sphere
+  - shape:
+      Sphere:
+    transform:
+      - [ translate, -0.6, 1, 0.6 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 0.3, 0.2]
+      specular: 0.4
+      shininess: 5
+
+  # blue glass sphere
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.7, 0.7, 0.7 ]
+      - [ translate, 0.6, 0.7, -0.6 ]
+    material:
+      pattern:
+        kind:
+          solid: [0, 0, 0.2]
+      ambient: 0
+      diffuse: 0.4
+      specular: 0.9
+      shininess: 300
+      reflective: 0.9
+      transparency: 0.9
+      refractive_index: 1.5
+
+  # green glass sphere
+  - shape:
+      Sphere:
+    transform:
+      - [ scale, 0.5, 0.5, 0.5 ]
+      - [ translate, -0.7, 0.5, -0.8 ]
+    material:
+      pattern:
+        kind:
+          solid: [0, 0.2, 0]
+      ambient: 0
+      diffuse: 0.4
+      specular: 0.9
+      shininess: 300
+      reflective: 0.9
+      transparency: 0.9
+      refractive_index: 1.5
