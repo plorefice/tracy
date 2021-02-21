@@ -39,6 +39,7 @@ struct UiState {
     save_scene: Option<usize>,
     canvas_width: u32,
     canvas_height: u32,
+    stop_rendering: bool,
     freeze_canvas_size: bool,
 }
 
@@ -226,6 +227,11 @@ impl TracyUi {
 
                     state.draw_ui(&ui, &mut scene_mgr, gfx.texture_id);
 
+                    // User has stopped the rendering
+                    if state.stop_rendering {
+                        current_stream = None;
+                    }
+
                     // Render next frame if a rendering is in progress
                     if let Some(ref mut stream) = current_stream {
                         if stream.advance() {
@@ -326,6 +332,9 @@ impl UiState {
             .resizable(!self.freeze_canvas_size)
             .position([48., 48.], im::Condition::FirstUseEver)
             .build(&ui, || {
+                self.stop_rendering = ui.button(im_str!("Stop rendering"), [0., 0.]);
+                ui.separator();
+
                 // Track canvas size changes
                 let size = ui.content_region_avail();
                 self.canvas_width = size[0] as u32;
