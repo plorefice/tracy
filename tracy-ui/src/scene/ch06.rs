@@ -1,19 +1,20 @@
-use std::f32;
+use std::{f32, fs::File};
 
 use anyhow::Result;
 use imgui::*;
 use tracy::{
-    math::{Matrix, Point3},
-    query::{Object, Ray, World},
-    rendering::{Canvas, Color, Material, Pattern, PointLight, DEFAULT_RECURSION_DEPTH},
-    shape::Sphere,
+    query::World,
+    rendering::{Camera, Color, Material, Pattern, ScenePrefab, Stream},
 };
 
 use super::Scene;
 
 /// A rendering of the final scene from Chapter 6.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub struct PhongSphere {
+    world: World,
+    camera: Camera,
+
     color: [f32; 3],
     ambient: f32,
     diffuse: f32,
@@ -21,16 +22,27 @@ pub struct PhongSphere {
     shininess: f32,
 }
 
-impl Default for PhongSphere {
-    fn default() -> Self {
+impl PhongSphere {
+    pub fn new() -> Result<Self> {
+        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch06.yml")?)?;
+
+        let mut world = World::new();
+        world.set_light(scene.light);
+        for obj in scene.objects.into_iter() {
+            world.add(obj);
+        }
+
         let mat = Material::default();
-        Self {
+
+        Ok(Self {
+            world,
+            camera: scene.camera.build(),
             color: [1.0, 0.2, 1.0],
             ambient: mat.ambient,
             diffuse: mat.diffuse,
             specular: mat.specular,
             shininess: mat.shininess,
-        }
+        })
     }
 }
 
@@ -43,59 +55,20 @@ impl Scene for PhongSphere {
         "Rendering of a sphere using Phong shading.".to_string()
     }
 
-    fn render(&self, width: u32, height: u32) -> Result<Canvas> {
-        let mut canvas = Canvas::new(width, height);
-        let mut world = World::new();
+    fn render(&mut self, width: u32, height: u32) -> Stream {
+        let sphere = self.world.objects_mut().next().unwrap();
 
-        let canvas_size = width as f32;
-
-        world.add(Object::new_with_material(
-            Sphere,
-            Matrix::identity(4),
-            Material {
-                pattern: Pattern::new(
-                    Color::new(self.color[0], self.color[1], self.color[2]).into(),
-                ),
-                ambient: self.ambient,
-                diffuse: self.diffuse,
-                specular: self.specular,
-                shininess: self.shininess,
-                ..Default::default()
-            },
-        ));
-
-        world.set_light(PointLight {
-            position: Point3::new(-10., 10., -10.),
-            casts_shadows: false,
-            ..Default::default()
+        sphere.set_material(Material {
+            pattern: Pattern::new(Color::from(self.color).into()),
+            ambient: self.ambient,
+            diffuse: self.diffuse,
+            specular: self.specular,
+            shininess: self.shininess,
+            ..*sphere.material()
         });
 
-        let ray_origin = Point3::new(0., 0., -5.);
-
-        let wall_z = 10.;
-        let wall_size = 7.;
-        let pixel_size = wall_size / canvas_size;
-
-        for y in 0..height {
-            let wall_y = wall_size / 2. - pixel_size * y as f32;
-
-            for x in 0..width {
-                let wall_x = -wall_size / 2. + pixel_size * x as f32;
-
-                let target = Point3::new(wall_x, wall_y, wall_z);
-                let ray = Ray::new(ray_origin, (target - ray_origin).normalize());
-
-                canvas.put(
-                    x,
-                    y,
-                    world
-                        .color_at(&ray, DEFAULT_RECURSION_DEPTH)
-                        .unwrap_or_default(),
-                );
-            }
-        }
-
-        Ok(canvas)
+        self.camera.set_size(width, height);
+        self.camera.stream(&self.world)
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {
