@@ -46,10 +46,12 @@ impl Canvas {
         self.grid.iter_mut()
     }
 
-    /// Return the `i`-th scanline of this canvas.
-    pub fn scanline(&self, i: u32) -> Option<&[Color]> {
+    /// Returns an iterator over at most `n` contiguous scanlines of `self`, starting at `start`.
+    pub fn scanlines_mut(&mut self, start: usize, n: usize) -> impl Iterator<Item = &mut [Color]> {
         self.grid
-            .get((i * self.width) as usize..((i + 1) * self.width) as usize)
+            .chunks_exact_mut(self.width as usize)
+            .skip(start)
+            .take(n)
     }
 
     /// Sets the pixel at position `(x,y)` to the specified color.

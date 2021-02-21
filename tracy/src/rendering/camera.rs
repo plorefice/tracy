@@ -1,3 +1,5 @@
+use rayon::iter::{ParallelBridge, ParallelIterator};
+
 use crate::{
     math::{Matrix, Point3, Vec3},
     query::{Ray, World},
@@ -199,17 +201,30 @@ impl<'a, 'b> Stream<'a, 'b> {
             return false;
         }
 
-        for x in 0..self.camera.horizontal_size() {
-            let ray = self.camera.ray_to(x, self.current_line);
-            let color = self
-                .world
-                .color_at(&ray, self.camera.recursion_limit)
-                .unwrap_or_default();
+        let Stream {
+            ref camera,
+            ref world,
+            ..
+        } = self;
 
-            self.canvas.put(x, self.current_line, color);
-        }
+        let y = self.current_line;
 
-        self.current_line += 1;
+        self.canvas
+            .scanlines_mut(self.current_line as usize, 8)
+            .enumerate()
+            .par_bridge()
+            .for_each(|(i, line)| {
+                for x in 0..camera.horizontal_size() {
+                    let ray = camera.ray_to(x, y + i as u32);
+                    let color = world
+                        .color_at(&ray, camera.recursion_limit)
+                        .unwrap_or_default();
+
+                    line[x as usize] = color;
+                }
+            });
+
+        self.current_line += 8;
         true
     }
 
