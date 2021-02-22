@@ -9,17 +9,16 @@ use tracy::{
 
 use super::Scene;
 
-/// A rendering of the final scene from Chapter 7.
+/// A rendering of the cover image in appendix A1.
 #[derive(Debug)]
-pub struct ThreeSpheres {
+pub struct Cover {
     world: World,
     camera: Camera,
-    fov: f32,
 }
 
-impl ThreeSpheres {
+impl Cover {
     pub fn new() -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch07.yml")?)?;
+        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/cover.yml")?)?;
 
         let mut world = World::new();
         for light in scene.lights.into_iter() {
@@ -32,29 +31,25 @@ impl ThreeSpheres {
         Ok(Self {
             world,
             camera: scene.camera.build(),
-            fov: 60.0,
         })
     }
 }
 
-impl Scene for ThreeSpheres {
+impl Scene for Cover {
     fn name(&self) -> String {
-        "Chapter 7: Making a Scene".to_string()
+        "Appendix A1: Rendering the Cover Image".to_string()
     }
 
     fn description(&self) -> String {
-        "Camera pointed at three spheres in a room.".to_string()
+        "Looks weird, but ok.".to_string()
     }
 
     fn render(&mut self, width: u32, height: u32) -> Stream {
         self.camera.set_size(width, height);
-        self.camera.set_fov(self.fov.to_radians());
         self.camera.stream(&self.world)
     }
 
-    fn draw(&mut self, ui: &Ui) -> bool {
-        Slider::new(&im_str!("FOV##{}", self.name()))
-            .range(30.0..=180.0)
-            .build(ui, &mut self.fov)
+    fn draw(&mut self, _: &Ui) -> bool {
+        false
     }
 }

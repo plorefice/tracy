@@ -16,7 +16,7 @@ fn creating_a_world() {
     let w = World::new();
 
     assert_eq!(w.objects().count(), 0);
-    assert!(w.light().is_none());
+    assert_eq!(w.lights().count(), 0);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn the_default_world() {
     let w = World::default();
     let mut objs = w.objects();
 
-    assert_eq!(w.light(), Some(&light));
+    assert_eq!(w.lights().next(), Some(&light));
 
     let obj = objs.next().unwrap();
     assert_eq!(obj.material(), s1.material());
@@ -138,10 +138,10 @@ fn shading_an_intersection() {
 fn shading_an_intersection_from_the_inside() {
     let mut w = World::default();
 
-    w.set_light(PointLight {
+    *w.lights_mut().next().unwrap() = PointLight {
         position: Point3::new(0.0, 0.25, 0.0),
         ..Default::default()
-    });
+    };
 
     let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::unit_z());
 

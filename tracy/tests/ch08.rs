@@ -34,35 +34,35 @@ fn lighting_with_the_surface_in_shadow() {
 fn there_is_no_shadow_when_nothing_is_collinear_with_point_and_light() {
     let w = World::default();
     let p = Point3::new(0.0, 10.0, 0.0);
-    assert!(!w.is_in_shadow(&p));
+    assert!(!w.is_in_shadow(&p, w.lights().next().unwrap()));
 }
 
 #[test]
 fn the_shadow_when_an_object_is_between_the_point_and_the_light() {
     let w = World::default();
     let p = Point3::new(10.0, -10.0, 10.0);
-    assert!(w.is_in_shadow(&p));
+    assert!(w.is_in_shadow(&p, w.lights().next().unwrap()));
 }
 
 #[test]
 fn there_is_no_shadow_when_an_object_is_behind_the_light() {
     let w = World::default();
     let p = Point3::new(-20.0, 20.0, -20.0);
-    assert!(!w.is_in_shadow(&p));
+    assert!(!w.is_in_shadow(&p, w.lights().next().unwrap()));
 }
 
 #[test]
 fn there_is_no_shadow_when_an_object_is_behind_the_point() {
     let w = World::default();
     let p = Point3::new(-2.0, 2.0, -2.0);
-    assert!(!w.is_in_shadow(&p));
+    assert!(!w.is_in_shadow(&p, w.lights().next().unwrap()));
 }
 
 #[test]
 fn shade_hit_is_given_an_intersection_in_shadow() {
     let mut w = World::new();
 
-    w.set_light(PointLight {
+    w.add_light(PointLight {
         position: Point3::new(0.0, 0.0, -10.0),
         ..Default::default()
     });

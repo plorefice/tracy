@@ -23,10 +23,10 @@ use crate::query::Object;
 )]
 #[derive(Debug)]
 pub struct ScenePrefab {
-	/// The camera in the scene.
+    /// The camera in the scene.
     pub camera: CameraPrefab,
-	/// The light in the scene.
-    pub light: PointLight,
-	/// The list of objects in the scene.
+    /// The lights in the scene.
+    pub lights: Vec<PointLight>,
+    /// The list of objects in the scene.
     pub objects: Vec<Object>,
 }

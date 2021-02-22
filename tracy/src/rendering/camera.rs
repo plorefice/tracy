@@ -117,6 +117,12 @@ impl Camera {
         self.pixel_size
     }
 
+    /// Updates this camera's recursion limit, ie. how many times a ray is allowed to be
+    /// reflected/refracted by an object.
+    pub fn set_recursion_limit(&mut self, limit: u32) {
+        self.recursion_limit = limit;
+    }
+
     /// Constructs a ray originating at the camera position and directed towards point `(x,y)`
     /// in the canvas.
     pub fn ray_to(&self, x: u32, y: u32) -> Ray {

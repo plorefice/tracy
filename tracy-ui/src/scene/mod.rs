@@ -12,6 +12,7 @@ mod ch09;
 mod ch10;
 mod ch11;
 mod ch12;
+mod cover;
 
 /// Traits shared by all the renderable scenes.
 pub trait Scene {
@@ -32,5 +33,6 @@ pub fn get_scene_list() -> Result<Vec<Box<dyn Scene>>> {
         Box::new(ch10::Patterns::new()?),
         Box::new(ch11::Reflections::new()?),
         Box::new(ch12::Tables::new()?),
+        Box::new(cover::Cover::new()?),
     ])
 }
