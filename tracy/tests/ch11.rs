@@ -51,7 +51,7 @@ fn the_reflected_color_for_a_nonreflective_material() {
 
     assert_eq!(
         w.reflected_color(&interference, DEFAULT_RECURSION_DEPTH),
-        Some(Color::BLACK)
+        Color::BLACK
     );
 }
 
@@ -79,8 +79,7 @@ fn the_reflected_color_for_a_reflective_material() {
         .unwrap();
 
     assert_abs_diff!(
-        w.reflected_color(&interference, DEFAULT_RECURSION_DEPTH)
-            .unwrap(),
+        w.reflected_color(&interference, DEFAULT_RECURSION_DEPTH),
         Color::new(0.19032, 0.2379, 0.14274)
     );
 }
@@ -109,7 +108,7 @@ fn shade_hit_with_a_reflective_material() {
         .unwrap();
 
     assert_abs_diff!(
-        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH),
         Color::new(0.87677, 0.92436, 0.82918)
     );
 }
@@ -139,8 +138,7 @@ fn color_at_with_mutually_reflective_surfaces() {
     ));
 
     let r = Ray::new(Point3::new(0.0, 0.0, 0.0), Vec3::unit_y());
-
-    assert!(w.color_at(&r, DEFAULT_RECURSION_DEPTH).is_some());
+    let _ = w.color_at(&r, DEFAULT_RECURSION_DEPTH);
 }
 
 #[test]
@@ -166,7 +164,7 @@ fn the_reflected_color_at_the_maximum_recursive_depth() {
         .find(|i| (i.toi - SQRT_2).abs() < EPSILON)
         .unwrap();
 
-    assert_eq!(w.reflected_color(&interference, 0), Some(Color::BLACK));
+    assert_eq!(w.reflected_color(&interference, 0), Color::BLACK);
 }
 
 #[test]
@@ -253,7 +251,7 @@ fn the_refracted_color_with_an_opaque_surface() {
 
     assert_eq!(
         w.refracted_color(&interference, DEFAULT_RECURSION_DEPTH),
-        Some(Color::BLACK)
+        Color::BLACK
     );
 }
 
@@ -272,7 +270,7 @@ fn the_refracted_color_at_the_maximum_recursive_depth() {
         .find(|i| (i.toi - 4.0).abs() < EPSILON)
         .unwrap();
 
-    assert_eq!(w.refracted_color(&interference, 0), Some(Color::BLACK));
+    assert_eq!(w.refracted_color(&interference, 0), Color::BLACK);
 }
 
 #[test]
@@ -290,7 +288,10 @@ fn the_refracted_color_under_total_internal_reflection() {
         .find(|i| (i.toi - FRAC_1_SQRT_2).abs() < EPSILON)
         .unwrap();
 
-    assert_eq!(w.refracted_color(&interference, 5), Some(Color::BLACK));
+    assert_eq!(
+        w.refracted_color(&interference, DEFAULT_RECURSION_DEPTH),
+        Color::BLACK
+    );
 }
 
 #[test]
@@ -310,7 +311,7 @@ fn the_refracted_color_with_a_refracted_ray() {
     let interference = w.interferences_with_ray(&r).nth(2).unwrap();
 
     assert_abs_diff!(
-        w.refracted_color(&interference, 5).unwrap(),
+        w.refracted_color(&interference, DEFAULT_RECURSION_DEPTH),
         Color::new(0.0, 0.99888, 0.04725)
     );
 }
@@ -347,7 +348,7 @@ fn shade_hit_with_a_transparent_material() {
     let interference = w.interferences_with_ray(&r).next().unwrap();
 
     assert_abs_diff!(
-        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH),
         Color::new(0.93642, 0.68642, 0.68642)
     );
 }
@@ -421,7 +422,7 @@ fn shade_hit_with_a_reflective_transparent_material() {
     let interference = w.interferences_with_ray(&r).next().unwrap();
 
     assert_abs_diff!(
-        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH).unwrap(),
+        w.shade_hit(&interference, DEFAULT_RECURSION_DEPTH),
         Color::new(0.93391, 0.69643, 0.69243)
     );
 }

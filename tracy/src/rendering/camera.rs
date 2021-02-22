@@ -217,9 +217,7 @@ impl<'a, 'b> Stream<'a, 'b> {
             .for_each(|(i, line)| {
                 for x in 0..camera.horizontal_size() {
                     let ray = camera.ray_to(x, y + i as u32);
-                    let color = world
-                        .color_at(&ray, camera.recursion_limit)
-                        .unwrap_or_default();
+                    let color = world.color_at(&ray, camera.recursion_limit);
 
                     line[x as usize] = color;
                 }

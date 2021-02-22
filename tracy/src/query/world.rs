@@ -132,30 +132,32 @@ impl World {
     ///
     /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
     /// reached.
-    pub fn shade_hit(&self, interference: &Interference, remaining: u32) -> Option<Color> {
-        let obj = self.get(interference.handle)?;
+    pub fn shade_hit(&self, interference: &Interference, remaining: u32) -> Color {
+        let obj = self
+            .get(interference.handle)
+            .expect("invalid object handle in interference");
 
         let surface = self.lights().fold(Color::BLACK, |surface, light| {
             surface
                 + rendering::phong_lighting(
                     obj,
                     light,
-                    &interference.point,
+                    &interference.over_point,
                     &interference.eye,
                     &interference.normal,
                     light.casts_shadows && self.is_in_shadow(&interference.over_point, light),
                 )
         });
 
-        let reflected = self.reflected_color(interference, remaining)?;
-        let refracted = self.refracted_color(interference, remaining)?;
+        let reflected = self.reflected_color(interference, remaining);
+        let refracted = self.refracted_color(interference, remaining);
 
         let m = obj.material();
         if m.reflective > 0.0 && m.transparency > 0.0 {
             let reflectance = interference.schlick();
-            Some(surface + reflected * reflectance + refracted * (1.0 - reflectance))
+            surface + reflected * reflectance + refracted * (1.0 - reflectance)
         } else {
-            Some(surface + reflected + refracted)
+            surface + reflected + refracted
         }
     }
 
@@ -163,16 +165,19 @@ impl World {
     ///
     /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
     /// reached.
-    pub fn reflected_color(&self, interference: &Interference, remaining: u32) -> Option<Color> {
-        let obj = self.get(interference.handle)?;
+    pub fn reflected_color(&self, interference: &Interference, remaining: u32) -> Color {
+        let obj = self
+            .get(interference.handle)
+            .expect("invalid object handle in interference");
+
         let reflective = obj.material().reflective;
 
         if remaining == 0 || reflective == 0.0 {
-            Some(Color::BLACK)
+            Color::BLACK
         } else {
             let r = Ray::new(interference.over_point, interference.reflect);
-            let c = self.color_at(&r, remaining - 1)?;
-            Some(c * reflective)
+            let c = self.color_at(&r, remaining - 1);
+            c * reflective
         }
     }
 
@@ -180,27 +185,30 @@ impl World {
     ///
     /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
     /// reached.
-    pub fn refracted_color(&self, interference: &Interference, remaining: u32) -> Option<Color> {
-        let obj = self.get(interference.handle)?;
+    pub fn refracted_color(&self, interference: &Interference, remaining: u32) -> Color {
+        let obj = self
+            .get(interference.handle)
+            .expect("invalid object handle in interference");
+
         let transparency = obj.material().transparency;
 
         if remaining == 0 || transparency == 0.0 {
-            Some(Color::BLACK)
+            Color::BLACK
         } else {
             let n_ratio = interference.n1 / interference.n2;
             let cos_i = interference.eye.dot(&interference.normal);
             let sin2_t = n_ratio.powi(2) * (1.0 - cos_i.powi(2));
 
             if sin2_t > 1.0 {
-                Some(Color::BLACK)
+                Color::BLACK
             } else {
                 let cos_t = (1.0 - sin2_t).sqrt();
                 let direction =
                     interference.normal * (n_ratio * cos_i - cos_t) - interference.eye * n_ratio;
 
                 let r = Ray::new(interference.under_point, direction);
-                let c = self.color_at(&r, remaining - 1)?;
-                Some(c * transparency)
+                let c = self.color_at(&r, remaining - 1);
+                c * transparency
             }
         }
     }
@@ -209,8 +217,12 @@ impl World {
     ///
     /// The recursion will be at most `remaining` deep. Returns `None` if the recursion limit is
     /// reached.
-    pub fn color_at(&self, ray: &Ray, remaining: u32) -> Option<Color> {
-        self.shade_hit(&self.interferences_with_ray(ray).hit()?, remaining)
+    pub fn color_at(&self, ray: &Ray, remaining: u32) -> Color {
+        if let Some(hit) = self.interferences_with_ray(ray).hit() {
+            self.shade_hit(&hit, remaining)
+        } else {
+            Color::BLACK
+        }
     }
 
     /// Checks whether the given point lies in shadow of the specified light source.
