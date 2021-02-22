@@ -11,7 +11,7 @@ lights:
 
 objects:
   - shape:
-      Cylinder:
+      Cylinder: {}
     transform:
       - [ scale, 0.2, 0.2, 0.2 ]
     material:
@@ -20,7 +20,7 @@ objects:
           solid: [1, 0, 0]
 
   - shape:
-      Cylinder:
+      Cylinder: {}
     transform:
       - [ scale, 0.2, 0.2, 0.2 ]
       - [ rotate-z, 90 ]
@@ -30,7 +30,7 @@ objects:
           solid: [0, 1, 0]
 
   - shape:
-      Cylinder:
+      Cylinder: {}
     transform:
       - [ scale, 0.2, 0.2, 0.2 ]
       - [ rotate-x, 90 ]
