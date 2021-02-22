@@ -88,6 +88,13 @@ impl World {
         self.lights.push(light);
     }
 
+    /// Removes the first occurrence of `light` from this world.
+    pub fn remove_light(&mut self, light: &PointLight) {
+        if let Some((pos, _)) = self.lights.iter_mut().find_position(|l| l == &light) {
+            self.lights.remove(pos);
+        }
+    }
+
     /// Returns an iterator over this world's lights.
     pub fn lights(&self) -> Iter<PointLight> {
         self.lights.iter()
