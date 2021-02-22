@@ -23,7 +23,9 @@ impl ShadowSpheres {
         let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch08.yml")?)?;
 
         let mut world = World::new();
-        world.set_light(scene.light);
+        for light in scene.lights.into_iter() {
+            world.add_light(light);
+        }
         for obj in scene.objects.into_iter() {
             world.add(obj);
         }
@@ -47,7 +49,7 @@ impl Scene for ShadowSpheres {
     }
 
     fn render(&mut self, width: u32, height: u32) -> Stream {
-        self.world.light_mut().unwrap().casts_shadows = self.cast_shadows;
+        self.world.lights_mut().next().unwrap().casts_shadows = self.cast_shadows;
 
         self.camera.set_size(width, height);
         self.camera.set_fov(self.fov.to_radians());

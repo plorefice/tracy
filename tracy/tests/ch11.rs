@@ -118,7 +118,7 @@ fn shade_hit_with_a_reflective_material() {
 fn color_at_with_mutually_reflective_surfaces() {
     let mut w = World::new();
 
-    w.set_light(PointLight::default());
+    w.add_light(PointLight::default());
 
     w.add(Object::new_with_material(
         Plane,

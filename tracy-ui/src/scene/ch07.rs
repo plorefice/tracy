@@ -22,7 +22,9 @@ impl ThreeSpheres {
         let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch07.yml")?)?;
 
         let mut world = World::new();
-        world.set_light(scene.light);
+        for light in scene.lights.into_iter() {
+            world.add_light(light);
+        }
         for obj in scene.objects.into_iter() {
             world.add(obj);
         }

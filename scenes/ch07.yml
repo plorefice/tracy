@@ -16,9 +16,9 @@ camera:
   to: [ 0, 1, 0 ]
   up: [ 0, 1, 0 ]
 
-light:
-  position: [ -10, 10, -10 ]
-  casts_shadows: false
+lights:
+  - position: [ -10, 10, -10 ]
+    casts_shadows: false
 
 objects:
   # ========================================

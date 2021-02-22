@@ -20,7 +20,7 @@ fn render_shaded_sphere(width: u32, height: u32) -> Canvas {
         },
     ));
 
-    world.set_light(PointLight {
+    world.add_light(PointLight {
         position: Point3::new(-10., 10., -10.),
         ..Default::default()
     });

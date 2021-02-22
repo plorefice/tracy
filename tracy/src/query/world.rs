@@ -20,8 +20,8 @@ pub struct ObjectHandle(u32);
 /// A container of collidable objects.
 #[derive(Debug)]
 pub struct World {
-    light: Option<PointLight>,
     objects: Vec<Object>,
+    lights: Vec<PointLight>,
 }
 
 impl Default for World {
@@ -34,16 +34,16 @@ impl Default for World {
         };
 
         Self {
-            light: Some(PointLight {
-                position: (-10., 10., -10.).into(),
-                color: Color::WHITE,
-                intensity: 1.,
-                casts_shadows: true,
-            }),
             objects: vec![
                 Object::new_with_material(Sphere, Matrix::identity(4), mat),
                 Object::new(Sphere, Matrix::from_scale(0.5, 0.5, 0.5)),
             ],
+            lights: vec![PointLight {
+                position: (-10., 10., -10.).into(),
+                color: Color::WHITE,
+                intensity: 1.,
+                casts_shadows: true,
+            }],
         }
     }
 }
@@ -52,8 +52,8 @@ impl World {
     /// Creates an empty world.
     pub fn new() -> Self {
         Self {
-            light: None,
             objects: Vec::new(),
+            lights: Vec::new(),
         }
     }
 
@@ -83,19 +83,19 @@ impl World {
         self.objects.iter_mut()
     }
 
-    /// Returns a reference to this world's light.
-    pub fn light(&self) -> Option<&PointLight> {
-        self.light.as_ref()
+    /// Adds a new light source to this world.
+    pub fn add_light(&mut self, light: PointLight) {
+        self.lights.push(light);
     }
 
-    /// Returns a mutable reference to this world's light.
-    pub fn light_mut(&mut self) -> Option<&mut PointLight> {
-        self.light.as_mut()
+    /// Returns an iterator over this world's lights.
+    pub fn lights(&self) -> Iter<PointLight> {
+        self.lights.iter()
     }
 
-    /// Updates this world's light.
-    pub fn set_light(&mut self, light: PointLight) {
-        self.light = Some(light);
+    /// Returns a mutable iterator over this world's lights.
+    pub fn lights_mut(&mut self) -> IterMut<PointLight> {
+        self.lights.iter_mut()
     }
 
     /// Computes the intersections between all the object in this world and a ray.
@@ -127,16 +127,18 @@ impl World {
     /// reached.
     pub fn shade_hit(&self, interference: &Interference, remaining: u32) -> Option<Color> {
         let obj = self.get(interference.handle)?;
-        let light = self.light()?;
 
-        let surface = rendering::phong_lighting(
-            obj,
-            light,
-            &interference.point,
-            &interference.eye,
-            &interference.normal,
-            light.casts_shadows && self.is_in_shadow(&interference.over_point),
-        );
+        let surface = self.lights().fold(Color::BLACK, |surface, light| {
+            surface
+                + rendering::phong_lighting(
+                    obj,
+                    light,
+                    &interference.point,
+                    &interference.eye,
+                    &interference.normal,
+                    light.casts_shadows && self.is_in_shadow(&interference.over_point, light),
+                )
+        });
 
         let reflected = self.reflected_color(interference, remaining)?;
         let refracted = self.refracted_color(interference, remaining)?;
@@ -204,19 +206,18 @@ impl World {
         self.shade_hit(&self.interferences_with_ray(ray).hit()?, remaining)
     }
 
-    /// Checks whether the given point lies in shadow of the light source.
-    pub fn is_in_shadow(&self, point: &Point3) -> bool {
-        if let Some(light) = self.light() {
-            let v = light.position - point;
-            let distance = v.length();
-            let direction = v.normalize();
+    /// Checks whether the given point lies in shadow of the specified light source.
+    pub fn is_in_shadow(&self, point: &Point3, light: &PointLight) -> bool {
+        let v = light.position - point;
+        let distance = v.length();
+        let direction = v.normalize();
 
-            let r = Ray::new(*point, direction);
-            if let Some(hit) = self.interferences_with_ray(&r).hit_with_shadow() {
-                return hit.toi < distance;
-            }
+        let r = Ray::new(*point, direction);
+        if let Some(hit) = self.interferences_with_ray(&r).hit_with_shadow() {
+            hit.toi < distance
+        } else {
+            false
         }
-        false
     }
 
     fn handles(&self) -> impl Iterator<Item = ObjectHandle> {
