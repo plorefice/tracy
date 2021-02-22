@@ -1,0 +1,40 @@
+camera:
+  width: 400
+  height: 400
+  fov: 60
+  from: [3, 3, -5]
+  to: [0, 0, 0]
+  up: [0, 1, 0]
+
+lights:
+  - position: [-10, 10, -10]
+
+objects:
+  - shape:
+      Cylinder: {}
+    transform:
+      - [ scale, 0.2, 0.2, 0.2 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 0, 0]
+
+  - shape:
+      Cylinder: {}
+    transform:
+      - [ scale, 0.2, 0.2, 0.2 ]
+      - [ rotate-z, 90 ]
+    material:
+      pattern:
+        kind:
+          solid: [0, 1, 0]
+
+  - shape:
+      Cylinder: {}
+    transform:
+      - [ scale, 0.2, 0.2, 0.2 ]
+      - [ rotate-x, 90 ]
+    material:
+      pattern:
+        kind:
+          solid: [0, 0, 1]
