@@ -80,26 +80,33 @@ impl RayCast for Cylinder {
 
         let disc = b.powi(2) - 4.0 * a * c;
 
-        RayIntersections::from(
-            if disc < 0.0 {
-                vec![]
-            } else {
-                let t0 = (-b - disc.sqrt()) / (2.0 * a);
-                let t1 = (-b + disc.sqrt()) / (2.0 * a);
+        if disc < 0.0 {
+            return RayIntersections::from(vec![].into_iter());
+        }
 
-                vec![
-                    RayIntersection {
-                        toi: t0,
-                        normal: normal_at(&ray.point_at(t0)),
-                    },
-                    RayIntersection {
-                        toi: t1,
-                        normal: normal_at(&ray.point_at(t1)),
-                    },
-                ]
-            }
-            .into_iter(),
-        )
+        let t0 = (-b - disc.sqrt()) / (2.0 * a);
+        let t1 = (-b + disc.sqrt()) / (2.0 * a);
+
+        let y0 = ray.origin.y + t0 * ray.dir.y;
+        let y1 = ray.origin.y + t1 * ray.dir.y;
+
+        let mut xs = Vec::with_capacity(2);
+
+        if self.bottom() < y0 && y0 < self.top() {
+            xs.push(RayIntersection {
+                toi: t0,
+                normal: normal_at(&ray.point_at(t0)),
+            });
+        }
+
+        if self.bottom() < y1 && y1 < self.top() {
+            xs.push(RayIntersection {
+                toi: t1,
+                normal: normal_at(&ray.point_at(t1)),
+            });
+        }
+
+        RayIntersections::from(xs.into_iter())
     }
 }
 

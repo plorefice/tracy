@@ -66,3 +66,23 @@ fn the_default_minimum_and_maximum_for_a_cylinder() {
     assert_eq!(cyl.bottom(), f32::NEG_INFINITY);
     assert_eq!(cyl.top(), f32::INFINITY);
 }
+
+#[test]
+fn intersecting_a_constrained_cylinder() {
+    let mut cyl = Cylinder::default();
+    cyl.set_bottom(1.0);
+    cyl.set_top(2.0);
+
+    for &(point, dir, count) in &[
+        (Point3::new(0.0, 1.5, 0.0), Vec3::new(0.1, 1.0, 0.0), 0),
+        (Point3::new(0.0, 3.0, -5.0), Vec3::unit_z(), 0),
+        (Point3::new(0.0, 0.0, -5.0), Vec3::unit_z(), 0),
+        (Point3::new(0.0, 2.0, -5.0), Vec3::unit_z(), 0),
+        (Point3::new(0.0, 1.0, -5.0), Vec3::unit_z(), 0),
+        (Point3::new(0.0, 1.5, -2.0), Vec3::unit_z(), 2),
+    ] {
+        let r = Ray::new(point, dir);
+
+        assert_eq!(cyl.intersections_in_local_space(&r).count(), count)
+    }
+}
