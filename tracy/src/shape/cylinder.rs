@@ -14,7 +14,55 @@ use super::Shape;
     derive(serde::Serialize, serde::Deserialize)
 )]
 #[derive(Debug, Clone)]
-pub struct Cylinder;
+pub struct Cylinder {
+    top: f32,
+    bottom: f32,
+}
+
+impl Default for Cylinder {
+    fn default() -> Self {
+        Self {
+            top: f32::INFINITY,
+            bottom: f32::NEG_INFINITY,
+        }
+    }
+}
+
+impl Cylinder {
+    /// Returns the upper Y coordinate of this cylinder.
+    pub fn top(&self) -> f32 {
+        self.top
+    }
+
+    /// Returns the lower Y coordinate of this cylinder.
+    pub fn bottom(&self) -> f32 {
+        self.bottom
+    }
+
+    /// Changes the upper Y coordinate of `self` to `y`.
+    ///
+    /// If `y` is lower than the current lower coordinate, it will swap also swap them.
+    pub fn set_top(&mut self, y: f32) {
+        if y < self.bottom() {
+            self.top = self.bottom;
+            self.bottom = y;
+        } else {
+            self.top = y;
+        }
+    }
+
+    /// Changes the lower Y coordinate of `self` to `y`.
+    ///
+    /// If `y` is lower than the current lower coordinate, it will swap also swap them.
+    pub fn set_bottom(&mut self, y: f32) {
+        if y > self.top() {
+            self.bottom = self.top;
+            self.top = y;
+        } else {
+            self.bottom = y;
+        }
+    }
+}
 
 #[cfg_attr(feature = "serde-support", typetag::serde)]
 impl Shape for Cylinder {}
