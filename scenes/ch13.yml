@@ -1,40 +1,219 @@
 camera:
   width: 400
-  height: 400
-  fov: 60
-  from: [3, 3, -5]
-  to: [0, 0, 0]
+  height: 200
+  fov: 18
+  from: [8, 3.5, -9]
+  to: [0, 0.3, 0]
   up: [0, 1, 0]
 
 lights:
-  - position: [-10, 10, -10]
+  - position: [1, 6.9, -4.9]
 
 objects:
+  # ========================================
+  # floor/ceiling
+  # ========================================
   - shape:
-      Cylinder: {}
+      Plane:
+    material:
+      pattern:
+        kind:
+          checkers:
+            - kind:
+                solid: [0.5, 0.5, 0.5]
+            - kind:
+                solid: [0.75, 0.75, 0.75]
+        transform:
+          - [ scale, 0.25, 0.25, 0.25 ]
+          - [ rotate-y, 17.2 ]
+          - [ translate, 0, 0.01, 0 ]
+      ambient: 0.2
+      diffuse: 0.9
+      specular: 0
+
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.75
+        closed: true
     transform:
-      - [ scale, 0.2, 0.2, 0.2 ]
+      - [ scale, 0.5, 1, 0.5 ]
+      - [ translate, -1, 0, 1 ]
+    material:
+      pattern:
+        kind:
+          solid: [0, 0, 0.6]
+      diffuse: 0.1
+      specular: 0.9
+      shininess: 300
+      reflective: 0.9
+
+  # ========================================
+  # concentric cylinders
+  # ========================================
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.2
+        closed: false
+    transform:
+      - [ scale, 0.8, 1, 0.8 ]
+      - [ translate, 1, 0, 0 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 1, 0.3]
+      ambient: 0.1
+      diffuse: 0.8
+      specular: 0.9
+      shininess: 300
+
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.3
+        closed: false
+    transform:
+      - [ scale, 0.6, 1, 0.6 ]
+      - [ translate, 1, 0, 0 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 0.9, 0.4]
+      ambient: 0.1
+      diffuse: 0.8
+      specular: 0.9
+      shininess: 300
+
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.4
+        closed: false
+    transform:
+      - [ scale, 0.4, 1, 0.4 ]
+      - [ translate, 1, 0, 0 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 0.8, 0.5]
+      ambient: 0.1
+      diffuse: 0.8
+      specular: 0.9
+      shininess: 300
+
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.5
+        closed: true
+    transform:
+      - [ scale, 0.2, 1, 0.2 ]
+      - [ translate, 1, 0, 0 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 0.7, 0.6]
+      ambient: 0.1
+      diffuse: 0.8
+      specular: 0.9
+      shininess: 300
+
+  # ========================================
+  # decorative cylinders
+  # ========================================
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.3
+        closed: true
+    transform:
+      - [ scale, 0.05, 1, 0.05 ]
+      - [ translate, 0, 0, -0.75 ]
     material:
       pattern:
         kind:
           solid: [1, 0, 0]
+      ambient: 0.1
+      diffuse: 0.9
+      specular: 0.9
+      shininess: 300
 
   - shape:
-      Cylinder: {}
+      Cylinder:
+        bottom: 0
+        top: 0.3
+        closed: true
     transform:
-      - [ scale, 0.2, 0.2, 0.2 ]
-      - [ rotate-z, 90 ]
+      - [ scale, 0.05, 1, 0.05 ]
+      - [ translate, 0, 0, 1.5 ]
+      - [ rotate-y, -8.6 ]
+      - [ translate, 0, 0, -2.25 ]
+    material:
+      pattern:
+        kind:
+          solid: [1, 1, 0]
+      ambient: 0.1
+      diffuse: 0.9
+      specular: 0.9
+      shininess: 300
+
+  - shape:
+      Cylinder:
+        bottom: 0
+        top: 0.3
+        closed: true
+    transform:
+      - [ scale, 0.05, 1, 0.05 ]
+      - [ translate, 0, 0, 1.5 ]
+      - [ rotate-y, -17.2 ]
+      - [ translate, 0, 0, -2.25 ]
     material:
       pattern:
         kind:
           solid: [0, 1, 0]
+      ambient: 0.1
+      diffuse: 0.9
+      specular: 0.9
+      shininess: 300
 
   - shape:
-      Cylinder: {}
+      Cylinder:
+        bottom: 0
+        top: 0.3
+        closed: true
     transform:
-      - [ scale, 0.2, 0.2, 0.2 ]
-      - [ rotate-x, 90 ]
+      - [ scale, 0.05, 1, 0.05 ]
+      - [ translate, 0, 0, 1.5 ]
+      - [ rotate-y, -26 ]
+      - [ translate, 0, 0, -2.25 ]
     material:
       pattern:
         kind:
-          solid: [0, 0, 1]
+          solid: [0, 1, 1]
+      ambient: 0.1
+      diffuse: 0.9
+      specular: 0.9
+      shininess: 300
+
+  # ========================================
+  # glass cylinder
+  # ========================================
+  - shape:
+      Cylinder:
+        bottom: 0.0001
+        top: 0.5
+        closed: true
+    transform:
+      - [ scale, 0.33, 1, 0.33 ]
+      - [ translate, 0, 0, -1.5 ]
+    material:
+      pattern:
+        kind:
+          solid: [0.25, 0, 0]
+      diffuse: 0.1
+      specular: 0.9
+      shininess: 300
+      reflective: 0.9
+      transparency: 0.9
+      refractive_index: 1.5
