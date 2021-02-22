@@ -41,7 +41,7 @@ impl Scene for Cover {
     }
 
     fn description(&self) -> String {
-        "Thanks, Jamis :)".to_string()
+        "Looks weird, but ok.".to_string()
     }
 
     fn render(&mut self, width: u32, height: u32) -> Stream {
