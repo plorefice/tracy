@@ -7,8 +7,7 @@ use crate::{
 
 use super::Shape;
 
-/// An infinitely long cylinder with unit radius centered around the origin
-/// and extending along the Y axis.
+/// A cylinder with unit radius centered around the origin and extending along the Y axis.
 #[cfg_attr(
     feature = "serde-support",
     derive(serde::Serialize, serde::Deserialize),
