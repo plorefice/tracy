@@ -11,7 +11,8 @@ use super::Shape;
 /// and extending along the Y axis.
 #[cfg_attr(
     feature = "serde-support",
-    derive(serde::Serialize, serde::Deserialize)
+    derive(serde::Serialize, serde::Deserialize),
+    serde(default)
 )]
 #[derive(Debug, Clone)]
 pub struct Cylinder {
