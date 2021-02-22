@@ -86,3 +86,52 @@ fn intersecting_a_constrained_cylinder() {
         assert_eq!(cyl.intersections_in_local_space(&r).count(), count)
     }
 }
+
+#[test]
+fn the_default_closed_value_for_a_cylinder() {
+    let cyl = Cylinder::default();
+    assert!(!cyl.closed());
+}
+
+#[test]
+fn intersecting_the_caps_of_a_closed_cylinder() {
+    let mut cyl = Cylinder::default();
+    cyl.set_bottom(1.0);
+    cyl.set_top(2.0);
+    cyl.set_closed(true);
+
+    for &(point, dir, count) in &[
+        (Point3::new(0.0, 3.0, 0.0), -Vec3::unit_y(), 2),
+        (Point3::new(0.0, 3.0, -2.0), Vec3::new(0.0, -1.0, 2.0), 2),
+        (Point3::new(0.0, 4.0, -2.0), Vec3::new(0.0, -1.0, 1.0), 2),
+        (Point3::new(0.0, 0.0, -2.0), Vec3::new(0.0, 1.0, 2.0), 2),
+        (Point3::new(0.0, -1.0, -2.0), Vec3::new(0.0, 1.0, 1.0), 2),
+    ] {
+        let r = Ray::new(point, dir);
+
+        assert_eq!(cyl.intersections_in_local_space(&r).count(), count)
+    }
+}
+
+#[test]
+fn the_normal_vector_on_a_cylinder_end_caps() {
+    let mut cyl = Cylinder::default();
+    cyl.set_bottom(1.0);
+    cyl.set_top(2.0);
+    cyl.set_closed(true);
+
+    for &(point, normal) in &[
+        (Point3::new(0.0, 1.0, 0.0), -Vec3::unit_y()),
+        (Point3::new(0.5, 1.0, 0.0), -Vec3::unit_y()),
+        (Point3::new(0.0, 1.0, 0.5), -Vec3::unit_y()),
+        (Point3::new(0.0, 2.0, 0.0), Vec3::unit_y()),
+        (Point3::new(0.5, 2.0, 0.0), Vec3::unit_y()),
+        (Point3::new(0.0, 2.0, 0.5), Vec3::unit_y()),
+    ] {
+        let r = Ray::new(Point3::default(), point.into());
+
+        assert!(cyl
+            .intersections_in_local_space(&r)
+            .any(|x| x.normal.abs_diff_eq(&normal, EPSILON)));
+    }
+}
