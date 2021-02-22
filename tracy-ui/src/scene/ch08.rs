@@ -24,20 +24,13 @@ pub struct ShadowSpheres {
 impl ShadowSpheres {
     pub fn new() -> Result<Self> {
         let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch08.yml")?)?;
-
         let second_light = scene.lights[1].clone();
 
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
+        let (world, camera) = scene.build();
 
         Ok(Self {
             world,
-            camera: scene.camera.build(),
+            camera,
             fov: 60.0,
             cast_shadows: true,
             multiple_lights: false,

@@ -18,20 +18,10 @@ pub struct Tables {
 
 impl Tables {
     pub fn new() -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch12.yml")?)?;
+        let (world, camera) =
+            serde_yaml::from_reader::<_, ScenePrefab>(File::open("scenes/ch12.yml")?)?.build();
 
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
-
-        Ok(Self {
-            world,
-            camera: scene.camera.build(),
-        })
+        Ok(Self { world, camera })
     }
 }
 

@@ -23,15 +23,8 @@ pub struct PlaneShape {
 
 impl PlaneShape {
     pub fn new() -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch09.yml")?)?;
-
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
+        let (world, camera) =
+            serde_yaml::from_reader::<_, ScenePrefab>(File::open("scenes/ch09.yml")?)?.build();
 
         let default_transform = world
             .objects()
@@ -46,7 +39,7 @@ impl PlaneShape {
 
         Ok(Self {
             world,
-            camera: scene.camera.build(),
+            camera,
             default_transform,
             plane_y: 0.0,
         })

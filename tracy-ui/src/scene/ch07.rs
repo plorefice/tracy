@@ -19,19 +19,12 @@ pub struct ThreeSpheres {
 
 impl ThreeSpheres {
     pub fn new() -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch07.yml")?)?;
-
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
+        let (world, camera) =
+            serde_yaml::from_reader::<_, ScenePrefab>(File::open("scenes/ch07.yml")?)?.build();
 
         Ok(Self {
             world,
-            camera: scene.camera.build(),
+            camera,
             fov: 60.0,
         })
     }

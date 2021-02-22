@@ -29,19 +29,12 @@ impl Patterns {
     }
 
     fn load_scene(i: usize) -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open(Self::SUBSCENES[i].1)?)?;
-
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
+        let (world, camera) =
+            serde_yaml::from_reader::<_, ScenePrefab>(File::open(Self::SUBSCENES[i].1)?)?.build();
 
         Ok(Self {
             world,
-            camera: scene.camera.build(),
+            camera,
             selection: i,
         })
     }

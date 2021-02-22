@@ -24,21 +24,14 @@ pub struct PhongSphere {
 
 impl PhongSphere {
     pub fn new() -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch06.yml")?)?;
-
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
+        let (world, camera) =
+            serde_yaml::from_reader::<_, ScenePrefab>(File::open("scenes/ch06.yml")?)?.build();
 
         let mat = Material::default();
 
         Ok(Self {
             world,
-            camera: scene.camera.build(),
+            camera,
             color: [1.0, 0.2, 1.0],
             ambient: mat.ambient,
             diffuse: mat.diffuse,

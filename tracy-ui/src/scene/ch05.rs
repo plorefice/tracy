@@ -20,19 +20,12 @@ pub struct FlatSphere {
 
 impl FlatSphere {
     pub fn new() -> Result<Self> {
-        let scene: ScenePrefab = serde_yaml::from_reader(File::open("scenes/ch05.yml")?)?;
-
-        let mut world = World::new();
-        for light in scene.lights.into_iter() {
-            world.add_light(light);
-        }
-        for obj in scene.objects.into_iter() {
-            world.add(obj);
-        }
+        let (world, camera) =
+            serde_yaml::from_reader::<_, ScenePrefab>(File::open("scenes/ch05.yml")?)?.build();
 
         Ok(Self {
             world,
-            camera: scene.camera.build(),
+            camera,
             color: [1., 0., 0.],
         })
     }

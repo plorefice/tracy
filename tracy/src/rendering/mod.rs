@@ -14,7 +14,7 @@ pub use light::*;
 pub use material::*;
 pub use pattern::*;
 
-use crate::query::Object;
+use crate::query::{Object, World};
 
 /// Prefab containing all the elements required to build a renderable scene.
 #[cfg_attr(
@@ -29,4 +29,21 @@ pub struct ScenePrefab {
     pub lights: Vec<PointLight>,
     /// The list of objects in the scene.
     pub objects: Vec<Object>,
+}
+
+impl ScenePrefab {
+    /// Consumes this prefab and builds the corresponding scene, ie. a world and a camera.
+    pub fn build(self) -> (World, Camera) {
+        let mut world = World::new();
+
+        for light in self.lights {
+            world.add_light(light);
+        }
+
+        for obj in self.objects {
+            world.add(obj);
+        }
+
+        (world, self.camera.build())
+    }
 }
