@@ -28,12 +28,8 @@ impl PlaneShape {
 
         let default_transform = world
             .objects()
-            .filter_map(|obj| {
-                obj.shape()
-                    .as_any()
-                    .is::<Plane>()
-                    .then(|| obj.transform().clone())
-            })
+            .filter(|&obj| obj.shape().as_any().is::<Plane>())
+            .map(|obj| obj.transform().clone())
             .next()
             .unwrap();
 
@@ -70,8 +66,11 @@ impl Scene for PlaneShape {
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {
-        Slider::new(&im_str!("Plane Y##{}", self.name()))
-            .range(-10.0..=10.0)
-            .build(ui, &mut self.plane_y)
+        ui.slider(
+            &format!("Plane Y##{}", self.name()),
+            -10.0,
+            10.0,
+            &mut self.plane_y,
+        )
     }
 }

@@ -65,17 +65,15 @@ impl Scene for ShadowSpheres {
     fn draw(&mut self, ui: &Ui) -> bool {
         let mut redraw = false;
 
-        redraw |= Slider::new(&im_str!("FOV##{}", self.name()))
-            .range(30.0..=180.0)
-            .build(ui, &mut self.fov);
+        redraw |= ui.slider(&format!("FOV##{}", self.name()), 30.0, 180.0, &mut self.fov);
 
         redraw |= ui.checkbox(
-            &im_str!("Cast shadows##{}", self.name()),
+            &format!("Cast shadows##{}", self.name()),
             &mut self.cast_shadows,
         );
 
         redraw |= ui.checkbox(
-            &im_str!("Multiple ligths##{}", self.name()),
+            &format!("Multiple ligths##{}", self.name()),
             &mut self.multiple_lights,
         );
 

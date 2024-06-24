@@ -1,5 +1,3 @@
 [workspace]
-members = [
-  "tracy",
-  "tracy-ui",
-]
+resolver = "2"
+members = ["tracy", "tracy-ui"]

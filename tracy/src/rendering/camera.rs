@@ -202,11 +202,7 @@ impl<'a, 'b> Stream<'a, 'b> {
             return false;
         }
 
-        let Stream {
-            ref camera,
-            ref world,
-            ..
-        } = self;
+        let Stream { camera, world, .. } = self;
 
         let y = self.current_line;
 

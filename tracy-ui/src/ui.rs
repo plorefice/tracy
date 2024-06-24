@@ -5,7 +5,7 @@ use std::{
 
 use futures::executor::block_on;
 use image::{ImageBuffer, Rgb};
-use imgui::{self as im, im_str};
+use imgui::{self as im};
 use imgui_wgpu::{Renderer, RendererConfig, Texture, TextureConfig};
 use imgui_winit_support::WinitPlatform;
 use tracy::rendering::{Canvas, Stream};
@@ -41,7 +41,6 @@ struct GfxBackend {
     device: wgpu::Device,
     surface: wgpu::Surface,
     renderer: imgui_wgpu::Renderer,
-    swap_chain: wgpu::SwapChain,
     texture_id: Option<im::TextureId>,
 }
 
@@ -60,7 +59,10 @@ impl TracyUi {
     pub fn new<S: AsRef<str>>(title: S, width: u32, height: u32) -> Self {
         // Set up window and GPU
         let event_loop = EventLoop::new();
-        let instance = wgpu::Instance::new(wgpu::BackendBit::PRIMARY);
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::PRIMARY,
+            ..Default::default()
+        });
 
         let (window, size, surface) = {
             let window = Window::new(&event_loop).unwrap();
@@ -69,7 +71,7 @@ impl TracyUi {
             window.set_outer_position(LogicalPosition::new(0, 0));
 
             let size = window.inner_size();
-            let surface = unsafe { instance.create_surface(&window) };
+            let surface = unsafe { instance.create_surface(&window) }.unwrap();
 
             (window, size, surface)
         };
@@ -77,6 +79,7 @@ impl TracyUi {
         let adapter = block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::HighPerformance,
             compatible_surface: Some(&surface),
+            ..Default::default()
         }))
         .unwrap();
 
@@ -84,15 +87,17 @@ impl TracyUi {
             block_on(adapter.request_device(&wgpu::DeviceDescriptor::default(), None)).unwrap();
 
         // Set up swap chain
-        let sc_desc = wgpu::SwapChainDescriptor {
-            usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+        let surface_desc = wgpu::SurfaceConfiguration {
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: wgpu::TextureFormat::Bgra8UnormSrgb,
-            width: size.width as u32,
-            height: size.height as u32,
+            width: size.width,
+            height: size.height,
             present_mode: wgpu::PresentMode::Mailbox,
+            alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            view_formats: vec![wgpu::TextureFormat::Bgra8Unorm],
         };
 
-        let swap_chain = device.create_swap_chain(&surface, &sc_desc);
+        surface.configure(&device, &surface_desc);
 
         // Set up dear imgui
         let mut imgui = im::Context::create();
@@ -119,7 +124,7 @@ impl TracyUi {
 
         // Set up dear imgui wgpu renderer
         let renderer_config = RendererConfig {
-            texture_format: sc_desc.format,
+            texture_format: surface_desc.format,
             ..Default::default()
         };
 
@@ -138,7 +143,6 @@ impl TracyUi {
                 device,
                 surface,
                 renderer,
-                swap_chain,
                 texture_id: None,
             },
         }
@@ -171,20 +175,20 @@ impl TracyUi {
 
             match event {
                 Event::WindowEvent {
-                    event: WindowEvent::Resized(_),
+                    event: WindowEvent::Resized(size),
                     ..
                 } => {
-                    let size = ctx.window.inner_size();
-
-                    let sc_desc = wgpu::SwapChainDescriptor {
-                        usage: wgpu::TextureUsage::RENDER_ATTACHMENT,
+                    let surface_desc = wgpu::SurfaceConfiguration {
+                        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
                         format: wgpu::TextureFormat::Bgra8UnormSrgb,
                         width: size.width,
                         height: size.height,
                         present_mode: wgpu::PresentMode::Mailbox,
+                        alpha_mode: wgpu::CompositeAlphaMode::Auto,
+                        view_formats: vec![wgpu::TextureFormat::Bgra8Unorm],
                     };
 
-                    gfx.swap_chain = gfx.device.create_swap_chain(&gfx.surface, &sc_desc);
+                    gfx.surface.configure(&gfx.device, &surface_desc);
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -199,7 +203,7 @@ impl TracyUi {
                     last_frame = now;
 
                     // Prepare next frame
-                    let frame = match gfx.swap_chain.get_current_frame() {
+                    let frame = match gfx.surface.get_current_texture() {
                         Ok(frame) => frame,
                         Err(e) => {
                             eprintln!("dropped frame: {:?}", e);
@@ -217,7 +221,7 @@ impl TracyUi {
                         freeze_canvas_size: current_render.is_some(),
                         ..UiState::default()
                     };
-                    state.draw_ui(&ui, &mut scenes[..], gfx.texture_id);
+                    state.draw_ui(ui, &mut scenes[..], gfx.texture_id);
 
                     // User has stopped the rendering
                     if state.stop_rendering {
@@ -282,29 +286,35 @@ impl TracyUi {
 
                     if last_cursor != Some(ui.mouse_cursor()) {
                         last_cursor = Some(ui.mouse_cursor());
-                        ctx.platform.prepare_render(&ui, &ctx.window);
+                        ctx.platform.prepare_render(ui, &ctx.window);
                     }
+
+                    let view = frame
+                        .texture
+                        .create_view(&wgpu::TextureViewDescriptor::default());
 
                     let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                         label: None,
-                        color_attachments: &[wgpu::RenderPassColorAttachmentDescriptor {
-                            attachment: &frame.output.view,
+                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                            view: &view,
                             resolve_target: None,
                             ops: wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(clear_color),
                                 store: true,
                             },
-                        }],
+                        })],
                         depth_stencil_attachment: None,
                     });
 
                     gfx.renderer
-                        .render(ui.render(), &gfx.queue, &gfx.device, &mut rpass)
+                        .render(ctx.imgui.render(), &gfx.queue, &gfx.device, &mut rpass)
                         .expect("Rendering failed");
 
                     drop(rpass);
 
                     gfx.queue.submit(Some(encoder.finish()));
+
+                    frame.present();
                 }
                 _ => (),
             }
@@ -327,15 +337,15 @@ impl UiState {
     }
 
     fn draw_canvas(&mut self, ui: &im::Ui, texture: Option<im::TextureId>) {
-        im::Window::new(im_str!("Canvas"))
+        ui.window("Canvas")
             .size(
                 [DEFAULT_WIDTH as f32, DEFAULT_HEIGHT as f32],
                 im::Condition::FirstUseEver,
             )
             .resizable(!self.freeze_canvas_size)
             .position([48., 48.], im::Condition::FirstUseEver)
-            .build(&ui, || {
-                self.stop_rendering = ui.button(im_str!("Stop rendering"), [0., 0.]);
+            .build(|| {
+                self.stop_rendering = ui.button("Stop rendering");
                 ui.separator();
 
                 // Track canvas size changes
@@ -344,16 +354,16 @@ impl UiState {
                 self.canvas_height = size[1] as u32;
 
                 if let Some(tid) = texture {
-                    im::Image::new(tid, size).build(&ui);
+                    im::Image::new(tid, size).build(ui);
                 }
             });
     }
 
     fn draw_scene_picker(&mut self, ui: &im::Ui, scenes: &mut [Box<dyn Scene>]) {
-        im::Window::new(im_str!("Scenarios"))
+        ui.window("Scenarios")
             .size([432., 512.], im::Condition::FirstUseEver)
             .position([800., 48.], im::Condition::FirstUseEver)
-            .build(&ui, || {
+            .build(|| {
                 for scene_id in 0..scenes.len() {
                     self.draw_scene_entry(ui, scenes, scene_id);
                 }
@@ -364,14 +374,14 @@ impl UiState {
         let scene = scenes.get_mut(scene_id).unwrap();
         let name = scene.name();
 
-        if im::CollapsingHeader::new(&im::ImString::new(&name)).build(&ui) {
-            ui.text(im::ImString::new(&scene.description()));
+        if im::CollapsingHeader::new(&im::ImString::new(&name)).build(ui) {
+            ui.text(im::ImString::new(scene.description()));
             ui.separator();
-            let redraw = scene.draw(&ui);
+            let redraw = scene.draw(ui);
             ui.separator();
-            let force = ui.button(&im_str!("Render it!##{}", name), [0., 0.]);
-            ui.same_line(0.);
-            let save = ui.button(&im_str!("Save as PNG##{}", name), [0., 0.]);
+            let force = ui.button(format!("Render it!##{name}"));
+            ui.same_line();
+            let save = ui.button(format!("Save as PNG##{name}"));
 
             if redraw || force {
                 self.render_scene = Some(scene_id);

@@ -57,17 +57,17 @@ impl Scene for Patterns {
     fn draw(&mut self, ui: &Ui) -> bool {
         let mut redraw = false;
 
-        if let Some(token) = ComboBox::new(&im_str!("Scene selector##{}", self.name()))
-            .preview_value(&ImString::new(Self::SUBSCENES[self.selection].0))
-            .begin(ui)
-        {
+        if let Some(token) = ui.begin_combo(
+            &format!("Scene selector##{}", self.name()),
+            &ImString::new(Self::SUBSCENES[self.selection].0),
+        ) {
             for (i, &(name, _)) in Self::SUBSCENES.iter().enumerate() {
-                if Selectable::new(&ImString::new(name)).build(ui) {
+                if ui.selectable(&ImString::new(name)) {
                     *self = Self::load_scene(i).unwrap();
                     redraw = true;
                 }
             }
-            token.end(ui);
+            token.end();
         }
 
         redraw

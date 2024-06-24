@@ -53,6 +53,6 @@ impl Scene for FlatSphere {
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {
-        ColorPicker::new(&im_str!("Color##{}", self.name()), &mut self.color).build(ui)
+        ui.color_picker3(format!("Color##{}", self.name()), &mut self.color)
     }
 }

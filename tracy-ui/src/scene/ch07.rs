@@ -46,8 +46,6 @@ impl Scene for ThreeSpheres {
     }
 
     fn draw(&mut self, ui: &Ui) -> bool {
-        Slider::new(&im_str!("FOV##{}", self.name()))
-            .range(30.0..=180.0)
-            .build(ui, &mut self.fov)
+        ui.slider(&format!("FOV##{}", self.name()), 30.0, 180.0, &mut self.fov)
     }
 }

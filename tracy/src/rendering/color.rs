@@ -51,9 +51,9 @@ impl Color {
     /// Returns the RGB888 representation of `self`.
     pub fn to_rgb888(self) -> (u8, u8, u8) {
         (
-            (self.r * 255.).max(0.).min(255.).round() as u8,
-            (self.g * 255.).max(0.).min(255.).round() as u8,
-            (self.b * 255.).max(0.).min(255.).round() as u8,
+            (self.r * 255.).clamp(0., 255.).round() as u8,
+            (self.g * 255.).clamp(0., 255.).round() as u8,
+            (self.b * 255.).clamp(0., 255.).round() as u8,
         )
     }
 }

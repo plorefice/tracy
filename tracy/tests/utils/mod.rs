@@ -45,7 +45,7 @@ macro_rules! assert_f32 {
 #[macro_export]
 macro_rules! assert_abs_diff {
     ($a:expr, $b:expr) => {
-        assert!(($a).abs_diff_eq(&$b, tracy::math::EPSILON));
+        assert!(($a).abs_diff_eq(&$b, tracy::math::EPSILON))
     };
 }
 

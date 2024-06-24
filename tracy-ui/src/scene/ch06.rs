@@ -69,23 +69,35 @@ impl Scene for PhongSphere {
     fn draw(&mut self, ui: &Ui) -> bool {
         let mut redraw = false;
 
-        redraw |= Slider::new(&im_str!("Ambient##{}", self.name()))
-            .range(0.0..=1.0)
-            .build(ui, &mut self.ambient);
+        redraw |= ui.slider(
+            format!("Ambient##{}", self.name()),
+            0.0,
+            1.0,
+            &mut self.ambient,
+        );
 
-        redraw |= Slider::new(&im_str!("Diffuse##{}", self.name()))
-            .range(0.0..=1.0)
-            .build(ui, &mut self.diffuse);
+        redraw |= ui.slider(
+            format!("Diffuse##{}", self.name()),
+            0.0,
+            1.0,
+            &mut self.diffuse,
+        );
 
-        redraw |= Slider::new(&im_str!("Specular##{}", self.name()))
-            .range(0.0..=1.0)
-            .build(ui, &mut self.specular);
+        redraw |= ui.slider(
+            format!("Specular##{}", self.name()),
+            0.0,
+            1.0,
+            &mut self.specular,
+        );
 
-        redraw |= Slider::new(&im_str!("Shininess##{}", self.name()))
-            .range(10.0..=200.0)
-            .build(ui, &mut self.shininess);
+        redraw |= ui.slider(
+            format!("Shininess##{}", self.name()),
+            0.0,
+            200.0,
+            &mut self.shininess,
+        );
 
-        redraw |= ColorPicker::new(&im_str!("Color##{}", self.name()), &mut self.color).build(ui);
+        redraw |= ui.color_picker3(format!("Color##{}", self.name()), &mut self.color);
 
         redraw
     }
